@@ -553,10 +553,11 @@
       if(data && typeof data.points !== 'undefined'){
         el.textContent = '⭐ ' + data.points;
       } else {
-        el.textContent = '⭐ Fehler: ' + (data.message || data.error || res.status);
+        el.textContent = '⭐ Punkte: bald verfügbar';
+        if(data.raw) console.log('Rohantwort von Streamlabs:', data.raw);
       }
     }catch(e){
-      el.textContent = '⭐ Fehler (siehe Konsole)';
+      el.textContent = '⭐ Punkte: bald verfügbar';
       console.error('Punkte-Fehler:', e);
     }
   }
