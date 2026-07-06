@@ -26,7 +26,14 @@ export default async function handler(req, res) {
         "X-Requested-With": "XMLHttpRequest"
       }
     });
-    const data = await streamlabsRes.json();
+
+    const rawText = await streamlabsRes.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      return res.status(502).json({ error: "Antwort war kein JSON", raw: rawText.slice(0, 300), status: streamlabsRes.status });
+    }
 
     if (!streamlabsRes.ok) {
       return res.status(streamlabsRes.status).json({ error: "Streamlabs-Fehler", details: data });
@@ -34,6 +41,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: "Fehler beim Abrufen der Punkte" });
+    return res.status(500).json({ error: "Fehler beim Abrufen der Punkte", message: err.message });
   }
 }

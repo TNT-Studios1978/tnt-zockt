@@ -553,7 +553,7 @@
       if(data && typeof data.points !== 'undefined'){
         el.textContent = '⭐ ' + data.points;
       } else {
-        el.textContent = '⭐ Fehler: ' + (data.error || res.status);
+        el.textContent = '⭐ Fehler: ' + (data.message || data.error || res.status);
       }
     }catch(e){
       el.textContent = '⭐ Fehler (siehe Konsole)';
