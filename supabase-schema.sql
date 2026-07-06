@@ -4,11 +4,19 @@
 -- Dashboard -> SQL Editor -> New query -> einfügen -> Run
 -- ============================================================
 
+-- ============================================================
+-- Migration: Logo-URL-Spalte hinzufügen (falls Tabellen bereits bestehen)
+-- Kannst du separat ausführen, falls du das Schema schon einmal
+-- komplett ausgeführt hattest.
+-- ============================================================
+alter table casinos add column if not exists logo_url text;
+
 -- Tabellen anlegen
 create table if not exists casinos (
   id text primary key,
   name text not null,
   badge text,
+  logo_url text,
   stars int default 3,
   bonus text,
   link text,

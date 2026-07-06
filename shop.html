@@ -305,9 +305,15 @@
     try{
       const res = await fetch('/api/points?username=' + encodeURIComponent(username));
       const data = await res.json();
-      el.textContent = (data && typeof data.points !== 'undefined') ? ('⭐ ' + data.points) : '⭐ –';
+      console.log('Punkte-API-Antwort:', res.status, data);
+      if(data && typeof data.points !== 'undefined'){
+        el.textContent = '⭐ ' + data.points;
+      } else {
+        el.textContent = '⭐ Fehler: ' + (data.error || res.status);
+      }
     }catch(e){
-      el.textContent = '⭐ –';
+      el.textContent = '⭐ Fehler (siehe Konsole)';
+      console.error('Punkte-Fehler:', e);
     }
   }
 
