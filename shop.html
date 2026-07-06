@@ -205,27 +205,60 @@
   <div class="shop-hero">
     <div class="eyebrow">Merch · Bald verfügbar</div>
     <h1>TNT<span>-</span>Zockt Shop</h1>
-    <p>Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald. Trag dich unten ein, um informiert zu werden.</p>
+    <p>Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald.</p>
   </div>
 
   <div class="fuse-divider"></div>
 
-  <section>
-    <div class="product-grid" id="product-grid"></div>
-  </section>
-
-  <div class="fuse-divider"></div>
-
-  <section>
+  <!-- LOGIN GATE (sichtbar, solange niemand eingeloggt ist) -->
+  <section id="login-gate">
     <div class="notify-box">
-      <h3>Als Erste(r) informiert werden</h3>
-      <p>Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
-      <form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
-        <input type="email" placeholder="Deine E-Mail-Adresse" required>
-        <button class="btn btn-primary" type="submit">Benachrichtigen</button>
-      </form>
+      <h3>🔒 Nur für Mitglieder</h3>
+      <p>Logg dich mit deinem Twitch-Konto ein, um den Shop zu sehen und deine Punkte abzurufen.</p>
+      <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
+        Mit Twitch anmelden
+      </button>
+      <div id="login-status" style="font-size:12px; color:var(--text-low); margin-top:14px;"></div>
     </div>
   </section>
+
+  <!-- SHOP-INHALT (nur sichtbar nach Login) -->
+  <div id="shop-content" style="display:none;">
+
+    <section style="padding-top:0;">
+      <div class="notify-box" style="max-width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; text-align:left; padding:20px 26px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img id="user-avatar" src="" alt="" style="width:44px; height:44px; border-radius:50%; display:none;">
+          <div>
+            <div style="font-weight:800;" id="user-name">–</div>
+            <div style="font-family:var(--mono); font-size:12px; color:var(--gold);" id="user-points">Punkte werden geladen…</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" onclick="logout()">Ausloggen</button>
+      </div>
+    </section>
+
+    <div class="fuse-divider"></div>
+
+    <section>
+      <div class="product-grid" id="product-grid"></div>
+    </section>
+
+    <div class="fuse-divider"></div>
+
+    <section>
+      <div class="notify-box">
+        <h3>Als Erste(r) informiert werden</h3>
+        <p>Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
+        <form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
+          <input type="email" placeholder="Deine E-Mail-Adresse" required>
+          <button class="btn btn-primary" type="submit">Benachrichtigen</button>
+        </form>
+      </div>
+    </section>
+
+  </div>
 
   <footer>
     <div class="footer-inner">
@@ -237,6 +270,78 @@
       </p>
     </div>
   </footer>
+
+<script>
+  function loginWithTwitch(){
+    sb.auth.signInWithOAuth({
+      provider: 'twitch',
+      options: { redirectTo: window.location.origin + '/shop.html' }
+    });
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    location.reload();
+  }
+
+  function getTwitchUsername(user){
+    const meta = user.user_metadata || {};
+    return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || '';
+  }
+
+  async function loadPoints(username){
+    const el = document.getElementById('user-points');
+    try{
+      const res = await fetch('/api/points?username=' + encodeURIComponent(username));
+      const data = await res.json();
+      if(data && typeof data.points !== 'undefined'){
+        el.textContent = '⭐ ' + data.points + ' Punkte';
+      } else {
+        el.textContent = 'Punkte konnten nicht geladen werden';
+      }
+    }catch(e){
+      el.textContent = 'Punkte konnten nicht geladen werden';
+      console.error(e);
+    }
+  }
+
+  async function showLoggedIn(user){
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('shop-content').style.display = 'block';
+
+    const username = getTwitchUsername(user);
+    document.getElementById('user-name').textContent = username || 'Twitch-Nutzer';
+
+    const avatar = user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture);
+    if(avatar){
+      const img = document.getElementById('user-avatar');
+      img.src = avatar; img.style.display = 'block';
+    }
+
+    if(username) loadPoints(username);
+    else document.getElementById('user-points').textContent = 'Twitch-Name nicht gefunden';
+
+    renderProducts();
+  }
+
+  function showLoginGate(){
+    document.getElementById('login-gate').style.display = 'block';
+    document.getElementById('shop-content').style.display = 'none';
+  }
+
+  (async function initAuth(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      showLoggedIn(session.user);
+    } else {
+      showLoginGate();
+    }
+    sb.auth.onAuthStateChange((event, session) => {
+      if(session && session.user) showLoggedIn(session.user);
+      else showLoginGate();
+    });
+  })();
+</script>
 
 <script>
   const ICONS = {
@@ -271,7 +376,7 @@
     `).join('');
   }
 
-  renderProducts();
+  // renderProducts() wird jetzt erst nach erfolgreichem Login aufgerufen (siehe initAuth)
 </script>
 </body>
 </html>
