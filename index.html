@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TNT-Zockt — Casinos, Bonusse & Live-Streams</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root{
+    --bg-0:#08080c;
+    --bg-1:#111118;
+    --bg-2:#181822;
+    --fuse-red:#ff3d2e;
+    --fuse-red-glow: rgba(255,61,46,.55);
+    --gold:#ffcf3f;
+    --gold-glow: rgba(255,207,63,.4);
+    --cyan:#28f0e0;
+    --cyan-glow: rgba(40,240,224,.4);
+    --text-hi:#f6f4ef;
+    --text-mid:#b9b6c4;
+    --text-low:#716e7d;
+    --line:#26232e;
+    --radius:14px;
+    --display: 'Anton', sans-serif;
+    --body: 'Manrope', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-0);
+    color:var(--text-hi);
+    font-family:var(--body);
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  }
+
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  img,svg{display:block; max-width:100%;}
+
+  /* ---------- Age Gate ---------- */
+  #agegate{
+    position:fixed; inset:0; z-index:999;
+    background:radial-gradient(ellipse at center, #17131a 0%, #08080c 75%);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .gate-card{
+    max-width:440px; width:100%;
+    background:var(--bg-1);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:36px 32px;
+    text-align:center;
+    box-shadow:0 0 60px rgba(255,61,46,.12);
+  }
+  .gate-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:64px; height:64px; border-radius:50%;
+    background:linear-gradient(145deg, var(--fuse-red), #b8281c);
+    font-family:var(--display);
+    font-size:26px;
+    margin-bottom:18px;
+    box-shadow:0 0 30px var(--fuse-red-glow);
+  }
+  .gate-card h2{
+    font-family:var(--display);
+    font-size:22px;
+    letter-spacing:.5px;
+    margin-bottom:10px;
+    text-transform:uppercase;
+  }
+  .gate-card p{color:var(--text-mid); font-size:14px; margin-bottom:22px;}
+  .gate-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--body); font-weight:800; font-size:14px;
+    padding:13px 26px; border-radius:8px; border:none; cursor:pointer;
+    letter-spacing:.3px;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--fuse-red), #c2281c);
+    color:#fff;
+    box-shadow:0 4px 20px var(--fuse-red-glow);
+  }
+  .btn-primary:hover{filter:brightness(1.1);}
+  .btn-ghost{
+    background:transparent; color:var(--text-mid); border:1px solid var(--line);
+  }
+  .gate-legal{margin-top:16px; font-size:11px; color:var(--text-low);}
+  body.locked{overflow:hidden;}
+  #site{display:none;}
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(8,8,12,.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:1180px; margin:0 auto; padding:16px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo{
+    font-family:var(--display); font-size:22px; letter-spacing:.5px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{color:var(--fuse-red);}
+  .nav-links{display:flex; gap:28px; font-size:14px; font-weight:600; color:var(--text-mid);}
+  .nav-links a:hover{color:var(--text-hi);}
+  .nav-cta{
+    font-size:13px; font-weight:800; padding:10px 18px; border-radius:7px;
+    background:var(--gold); color:#1a1400;
+  }
+  @media(max-width:720px){ .nav-links{display:none;} }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    max-width:1180px; margin:0 auto;
+    padding:90px 24px 70px;
+    display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center;
+  }
+  @media(max-width:860px){ .hero{grid-template-columns:1fr; padding-top:50px;} }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:2px;
+    color:var(--cyan); text-transform:uppercase;
+    display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:var(--cyan); box-shadow:0 0 10px var(--cyan-glow);
+    animation:pulse 1.6s infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .hero h1{
+    font-family:var(--display);
+    font-size:clamp(38px, 6vw, 64px);
+    line-height:1.02;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:20px;
+  }
+  .hero h1 .flame{
+    color:var(--fuse-red);
+    text-shadow:0 0 30px var(--fuse-red-glow);
+  }
+  .hero p{color:var(--text-mid); font-size:17px; max-width:480px; margin-bottom:30px;}
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn-outline{
+    border:1px solid var(--line); color:var(--text-hi);
+    background:var(--bg-1);
+  }
+  .btn-outline:hover{border-color:var(--cyan); color:var(--cyan);}
+
+  .hero-stats{display:flex; gap:28px; margin-top:36px; font-family:var(--mono);}
+  .hero-stats div span{display:block; font-size:22px; font-weight:600; color:var(--gold);}
+  .hero-stats div small{color:var(--text-low); font-size:11px; letter-spacing:1px; text-transform:uppercase;}
+
+  /* TNT hero visual */
+  .tnt-visual{position:relative; height:340px; display:flex; align-items:center; justify-content:center;}
+  .fuse-spark{
+    position:absolute; width:10px; height:10px; border-radius:50%;
+    background:var(--gold); box-shadow:0 0 16px 4px var(--gold-glow);
+    animation:travel 2.4s ease-in-out infinite;
+  }
+  @keyframes travel{
+    0%{ top:8%; left:62%; opacity:1;}
+    50%{ top:2%; left:48%; opacity:1;}
+    95%{ top:24%; left:52%; opacity:0;}
+    100%{opacity:0;}
+  }
+
+  /* ---------- Section shared ---------- */
+  section{max-width:1180px; margin:0 auto; padding:70px 24px;}
+  .section-head{margin-bottom:36px; max-width:600px;}
+  .section-tag{
+    font-family:var(--mono); font-size:12px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--fuse-red); margin-bottom:10px;
+  }
+  .section-head h2{
+    font-family:var(--display); font-size:clamp(26px,4vw,38px);
+    text-transform:uppercase; letter-spacing:.3px;
+  }
+  .section-head p{color:var(--text-mid); margin-top:10px; font-size:15px;}
+
+  /* fuse divider */
+  .fuse-divider{
+    position:relative; height:2px; margin:0 24px;
+    background-image:repeating-linear-gradient(90deg, var(--line) 0 8px, transparent 8px 14px);
+    max-width:1132px; margin-left:auto; margin-right:auto;
+  }
+  .fuse-divider::after{
+    content:'💥'; position:absolute; right:-6px; top:50%; transform:translateY(-50%);
+    font-size:18px;
+  }
+
+  /* ---------- Casino cards ---------- */
+  .casino-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+    gap:20px;
+  }
+  .casino-card{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px; display:flex; flex-direction:column; gap:14px;
+    position:relative; overflow:hidden;
+    transition:transform .2s, border-color .2s;
+  }
+  .casino-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
+  .casino-card .rank{
+    position:absolute; top:16px; right:18px;
+    font-family:var(--mono); font-size:12px; color:var(--text-low);
+  }
+  .casino-logo{
+    width:52px; height:52px; border-radius:10px;
+    background:linear-gradient(145deg, var(--bg-2), #0d0d13);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:20px; color:var(--gold);
+    border:1px solid var(--line);
+  }
+  .casino-card h3{font-size:18px; font-weight:800;}
+  .casino-card .bonus{
+    font-family:var(--mono); font-size:13px; color:var(--cyan);
+    background:rgba(40,240,224,.08); border:1px solid rgba(40,240,224,.25);
+    padding:8px 10px; border-radius:6px;
+  }
+  .stars{color:var(--gold); font-size:13px; letter-spacing:2px;}
+  .casino-card .go{
+    margin-top:auto;
+    text-align:center; font-weight:800; font-size:13px;
+    padding:11px; border-radius:7px;
+    background:var(--fuse-red); color:#fff;
+  }
+  .casino-card .go:hover{filter:brightness(1.1);}
+  .fine{font-size:10px; color:var(--text-low);}
+
+  /* ---------- Streamers ---------- */
+  .stream-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+    gap:20px;
+  }
+  .stream-card{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px; display:flex; align-items:center; gap:16px;
+    transition:border-color .2s;
+  }
+  .stream-card:hover{border-color:var(--cyan);}
+  .stream-avatar{
+    width:54px; height:54px; border-radius:50%; flex-shrink:0;
+    background:conic-gradient(from 180deg, var(--fuse-red), var(--gold), var(--cyan), var(--fuse-red));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stream-avatar span{
+    width:46px; height:46px; border-radius:50%; background:var(--bg-2);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:16px;
+  }
+  .stream-info h4{font-size:15px; font-weight:800; margin-bottom:2px;}
+  .stream-info .platform{
+    font-family:var(--mono); font-size:11px;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .plat-twitch{color:#a970ff;}
+  .plat-kick{color:#53fc18;}
+  .live-dot{width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 6px currentColor;}
+  .stream-card .watch{
+    margin-left:auto; font-size:12px; font-weight:800;
+    border:1px solid var(--line); padding:9px 14px; border-radius:7px;
+    white-space:nowrap;
+  }
+  .stream-card .watch:hover{border-color:var(--gold); color:var(--gold);}
+
+  /* ---------- Responsible gaming ---------- */
+  .responsible{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px; display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;
+  }
+  .responsible .icon{
+    width:44px; height:44px; border-radius:10px; flex-shrink:0;
+    background:rgba(255,61,46,.12); border:1px solid rgba(255,61,46,.3);
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+  }
+  .responsible h3{font-size:16px; margin-bottom:6px;}
+  .responsible p{color:var(--text-mid); font-size:13.5px; max-width:640px;}
+  .responsible a{color:var(--cyan); font-weight:700;}
+
+  /* ---------- Footer ---------- */
+  footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
+  .footer-inner{max-width:1180px; margin:0 auto;}
+  .footer-top{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; margin-bottom:24px;
+  }
+  .footer-legal{font-size:11.5px; color:var(--text-low); line-height:1.7; max-width:760px;}
+  .footer-badges{display:flex; gap:10px; flex-wrap:wrap;}
+  .badge{
+    font-family:var(--mono); font-size:11px; color:var(--text-low);
+    border:1px solid var(--line); padding:5px 10px; border-radius:6px;
+  }
+</style>
+</head>
+<body class="locked">
+
+  <!-- AGE GATE -->
+  <div id="agegate">
+    <div class="gate-card">
+      <div class="gate-badge">18+</div>
+      <h2>Altersverifikation</h2>
+      <p>Diese Seite enthält Inhalte zu Glücksspiel mit Echtgeld-Einsatz. Der Zutritt ist nur Personen ab 18 Jahren gestattet.</p>
+      <div class="gate-actions">
+        <button class="btn btn-primary" onclick="enterSite()">Ich bin 18 Jahre oder älter</button>
+        <a class="btn btn-ghost" href="https://www.google.com">Seite verlassen</a>
+      </div>
+      <div class="gate-legal">Glücksspiel kann süchtig machen. Spielerschutz: BZgA-Hotline 0800&nbsp;1&nbsp;37&nbsp;27&nbsp;00.</div>
+    </div>
+  </div>
+
+  <div id="site">
+
+    <header>
+      <nav class="nav">
+        <div class="logo"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:40px; width:auto; border-radius:6px;"></div>
+        <div class="nav-links">
+          <a href="#casinos">Angebote</a>
+          <a href="#streams">Streamer</a>
+          <a href="shop.html">Shop</a>
+          <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Tournierbaum</a>
+          <a href="#verantwortung">Verantwortung</a>
+        </div>
+        <a class="nav-cta" href="#casinos">Top Bonus sichern</a>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Live · Casino Bonusse & Streams</div>
+        <h1>Zünde dein <span class="flame">Glück.</span><br>Zock mit TNT.</h1>
+        <p>Geprüfte Online-Casinos, exklusive Boni und die besten Twitch- & Kick-Streamer an einem Ort. Kurze Zündschnur, große Wirkung.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#casinos">Top Casinos ansehen</a>
+          <a class="btn btn-outline" href="#streams">Live-Streams</a>
+        </div>
+        <div class="hero-stats">
+          <div><span>7</span><small>Casino-Angebote</small></div>
+          <div><span>3</span><small>Social-Kanäle</small></div>
+          <div><span>18+</span><small>Verantwortung</small></div>
+        </div>
+      </div>
+      <div class="tnt-visual">
+        <svg viewBox="0 0 320 340" width="100%" style="max-width:340px;">
+          <!-- bundle of dynamite -->
+          <g>
+            <rect x="70" y="120" width="46" height="150" rx="8" fill="#b8281c" stroke="#3a0f0a" stroke-width="2"/>
+            <rect x="120" y="105" width="46" height="165" rx="8" fill="#ff3d2e" stroke="#3a0f0a" stroke-width="2"/>
+            <rect x="170" y="120" width="46" height="150" rx="8" fill="#b8281c" stroke="#3a0f0a" stroke-width="2"/>
+            <rect x="70" y="150" width="146" height="8" fill="#1a1400" opacity="0.5"/>
+            <rect x="70" y="220" width="146" height="8" fill="#1a1400" opacity="0.5"/>
+            <text x="143" y="200" text-anchor="middle" font-family="Anton" font-size="20" fill="#ffcf3f" opacity="0.85">TNT</text>
+          </g>
+          <!-- fuse -->
+          <path d="M143 105 C 150 80, 130 60, 150 40 S 140 10, 155 5" stroke="#8a7a5c" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div class="fuse-spark"></div>
+      </div>
+    </div>
+
+    <div class="fuse-divider"></div>
+
+    <!-- CASINOS -->
+    <section id="casinos">
+      <div class="section-head">
+        <div class="section-tag">Top Auswahl</div>
+        <h2>Unsere Casino-Empfehlungen</h2>
+        <p>Ersetze die Platzhalter unten durch deine tatsächlichen Casino-Partner, Boni und Affiliate-Links.</p>
+      </div>
+      <div class="casino-grid" id="casino-grid"></div>
+    </section>
+
+    <div class="fuse-divider"></div>
+
+    <!-- STREAMERS -->
+    <section id="streams">
+      <div class="section-head">
+        <div class="section-tag">Community</div>
+        <h2>Unsere Streamer</h2>
+        <p>Unser offizieller Kanal, plus Platzhalter für Gast-Streamer auf Twitch & Kick.</p>
+      </div>
+      <div class="stream-grid" id="stream-grid"></div>
+    </section>
+
+    <div class="fuse-divider"></div>
+
+    <!-- RESPONSIBLE GAMING -->
+    <section id="verantwortung">
+      <div class="responsible">
+        <div class="icon">⚠️</div>
+        <div>
+          <h3>Verantwortungsvolles Spielen</h3>
+          <p>Glücksspiel ist Unterhaltung, kein Weg zum Geldverdienen und kann süchtig machen. Spiele nur mit Geld, dessen Verlust du dir leisten kannst. Hilfe und Beratung: <a href="tel:080013727700">BZgA-Hotline 0800 1 37 27 00</a> (kostenlos, anonym) oder <a href="https://www.check-dein-spiel.de" target="_blank" rel="noopener">check-dein-spiel.de</a>. Zugang ab 18 Jahren.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="logo"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:32px; width:auto; border-radius:5px;"></div>
+          <div class="footer-badges">
+            <span class="badge">18+</span>
+            <span class="badge">Spielerschutz</span>
+            <span class="badge">Affiliate-Partner</span>
+          </div>
+        </div>
+        <p class="footer-legal">
+          © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Einige Links sind Affiliate-Links — beim Abschluss können wir eine Provision erhalten, das hat keinen Einfluss auf deine Kosten. Alle Angebote richten sich ausschließlich an volljährige Personen (18+). Glücksspiel kann süchtig machen — spiele verantwortungsvoll.
+        </p>
+        <p class="footer-legal" style="margin-top:12px;">
+          <a href="https://www.facebook.com/tntstudios.ch" target="_blank" rel="noopener">Facebook</a> ·
+          <a href="https://www.youtube.com/@SuperTNTstudios" target="_blank" rel="noopener">YouTube</a> ·
+          <a href="https://twitch.tv/tnt_studiosch" target="_blank" rel="noopener">Twitch</a>
+        </p>
+        <p class="footer-legal" style="margin-top:12px;">
+          <a href="https://tnt-zockt-3.jimdosite.com/impressum/" target="_blank" rel="noopener">Impressum</a> ·
+          <a href="https://tnt-zockt-3.jimdosite.com/datenschutz/" target="_blank" rel="noopener">Datenschutz</a> ·
+          <a href="https://tnt-zockt-3.jimdosite.com/cookie-einstellungen/" target="_blank" rel="noopener">Cookie-Einstellungen</a> ·
+          <a href="https://tnt-zockt-3.jimdosite.com/lieferbedingungen/" target="_blank" rel="noopener">Lieferbedingungen</a> ·
+          <a href="https://tnt-zockt-3.jimdosite.com/widerrufsrecht/" target="_blank" rel="noopener">Widerrufsbelehrung</a> ·
+          <a href="https://tnt-zockt-3.jimdosite.com/agb/" target="_blank" rel="noopener">AGB</a>
+        </p>
+        <p class="footer-legal" style="margin-top:12px;">
+          <a href="admin.html">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
+        </p>
+      </div>
+    </footer>
+
+  </div>
+
+<script>
+  function enterSite(){
+    document.getElementById('agegate').style.display = 'none';
+    document.getElementById('site').style.display = 'block';
+    document.body.classList.remove('locked');
+  }
+
+  function starString(n){
+    return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
+  }
+
+  async function renderCasinos(){
+    const grid = document.getElementById('casino-grid');
+    const { data, error } = await sb.from('casinos').select('*').order('sort_order', { ascending: true });
+    if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Casinos konnten nicht geladen werden.</p>'; console.error(error); return; }
+    grid.innerHTML = data.map((c, i) => `
+      <div class="casino-card"><div class="rank">#${i+1}</div>
+        <div class="casino-logo">${c.badge || '?'}</div>
+        <h3>${c.name}</h3>
+        <div class="stars">${starString(c.stars)}</div>
+        <div class="bonus">${c.bonus || ''}</div>
+        <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
+        <div class="fine">18+ · AGB gelten · verantwortungsvoll spielen</div>
+      </div>
+    `).join('');
+  }
+
+  async function renderStreamers(){
+    const grid = document.getElementById('stream-grid');
+    const platMap = {
+      twitch:  {label:'Twitch',  cls:'plat-twitch'},
+      kick:    {label:'Kick',    cls:'plat-kick'},
+      youtube: {label:'YouTube', cls:'', style:'color:#ff5c5c;'}
+    };
+    const { data, error } = await sb.from('streamers').select('*').order('sort_order', { ascending: true });
+    if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Streamer konnten nicht geladen werden.</p>'; console.error(error); return; }
+    grid.innerHTML = data.map(s => {
+      const p = platMap[s.platform] || {label:s.platform, cls:''};
+      const initials = s.name.replace(/[\[\]]/g,'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+      return `
+      <div class="stream-card">
+        <div class="stream-avatar"><span>${initials}</span></div>
+        <div class="stream-info">
+          <h4>${s.name}</h4>
+          <div class="platform ${p.cls}" ${p.style ? `style="${p.style}"` : ''}><span class="live-dot"></span> ${p.label}</div>
+        </div>
+        <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">Kanal ansehen</a>
+      </div>`;
+    }).join('');
+  }
+
+  renderCasinos();
+  renderStreamers();
+</script>
+</body>
+</html>

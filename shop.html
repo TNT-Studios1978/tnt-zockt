@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop | TNT-Zockt</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root{
+    --bg-0:#08080c;
+    --bg-1:#111118;
+    --bg-2:#181822;
+    --fuse-red:#ff3d2e;
+    --fuse-red-glow: rgba(255,61,46,.55);
+    --gold:#ffcf3f;
+    --gold-glow: rgba(255,207,63,.4);
+    --cyan:#28f0e0;
+    --cyan-glow: rgba(40,240,224,.4);
+    --text-hi:#f6f4ef;
+    --text-mid:#b9b6c4;
+    --text-low:#716e7d;
+    --line:#26232e;
+    --radius:14px;
+    --display: 'Anton', sans-serif;
+    --body: 'Manrope', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-0);
+    color:var(--text-hi);
+    font-family:var(--body);
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  }
+
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  img,svg{display:block; max-width:100%;}
+
+  .btn{
+    font-family:var(--body); font-weight:800; font-size:14px;
+    padding:13px 26px; border-radius:8px; border:none; cursor:pointer;
+    letter-spacing:.3px;
+  }
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(8,8,12,.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:1180px; margin:0 auto; padding:16px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo{
+    font-family:var(--display); font-size:22px; letter-spacing:.5px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{color:var(--fuse-red);}
+  .nav-links{display:flex; gap:28px; font-size:14px; font-weight:600; color:var(--text-mid);}
+  .nav-links a:hover, .nav-links a.active{color:var(--text-hi);}
+  .nav-links a.active{color:var(--gold);}
+  .nav-cta{
+    font-size:13px; font-weight:800; padding:10px 18px; border-radius:7px;
+    background:var(--gold); color:#1a1400;
+  }
+  @media(max-width:720px){ .nav-links{display:none;} }
+
+  section{max-width:1180px; margin:0 auto; padding:70px 24px;}
+
+  /* ---------- Shop hero ---------- */
+  .shop-hero{
+    text-align:center; padding:80px 24px 50px;
+    max-width:760px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:2px;
+    color:var(--cyan); text-transform:uppercase;
+    display:inline-flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:var(--cyan); box-shadow:0 0 10px var(--cyan-glow);
+    animation:pulse 1.6s infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .shop-hero h1{
+    font-family:var(--display);
+    font-size:clamp(34px, 5vw, 54px);
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:16px;
+  }
+  .shop-hero h1 span{ color:var(--fuse-red); text-shadow:0 0 30px var(--fuse-red-glow); }
+  .shop-hero p{color:var(--text-mid); font-size:16px;}
+
+  /* ---------- Product grid ---------- */
+  .product-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+    gap:22px;
+  }
+  .product-card{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column;
+    transition:transform .2s, border-color .2s;
+    position:relative;
+  }
+  .product-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
+  .product-card .soon-tag{
+    position:absolute; top:14px; right:14px; z-index:2;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:1px;
+    background:rgba(255,61,46,.15); color:var(--fuse-red);
+    border:1px solid rgba(255,61,46,.4);
+    padding:4px 9px; border-radius:20px; text-transform:uppercase;
+  }
+  .product-image{
+    aspect-ratio:1/1;
+    background:
+      linear-gradient(135deg, var(--bg-2) 0%, #0d0d13 100%);
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .product-image .ph-icon{
+    font-family:var(--display); font-size:15px; color:var(--text-low);
+    letter-spacing:2px; text-transform:uppercase;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .product-image .ph-icon svg{ width:44px; height:44px; opacity:.5; }
+  .product-body{padding:18px 20px 20px; display:flex; flex-direction:column; gap:8px; flex:1;}
+  .product-body h3{font-size:16px; font-weight:800;}
+  .product-body .desc{font-size:13px; color:var(--text-mid);}
+  .product-body .meta{
+    display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:10px;
+  }
+  .price{font-family:var(--mono); font-weight:600; font-size:16px; color:var(--gold);}
+  .notify-btn{
+    font-size:12px; font-weight:800; padding:9px 14px; border-radius:7px;
+    background:var(--bg-2); border:1px solid var(--line); color:var(--text-mid);
+    cursor:not-allowed;
+  }
+
+  .fuse-divider{
+    position:relative; height:2px; margin:0 24px;
+    background-image:repeating-linear-gradient(90deg, var(--line) 0 8px, transparent 8px 14px);
+    max-width:1132px; margin-left:auto; margin-right:auto;
+  }
+  .fuse-divider::after{
+    content:'💥'; position:absolute; right:-6px; top:50%; transform:translateY(-50%);
+    font-size:18px;
+  }
+
+  /* ---------- Notify signup ---------- */
+  .notify-box{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    padding:40px; text-align:center; max-width:620px; margin:0 auto;
+  }
+  .notify-box h3{font-family:var(--display); font-size:24px; text-transform:uppercase; margin-bottom:10px;}
+  .notify-box p{color:var(--text-mid); font-size:14px; margin-bottom:20px;}
+  .notify-form{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .notify-form input{
+    flex:1; min-width:200px; padding:12px 14px; border-radius:8px;
+    border:1px solid var(--line); background:var(--bg-2); color:var(--text-hi);
+    font-family:var(--body); font-size:14px;
+  }
+  .notify-form input::placeholder{color:var(--text-low);}
+  .btn-primary{
+    background:linear-gradient(135deg, var(--fuse-red), #c2281c);
+    color:#fff; box-shadow:0 4px 20px var(--fuse-red-glow);
+  }
+  .btn-primary:hover{filter:brightness(1.1);}
+
+  footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
+  .footer-inner{max-width:1180px; margin:0 auto;}
+  .footer-legal{font-size:11.5px; color:var(--text-low); line-height:1.7; max-width:760px;}
+</style>
+</head>
+<body>
+
+  <header>
+    <nav class="nav">
+      <a href="index.html" class="logo"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:40px; width:auto; border-radius:6px;"></a>
+      <div class="nav-links">
+        <a href="index.html#casinos">Angebote</a>
+        <a href="index.html#streams">Streamer</a>
+        <a href="shop.html" class="active">Shop</a>
+        <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Tournierbaum</a>
+        <a href="index.html#verantwortung">Verantwortung</a>
+      </div>
+      <a class="nav-cta" href="index.html#casinos">Top Bonus sichern</a>
+    </nav>
+  </header>
+
+  <div class="shop-hero">
+    <div class="eyebrow">Merch · Bald verfügbar</div>
+    <h1>TNT<span>-</span>Zockt Shop</h1>
+    <p>Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald. Trag dich unten ein, um informiert zu werden.</p>
+  </div>
+
+  <div class="fuse-divider"></div>
+
+  <section>
+    <div class="product-grid" id="product-grid"></div>
+  </section>
+
+  <div class="fuse-divider"></div>
+
+  <section>
+    <div class="notify-box">
+      <h3>Als Erste(r) informiert werden</h3>
+      <p>Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
+      <form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
+        <input type="email" placeholder="Deine E-Mail-Adresse" required>
+        <button class="btn btn-primary" type="submit">Benachrichtigen</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-legal">
+        © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Der Shop-Bereich befindet sich im Aufbau, alle gezeigten Produkte, Preise und Bilder sind Platzhalter.
+      </p>
+      <p class="footer-legal" style="margin-top:10px;">
+        <a href="admin.html">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
+      </p>
+    </div>
+  </footer>
+
+<script>
+  const ICONS = {
+    shirt:  '<path d="M8 4 L4 8 L7 11 L8 10 V20 H16 V10 L17 11 L20 8 L16 4 L14 6 A2 2 0 0 1 10 6 Z"/>',
+    cap:    '<circle cx="12" cy="13" r="7"/><path d="M6 8 C6 4 9 2 12 2 C15 2 18 4 18 8"/>',
+    hoodie: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+    mug:    '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'
+  };
+
+  async function renderProducts(){
+    const grid = document.getElementById('product-grid');
+    const { data, error } = await sb.from('products').select('*').order('sort_order', { ascending: true });
+    if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
+    grid.innerHTML = data.map(p => `
+      <div class="product-card">
+        <span class="soon-tag">Bald verfügbar</span>
+        <div class="product-image">
+          <div class="ph-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${ICONS[p.icon] || ICONS.shirt}</svg>
+            [Produktbild]
+          </div>
+        </div>
+        <div class="product-body">
+          <h3>${p.name}</h3>
+          <div class="desc">${p.description || ''}</div>
+          <div class="meta">
+            <span class="price">${p.price}</span>
+            <span class="notify-btn">Bald da</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  renderProducts();
+</script>
+</body>
+</html>
