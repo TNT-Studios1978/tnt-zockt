@@ -214,7 +214,14 @@
           </div>
           <div style="grid-column:span 2;"><label>Bonustext</label><input value="${c.bonus || ''}" onchange="updateField('casinos',${i},'bonus',this.value)"></div>
           <div style="grid-column:span 2;"><label>Affiliate-Link</label><input value="${c.link || ''}" onchange="updateField('casinos',${i},'link',this.value)"></div>
-          <div style="grid-column:span 2;"><label>Logo-Bild-URL (optional)</label><input value="${c.logo_url || ''}" placeholder="https://... (leer = Kürzel wird angezeigt)" onchange="updateField('casinos',${i},'logo_url',this.value)"></div>
+          <div style="grid-column:span 2;">
+            <label>Logo</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              ${c.logo_url ? `<img src="${c.logo_url}" alt="" style="width:36px; height:36px; object-fit:contain; border-radius:6px; border:1px solid var(--line); background:var(--bg-2);">` : ''}
+              <input type="file" accept="image/*" onchange="uploadLogo(event, ${i})" style="flex:1;">
+            </div>
+            <div id="upload-status-${i}" style="font-size:11px; color:var(--text-low); margin-top:4px;"></div>
+          </div>
         </div>
         <div class="entry-footer">
           <span class="id-tag">ID: ${c.id}</span>
@@ -229,6 +236,39 @@
     const { error } = await sb.from('casinos').insert(entry);
     if(error){ setStatus('Fehler beim Hinzufügen.', true); console.error(error); return; }
     CASINOS.push(entry); renderCasinoList(); setStatus('✓ Hinzugefügt');
+  }
+
+  async function uploadLogo(event, index){
+    const file = event.target.files[0];
+    if(!file) return;
+    const entry = CASINOS[index];
+    const statusEl = document.getElementById('upload-status-' + index);
+    statusEl.textContent = 'Lade hoch…';
+
+    const ext = file.name.split('.').pop();
+    const path = `casinos/${entry.id}-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await sb.storage.from('logos').upload(path, file, { upsert: true });
+    if(uploadError){
+      statusEl.textContent = 'Fehler beim Hochladen.';
+      console.error(uploadError);
+      return;
+    }
+
+    const { data: urlData } = sb.storage.from('logos').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+
+    entry.logo_url = publicUrl;
+    setStatus('Speichere…');
+    const { error: dbError } = await sb.from('casinos').update({ logo_url: publicUrl }).eq('id', entry.id);
+    if(dbError){
+      statusEl.textContent = 'Bild hochgeladen, aber Speichern fehlgeschlagen.';
+      console.error(dbError);
+      return;
+    }
+    statusEl.textContent = '✓ Logo gespeichert';
+    renderCasinoList();
+    setStatus('✓ Logo aktualisiert (' + new Date().toLocaleTimeString() + ')');
   }
 
   /* ---------- STREAMERS ---------- */
