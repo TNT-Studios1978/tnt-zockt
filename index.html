@@ -122,6 +122,26 @@
   }
   @media(max-width:720px){ .nav-links{display:none;} }
 
+  /* ---------- Nav Auth Widget ---------- */
+  .nav-auth{ display:flex; align-items:center; gap:10px; }
+  .nav-auth-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--body); font-weight:800; font-size:12.5px;
+    padding:9px 14px; border-radius:7px; border:none; cursor:pointer;
+    background:#9146FF; color:#fff;
+  }
+  .nav-auth-btn:hover{ filter:brightness(1.1); }
+  .nav-user{ display:flex; align-items:center; gap:8px; }
+  .nav-user img{ width:28px; height:28px; border-radius:50%; }
+  .nav-user .info{ line-height:1.2; }
+  .nav-user .name{ font-size:12.5px; font-weight:800; }
+  .nav-user .points{ font-family:var(--mono); font-size:10.5px; color:var(--gold); }
+  .nav-logout{
+    font-size:11px; color:var(--text-low); border:1px solid var(--line);
+    background:var(--bg-1); padding:6px 10px; border-radius:6px; cursor:pointer;
+  }
+  .nav-logout:hover{ color:var(--fuse-red); border-color:var(--fuse-red); }
+
   /* ---------- Hero ---------- */
   .hero{
     position:relative;
@@ -338,6 +358,7 @@
           <a href="#verantwortung">Verantwortung</a>
         </div>
         <a class="nav-cta" href="#casinos">Top Bonus sichern</a>
+        <div class="nav-auth" id="nav-auth"></div>
       </nav>
     </header>
 
@@ -499,6 +520,72 @@
 
   renderCasinos();
   renderStreamers();
+
+  /* ---------- Nav Auth Widget ---------- */
+  function twitchIconSvg(){
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>';
+  }
+
+  function loginWithTwitch(){
+    sb.auth.signInWithOAuth({
+      provider: 'twitch',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    location.reload();
+  }
+
+  function getTwitchUsername(user){
+    const meta = user.user_metadata || {};
+    return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || '';
+  }
+
+  async function loadNavPoints(username){
+    const el = document.getElementById('nav-points');
+    if(!el) return;
+    try{
+      const res = await fetch('/api/points?username=' + encodeURIComponent(username));
+      const data = await res.json();
+      el.textContent = (data && typeof data.points !== 'undefined') ? ('⭐ ' + data.points) : '⭐ –';
+    }catch(e){
+      el.textContent = '⭐ –';
+    }
+  }
+
+  function renderNavAuth(session){
+    const container = document.getElementById('nav-auth');
+    if(!container) return;
+
+    if(session && session.user){
+      const user = session.user;
+      const username = getTwitchUsername(user);
+      const avatar = user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture);
+      container.innerHTML = `
+        <div class="nav-user">
+          ${avatar ? `<img src="${avatar}" alt="">` : ''}
+          <div class="info">
+            <div class="name">${username || 'Twitch-Nutzer'}</div>
+            <div class="points" id="nav-points">Lädt…</div>
+          </div>
+        </div>
+        <button class="nav-logout" onclick="logout()">Logout</button>
+      `;
+      if(username) loadNavPoints(username);
+    } else {
+      container.innerHTML = `
+        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Login</button>
+      `;
+    }
+  }
+
+  (async function initNavAuth(){
+    const { data: { session } } = await sb.auth.getSession();
+    renderNavAuth(session);
+    sb.auth.onAuthStateChange((event, session) => renderNavAuth(session));
+  })();
 </script>
 </body>
 </html>

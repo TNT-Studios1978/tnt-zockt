@@ -77,6 +77,26 @@
   }
   @media(max-width:720px){ .nav-links{display:none;} }
 
+  /* ---------- Nav Auth Widget ---------- */
+  .nav-auth{ display:flex; align-items:center; gap:10px; }
+  .nav-auth-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--body); font-weight:800; font-size:12.5px;
+    padding:9px 14px; border-radius:7px; border:none; cursor:pointer;
+    background:#9146FF; color:#fff;
+  }
+  .nav-auth-btn:hover{ filter:brightness(1.1); }
+  .nav-user{ display:flex; align-items:center; gap:8px; }
+  .nav-user img{ width:28px; height:28px; border-radius:50%; }
+  .nav-user .info{ line-height:1.2; }
+  .nav-user .name{ font-size:12.5px; font-weight:800; }
+  .nav-user .points{ font-family:var(--mono); font-size:10.5px; color:var(--gold); }
+  .nav-logout{
+    font-size:11px; color:var(--text-low); border:1px solid var(--line);
+    background:var(--bg-1); padding:6px 10px; border-radius:6px; cursor:pointer;
+  }
+  .nav-logout:hover{ color:var(--fuse-red); border-color:var(--fuse-red); }
+
   section{max-width:1180px; margin:0 auto; padding:70px 24px;}
 
   /* ---------- Shop hero ---------- */
@@ -199,6 +219,7 @@
         <a href="index.html#verantwortung">Verantwortung</a>
       </div>
       <a class="nav-cta" href="index.html#casinos">Top Bonus sichern</a>
+      <div class="nav-auth" id="nav-auth"></div>
     </nav>
   </header>
 
@@ -225,21 +246,6 @@
 
   <!-- SHOP-INHALT (nur sichtbar nach Login) -->
   <div id="shop-content" style="display:none;">
-
-    <section style="padding-top:0;">
-      <div class="notify-box" style="max-width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; text-align:left; padding:20px 26px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <img id="user-avatar" src="" alt="" style="width:44px; height:44px; border-radius:50%; display:none;">
-          <div>
-            <div style="font-weight:800;" id="user-name">–</div>
-            <div style="font-family:var(--mono); font-size:12px; color:var(--gold);" id="user-points">Punkte werden geladen…</div>
-          </div>
-        </div>
-        <button class="btn btn-ghost" onclick="logout()">Ausloggen</button>
-      </div>
-    </section>
-
-    <div class="fuse-divider"></div>
 
     <section>
       <div class="product-grid" id="product-grid"></div>
@@ -289,38 +295,49 @@
     return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || '';
   }
 
-  async function loadPoints(username){
-    const el = document.getElementById('user-points');
+  function twitchIconSvg(){
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>';
+  }
+
+  async function loadNavPoints(username){
+    const el = document.getElementById('nav-points');
+    if(!el) return;
     try{
       const res = await fetch('/api/points?username=' + encodeURIComponent(username));
       const data = await res.json();
-      if(data && typeof data.points !== 'undefined'){
-        el.textContent = '⭐ ' + data.points + ' Punkte';
-      } else {
-        el.textContent = 'Punkte konnten nicht geladen werden';
-      }
+      el.textContent = (data && typeof data.points !== 'undefined') ? ('⭐ ' + data.points) : '⭐ –';
     }catch(e){
-      el.textContent = 'Punkte konnten nicht geladen werden';
-      console.error(e);
+      el.textContent = '⭐ –';
     }
   }
 
-  async function showLoggedIn(user){
+  function renderNavAuth(session){
+    const container = document.getElementById('nav-auth');
+    if(!container) return;
+
+    if(session && session.user){
+      const user = session.user;
+      const username = getTwitchUsername(user);
+      const avatar = user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture);
+      container.innerHTML = `
+        <div class="nav-user">
+          ${avatar ? `<img src="${avatar}" alt="">` : ''}
+          <div class="info">
+            <div class="name">${username || 'Twitch-Nutzer'}</div>
+            <div class="points" id="nav-points">Lädt…</div>
+          </div>
+        </div>
+        <button class="nav-logout" onclick="logout()">Logout</button>
+      `;
+      if(username) loadNavPoints(username);
+    } else {
+      container.innerHTML = `<button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Login</button>`;
+    }
+  }
+
+  function showLoggedIn(user){
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('shop-content').style.display = 'block';
-
-    const username = getTwitchUsername(user);
-    document.getElementById('user-name').textContent = username || 'Twitch-Nutzer';
-
-    const avatar = user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture);
-    if(avatar){
-      const img = document.getElementById('user-avatar');
-      img.src = avatar; img.style.display = 'block';
-    }
-
-    if(username) loadPoints(username);
-    else document.getElementById('user-points').textContent = 'Twitch-Name nicht gefunden';
-
     renderProducts();
   }
 
@@ -331,12 +348,12 @@
 
   (async function initAuth(){
     const { data: { session } } = await sb.auth.getSession();
-    if(session && session.user){
-      showLoggedIn(session.user);
-    } else {
-      showLoginGate();
-    }
+    renderNavAuth(session);
+    if(session && session.user) showLoggedIn(session.user);
+    else showLoginGate();
+
     sb.auth.onAuthStateChange((event, session) => {
+      renderNavAuth(session);
       if(session && session.user) showLoggedIn(session.user);
       else showLoginGate();
     });
