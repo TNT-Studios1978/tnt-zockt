@@ -227,6 +227,7 @@
     display:flex; align-items:center; justify-content:center;
     font-family:var(--display); font-size:20px; color:var(--gold);
     border:1px solid var(--line);
+    overflow:hidden;
   }
   .casino-card h3{font-size:18px; font-weight:800;}
   .casino-card .bonus{
@@ -462,7 +463,7 @@
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Casinos konnten nicht geladen werden.</p>'; console.error(error); return; }
     grid.innerHTML = data.map((c, i) => `
       <div class="casino-card"><div class="rank">#${i+1}</div>
-        <div class="casino-logo">${c.badge || '?'}</div>
+        <div class="casino-logo">${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo" style="width:100%; height:100%; object-fit:contain; border-radius:8px;">` : (c.badge || '?')}</div>
         <h3>${c.name}</h3>
         <div class="stars">${starString(c.stars)}</div>
         <div class="bonus">${c.bonus || ''}</div>
