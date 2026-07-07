@@ -302,41 +302,71 @@
     .casino-card-actions{ width:100%; flex-direction:row; justify-content:space-between; }
   }
 
-  /* ---------- Streamers ---------- */
+  /* ---------- Streamers (im Casino-Zeilen-Stil) ---------- */
   .stream-grid{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
-    gap:20px;
+    display:flex; flex-direction:column; gap:22px;
+    padding-left:22px;
   }
   .stream-card{
     background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    padding:22px; display:flex; align-items:center; gap:16px;
-    transition:border-color .2s;
+    position:relative;
+    display:flex; align-items:center; gap:20px;
+    padding:18px 24px 18px 34px;
+    transition:transform .2s, border-color .2s;
   }
-  .stream-card:hover{border-color:var(--cyan);}
+  .stream-card:hover{transform:translateY(-3px); border-color:var(--cyan);}
+  .stream-card .rank{
+    position:absolute; left:-22px; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(145deg, var(--cyan), #0d8f85);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:18px; color:#04211f;
+    box-shadow:0 0 20px var(--cyan-glow);
+    z-index:2;
+  }
   .stream-avatar{
-    width:54px; height:54px; border-radius:50%; flex-shrink:0;
-    background:conic-gradient(from 180deg, var(--fuse-red), var(--gold), var(--cyan), var(--fuse-red));
+    width:110px; height:110px; flex-shrink:0; border-radius:12px;
+    background:linear-gradient(145deg, var(--bg-2), #0d0d13);
     display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+    overflow:hidden;
   }
+  .stream-avatar img{ width:100%; height:100%; object-fit:cover; }
   .stream-avatar span{
-    width:46px; height:46px; border-radius:50%; background:var(--bg-2);
-    display:flex; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:16px;
+    font-family:var(--display); font-size:26px; color:var(--gold); letter-spacing:1px;
   }
-  .stream-info h4{font-size:15px; font-weight:800; margin-bottom:2px;}
-  .stream-info .platform{
-    font-family:var(--mono); font-size:11px;
-    display:inline-flex; align-items:center; gap:5px;
+  .stream-card-body{
+    flex:1; min-width:0;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .stream-card h3{
+    font-family:var(--display); font-size:clamp(18px,2.4vw,26px);
+    font-weight:400; letter-spacing:.3px; text-transform:uppercase;
+    color:var(--gold);
+  }
+  .stream-card .platform{
+    font-family:var(--mono); font-size:12.5px;
+    display:inline-flex; align-items:center; gap:6px; width:fit-content;
   }
   .plat-twitch{color:#a970ff;}
   .plat-kick{color:#53fc18;}
   .live-dot{width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 6px currentColor;}
-  .stream-card .watch{
-    margin-left:auto; font-size:12px; font-weight:800;
-    border:1px solid var(--line); padding:9px 14px; border-radius:7px;
-    white-space:nowrap;
+  .stream-card-actions{
+    display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;
   }
-  .stream-card .watch:hover{border-color:var(--gold); color:var(--gold);}
+  .stream-card .watch{
+    text-align:center; font-weight:800; font-size:14px;
+    padding:13px 26px; border-radius:8px; white-space:nowrap;
+    background:var(--cyan); color:#04211f;
+    box-shadow:0 4px 16px var(--cyan-glow);
+  }
+  .stream-card .watch:hover{filter:brightness(1.1);}
+
+  @media(max-width:720px){
+    .stream-card{ flex-wrap:wrap; padding:16px 18px 16px 30px; }
+    .stream-avatar{ width:70px; height:70px; }
+    .stream-card-actions{ width:100%; }
+  }
 
   /* ---------- Responsible gaming ---------- */
   .responsible{
@@ -647,6 +677,25 @@
     `).join('');
   }
 
+  function getTwitchLogin(link){
+    try{
+      const url = new URL(link);
+      if(!url.hostname.includes('twitch.tv')) return null;
+      return url.pathname.replace(/\//g,'').trim().toLowerCase() || null;
+    }catch(e){ return null; }
+  }
+
+  async function loadStreamerAvatar(streamerId, login){
+    try{
+      const res = await fetch('/api/avatar?login=' + encodeURIComponent(login));
+      const data = await res.json();
+      if(data && data.avatar){
+        const el = document.getElementById('avatar-' + streamerId);
+        if(el){ el.innerHTML = `<img src="${data.avatar}" alt="">`; }
+      }
+    }catch(e){ console.warn('Avatar konnte nicht geladen werden für', login, e); }
+  }
+
   async function renderStreamers(){
     const grid = document.getElementById('stream-grid');
     const platMap = {
@@ -656,19 +705,30 @@
     };
     const { data, error } = await sb.from('streamers').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Streamer konnten nicht geladen werden.</p>'; console.error(error); return; }
-    grid.innerHTML = data.map(s => {
+    grid.innerHTML = data.map((s, i) => {
       const p = platMap[s.platform] || {label:s.platform, cls:''};
       const initials = s.name.replace(/[\[\]]/g,'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
       return `
       <div class="stream-card">
-        <div class="stream-avatar"><span>${initials}</span></div>
-        <div class="stream-info">
-          <h4>${s.name}</h4>
+        <div class="rank">${i+1}</div>
+        <div class="stream-avatar" id="avatar-${s.id}"><span>${initials}</span></div>
+        <div class="stream-card-body">
+          <h3>${s.name}</h3>
           <div class="platform ${p.cls}" ${p.style ? `style="${p.style}"` : ''}><span class="live-dot"></span> ${p.label}</div>
         </div>
-        <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">Kanal ansehen</a>
+        <div class="stream-card-actions">
+          <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">Kanal ansehen</a>
+        </div>
       </div>`;
     }).join('');
+
+    // Echte Profilbilder für Twitch-Kanäle im Hintergrund nachladen
+    data.forEach(s => {
+      if(s.platform === 'twitch'){
+        const login = getTwitchLogin(s.link);
+        if(login) loadStreamerAvatar(s.id, login);
+      }
+    });
   }
 
   renderCasinos();
