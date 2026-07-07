@@ -469,10 +469,21 @@
 
 <script>
   function enterSite(){
+    try{ localStorage.setItem('tnt_zockt_age_verified', 'true'); }catch(e){}
     document.getElementById('agegate').style.display = 'none';
     document.getElementById('site').style.display = 'block';
     document.body.classList.remove('locked');
   }
+
+  (function checkAgeGate(){
+    let alreadyVerified = false;
+    try{ alreadyVerified = localStorage.getItem('tnt_zockt_age_verified') === 'true'; }catch(e){}
+    if(alreadyVerified){
+      document.getElementById('agegate').style.display = 'none';
+      document.getElementById('site').style.display = 'block';
+      document.body.classList.remove('locked');
+    }
+  })();
 
   function starString(n){
     return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
