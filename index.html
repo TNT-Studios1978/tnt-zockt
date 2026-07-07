@@ -677,23 +677,36 @@
     `).join('');
   }
 
-  function getTwitchLogin(link){
+  function getChannelLogin(platform, link){
     try{
       const url = new URL(link);
-      if(!url.hostname.includes('twitch.tv')) return null;
-      return url.pathname.replace(/\//g,'').trim().toLowerCase() || null;
+      const path = url.pathname.replace(/\/$/,'');
+      if(platform === 'twitch' && url.hostname.includes('twitch.tv')){
+        return path.replace('/','').trim().toLowerCase() || null;
+      }
+      if(platform === 'youtube' && url.hostname.includes('youtube.com')){
+        // erwartet Format https://www.youtube.com/@Handle
+        const seg = path.split('/').pop();
+        return seg ? seg.replace(/^@/,'') : null;
+      }
+      if(platform === 'kick' && url.hostname.includes('kick.com')){
+        return path.replace('/','').trim().toLowerCase() || null;
+      }
+      return null;
     }catch(e){ return null; }
   }
 
-  async function loadStreamerAvatar(streamerId, login){
+  async function loadStreamerAvatar(streamerId, platform, login){
     try{
-      const res = await fetch('/api/avatar?login=' + encodeURIComponent(login));
+      const res = await fetch(`/api/avatar?platform=${encodeURIComponent(platform)}&login=${encodeURIComponent(login)}`);
       const data = await res.json();
       if(data && data.avatar){
         const el = document.getElementById('avatar-' + streamerId);
         if(el){ el.innerHTML = `<img src="${data.avatar}" alt="">`; }
+      } else {
+        console.warn('Kein Avatar für', platform, login, data);
       }
-    }catch(e){ console.warn('Avatar konnte nicht geladen werden für', login, e); }
+    }catch(e){ console.warn('Avatar konnte nicht geladen werden für', platform, login, e); }
   }
 
   async function renderStreamers(){
@@ -722,12 +735,10 @@
       </div>`;
     }).join('');
 
-    // Echte Profilbilder für Twitch-Kanäle im Hintergrund nachladen
+    // Echte Profilbilder für alle Plattformen im Hintergrund nachladen
     data.forEach(s => {
-      if(s.platform === 'twitch'){
-        const login = getTwitchLogin(s.link);
-        if(login) loadStreamerAvatar(s.id, login);
-      }
+      const login = getChannelLogin(s.platform, s.link);
+      if(login) loadStreamerAvatar(s.id, s.platform, login);
     });
   }
 
