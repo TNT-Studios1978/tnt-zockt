@@ -232,22 +232,33 @@
   }
   .casino-card{
     background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    padding:24px; display:flex; flex-direction:column; gap:14px;
+    padding:0; display:flex; flex-direction:column;
     position:relative; overflow:hidden;
     transition:transform .2s, border-color .2s;
   }
   .casino-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
   .casino-card .rank{
-    position:absolute; top:16px; right:18px;
-    font-family:var(--mono); font-size:12px; color:var(--text-low);
+    position:absolute; top:14px; right:16px; z-index:2;
+    font-family:var(--mono); font-size:11px; color:var(--text-hi);
+    background:rgba(0,0,0,.55); padding:3px 9px; border-radius:20px;
+    backdrop-filter:blur(4px);
   }
-  .casino-logo{
-    width:52px; height:52px; border-radius:10px;
+  .casino-banner{
+    width:100%; aspect-ratio:16/8;
     background:linear-gradient(145deg, var(--bg-2), #0d0d13);
     display:flex; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:20px; color:var(--gold);
-    border:1px solid var(--line);
+    border-bottom:1px solid var(--line);
     overflow:hidden;
+  }
+  .casino-banner img{
+    width:100%; height:100%; object-fit:cover;
+  }
+  .casino-banner .badge-fallback{
+    font-family:var(--display); font-size:34px; color:var(--gold);
+    letter-spacing:1px;
+  }
+  .casino-card-body{
+    padding:20px 22px 22px; display:flex; flex-direction:column; gap:12px; flex:1;
   }
   .casino-card h3{font-size:18px; font-weight:800;}
   .casino-card .bonus{
@@ -494,13 +505,18 @@
     const { data, error } = await sb.from('casinos').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Casinos konnten nicht geladen werden.</p>'; console.error(error); return; }
     grid.innerHTML = data.map((c, i) => `
-      <div class="casino-card"><div class="rank">#${i+1}</div>
-        <div class="casino-logo">${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo" style="width:100%; height:100%; object-fit:contain; border-radius:8px;">` : (c.badge || '?')}</div>
-        <h3>${c.name}</h3>
-        <div class="stars">${starString(c.stars)}</div>
-        <div class="bonus">${c.bonus || ''}</div>
-        <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
-        <div class="fine">18+ · AGB gelten · verantwortungsvoll spielen</div>
+      <div class="casino-card">
+        <div class="rank">#${i+1}</div>
+        <div class="casino-banner">
+          ${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo">` : `<span class="badge-fallback">${c.badge || c.name.slice(0,2).toUpperCase()}</span>`}
+        </div>
+        <div class="casino-card-body">
+          <h3>${c.name}</h3>
+          <div class="stars">${starString(c.stars)}</div>
+          <div class="bonus">${c.bonus || ''}</div>
+          <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
+          <div class="fine">18+ · AGB gelten · verantwortungsvoll spielen</div>
+        </div>
       </div>
     `).join('');
   }
