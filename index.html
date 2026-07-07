@@ -225,56 +225,85 @@
     font-size:18px;
   }
 
-  /* ---------- Casino cards ---------- */
+  /* ---------- Casino offer rows (zoanbonus-style) ---------- */
   .casino-grid{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
-    gap:20px;
+    display:flex; flex-direction:column; gap:22px;
+    padding-left:22px;
   }
   .casino-card{
     background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    padding:0; display:flex; flex-direction:column;
-    position:relative; overflow:hidden;
+    position:relative;
+    display:flex; align-items:center; gap:20px;
+    padding:18px 24px 18px 34px;
     transition:transform .2s, border-color .2s;
   }
-  .casino-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
+  .casino-card:hover{transform:translateY(-3px); border-color:var(--fuse-red);}
   .casino-card .rank{
-    position:absolute; top:14px; right:16px; z-index:2;
-    font-family:var(--mono); font-size:11px; color:var(--text-hi);
-    background:rgba(0,0,0,.55); padding:3px 9px; border-radius:20px;
-    backdrop-filter:blur(4px);
+    position:absolute; left:-22px; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(145deg, var(--fuse-red), #b8281c);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:18px; color:#fff;
+    box-shadow:0 0 20px var(--fuse-red-glow);
+    z-index:2;
   }
   .casino-banner{
-    width:100%; aspect-ratio:16/8;
+    width:110px; height:110px; flex-shrink:0; border-radius:12px;
     background:linear-gradient(145deg, var(--bg-2), #0d0d13);
     display:flex; align-items:center; justify-content:center;
-    border-bottom:1px solid var(--line);
+    border:1px solid var(--line);
     overflow:hidden;
   }
   .casino-banner img{
     width:100%; height:100%; object-fit:cover;
   }
   .casino-banner .badge-fallback{
-    font-family:var(--display); font-size:34px; color:var(--gold);
+    font-family:var(--display); font-size:26px; color:var(--gold);
     letter-spacing:1px;
   }
   .casino-card-body{
-    padding:20px 22px 22px; display:flex; flex-direction:column; gap:12px; flex:1;
+    flex:1; min-width:0;
+    display:flex; flex-direction:column; gap:6px;
   }
-  .casino-card h3{font-size:18px; font-weight:800;}
+  .casino-card h3{
+    font-family:var(--display); font-size:clamp(18px,2.4vw,26px);
+    font-weight:400; letter-spacing:.3px; text-transform:uppercase;
+    color:var(--gold);
+  }
   .casino-card .bonus{
-    font-family:var(--mono); font-size:13px; color:var(--cyan);
-    background:rgba(40,240,224,.08); border:1px solid rgba(40,240,224,.25);
-    padding:8px 10px; border-radius:6px;
+    font-family:var(--mono); font-size:12.5px; color:var(--text-mid);
+    letter-spacing:.3px;
   }
-  .stars{color:var(--gold); font-size:13px; letter-spacing:2px;}
+  .casino-card .bonus b{ color:var(--cyan); font-weight:700; }
+  .stars{color:var(--gold); font-size:13px; letter-spacing:2px; white-space:nowrap;}
+  .casino-card-actions{
+    display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;
+  }
   .casino-card .go{
-    margin-top:auto;
-    text-align:center; font-weight:800; font-size:13px;
-    padding:11px; border-radius:7px;
+    text-align:center; font-weight:800; font-size:14px;
+    padding:13px 26px; border-radius:8px; white-space:nowrap;
     background:var(--fuse-red); color:#fff;
+    box-shadow:0 4px 16px var(--fuse-red-glow);
   }
   .casino-card .go:hover{filter:brightness(1.1);}
+  .casino-card details{ width:100%; text-align:center; }
+  .casino-card summary{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-low);
+    cursor:pointer; list-style:none; letter-spacing:.5px;
+  }
+  .casino-card summary::-webkit-details-marker{ display:none; }
+  .casino-card details[open] summary{ color:var(--cyan); }
+  .casino-card .details-panel{
+    margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);
+    font-size:11px; color:var(--text-low); text-align:left;
+  }
   .fine{font-size:10px; color:var(--text-low);}
+
+  @media(max-width:720px){
+    .casino-card{ flex-wrap:wrap; padding:16px 18px 16px 30px; }
+    .casino-banner{ width:70px; height:70px; }
+    .casino-card-actions{ width:100%; flex-direction:row; justify-content:space-between; }
+  }
 
   /* ---------- Streamers ---------- */
   .stream-grid{
@@ -506,16 +535,21 @@
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Casinos konnten nicht geladen werden.</p>'; console.error(error); return; }
     grid.innerHTML = data.map((c, i) => `
       <div class="casino-card">
-        <div class="rank">#${i+1}</div>
+        <div class="rank">${i+1}</div>
         <div class="casino-banner">
           ${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo">` : `<span class="badge-fallback">${c.badge || c.name.slice(0,2).toUpperCase()}</span>`}
         </div>
         <div class="casino-card-body">
           <h3>${c.name}</h3>
+          <div class="bonus"><b>${c.bonus || ''}</b></div>
+        </div>
+        <div class="casino-card-actions">
           <div class="stars">${starString(c.stars)}</div>
-          <div class="bonus">${c.bonus || ''}</div>
           <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
-          <div class="fine">18+ · AGB gelten · verantwortungsvoll spielen</div>
+          <details>
+            <summary>Details &amp; Infos ▾</summary>
+            <div class="details-panel">18+ · AGB gelten · verantwortungsvoll spielen</div>
+          </details>
         </div>
       </div>
     `).join('');
