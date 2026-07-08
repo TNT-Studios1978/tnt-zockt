@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spiele | TNT-Zockt</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root{
+    --bg-0:#08080c; --bg-1:#111118; --bg-2:#181822;
+    --fuse-red:#ff3d2e; --fuse-red-glow: rgba(255,61,46,.55);
+    --gold:#ffcf3f; --gold-glow: rgba(255,207,63,.4);
+    --cyan:#28f0e0; --cyan-glow: rgba(40,240,224,.4);
+    --text-hi:#f6f4ef; --text-mid:#b9b6c4; --text-low:#716e7d;
+    --line:#26232e; --radius:14px;
+    --display: 'Anton', sans-serif; --body: 'Manrope', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg-0); color:var(--text-hi); font-family:var(--body); line-height:1.5; overflow-x:hidden; }
+  a{ color:inherit; text-decoration:none; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+
+  .btn{ font-family:var(--body); font-weight:800; font-size:14px; padding:13px 26px; border-radius:8px; border:none; cursor:pointer; }
+  .btn-primary{ background:linear-gradient(135deg, var(--fuse-red), #c2281c); color:#fff; box-shadow:0 4px 20px var(--fuse-red-glow); }
+  .btn-primary:hover{ filter:brightness(1.1); }
+  .btn-ghost{ background:var(--bg-1); color:var(--text-mid); border:1px solid var(--line); }
+  .btn-ghost:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  /* ---------- Nav (shared pattern) ---------- */
+  header{ position:sticky; top:0; z-index:100; background:rgba(8,8,12,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .nav{ max-width:1180px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; position:relative; }
+  .logo{ font-family:var(--display); font-size:22px; letter-spacing:.5px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ color:var(--fuse-red); }
+  .logo-badge{
+    display:inline-flex; align-items:center; justify-content:center; padding:4px; border-radius:10px;
+    background:linear-gradient(145deg, var(--bg-2), #0d0d13); border:1px solid rgba(255,207,63,.35);
+    box-shadow:0 0 16px rgba(255,207,63,.25), 0 0 4px rgba(255,61,46,.3);
+  }
+  .logo-badge img{ display:block; border-radius:7px; }
+  .nav-links{ display:flex; gap:6px; font-size:14px; font-weight:600; color:var(--text-mid); }
+  .nav-links a{ padding:8px 14px; border-radius:8px; transition:background .2s, color .2s; }
+  .nav-links a:hover{ color:var(--text-hi); background:rgba(255,255,255,.05); }
+  .nav-links a.active{ color:var(--gold); background:rgba(255,207,63,.12); box-shadow:inset 0 0 0 1px rgba(255,207,63,.3); }
+  .nav-cta{ font-size:13px; font-weight:800; padding:10px 18px; border-radius:7px; background:var(--gold); color:#1a1400; }
+
+  .hamburger-btn{ display:none; background:var(--bg-1); border:1px solid var(--line); border-radius:8px; width:42px; height:42px; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+  .hamburger-btn span, .hamburger-btn span::before, .hamburger-btn span::after{ content:''; display:block; width:20px; height:2px; background:var(--text-hi); position:relative; transition:transform .2s; }
+  .hamburger-btn span::before{ position:absolute; top:-6px; } .hamburger-btn span::after{ position:absolute; top:6px; }
+  .hamburger-btn.open span{ background:transparent; }
+  .hamburger-btn.open span::before{ transform:translateY(6px) rotate(45deg); }
+  .hamburger-btn.open span::after{ transform:translateY(-6px) rotate(-45deg); }
+
+  @media(max-width:720px){
+    .nav-links{ display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; gap:2px; background:var(--bg-1); border-bottom:1px solid var(--line); padding:12px; box-shadow:0 12px 24px rgba(0,0,0,.4); }
+    .nav-links.mobile-open{ display:flex; }
+    .nav-links a{ padding:12px 14px; }
+    .hamburger-btn{ display:flex; }
+    .nav-cta{ display:none; }
+  }
+
+  .bottom-nav{ display:none; position:fixed; left:0; right:0; bottom:0; z-index:150; background:rgba(8,8,12,.94); backdrop-filter:blur(12px); border-top:1px solid var(--line); padding:8px 4px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -8px 24px rgba(0,0,0,.4); }
+  .bottom-nav a{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; border-radius:10px; font-size:10.5px; font-weight:700; color:var(--text-low); text-align:center; }
+  .bottom-nav a svg{ width:20px; height:20px; }
+  .bottom-nav a.active{ color:var(--gold); }
+  @media(max-width:720px){ .bottom-nav{ display:flex; } body{ padding-bottom:64px; } }
+
+  .nav-auth{ display:flex; align-items:center; gap:10px; }
+  .nav-auth-btn{ display:inline-flex; align-items:center; gap:7px; font-weight:800; font-size:12.5px; padding:9px 14px; border-radius:7px; border:none; cursor:pointer; background:#9146FF; color:#fff; }
+  .nav-user{ display:flex; align-items:center; gap:8px; }
+  .nav-user img{ width:28px; height:28px; border-radius:50%; }
+  .nav-user .name{ font-size:12.5px; font-weight:800; }
+  .nav-user .chips{ font-family:var(--mono); font-size:10.5px; color:var(--gold); }
+  .nav-logout{ font-size:11px; color:var(--text-low); border:1px solid var(--line); background:var(--bg-1); padding:6px 10px; border-radius:6px; cursor:pointer; }
+  .nav-logout:hover{ color:var(--fuse-red); border-color:var(--fuse-red); }
+
+  section{ max-width:1180px; margin:0 auto; padding:50px 24px; }
+
+  /* ---------- Login gate ---------- */
+  .notify-box{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:40px; text-align:center; max-width:520px; margin:0 auto; }
+  .notify-box h3{ font-family:var(--display); font-size:24px; text-transform:uppercase; margin-bottom:10px; }
+  .notify-box p{ color:var(--text-mid); font-size:14px; margin-bottom:20px; }
+
+  /* ---------- Page hero ---------- */
+  .games-hero{ text-align:center; padding:60px 24px 30px; max-width:700px; margin:0 auto; }
+  .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:2px; color:var(--cyan); text-transform:uppercase; display:inline-flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .eyebrow::before{ content:''; width:8px; height:8px; border-radius:50%; background:var(--cyan); box-shadow:0 0 10px var(--cyan-glow); }
+  .games-hero h1{ font-family:var(--display); font-size:clamp(32px,5vw,52px); text-transform:uppercase; margin-bottom:14px; }
+  .games-hero h1 span{ color:var(--fuse-red); text-shadow:0 0 30px var(--fuse-red-glow); }
+  .games-hero p{ color:var(--text-mid); font-size:15px; }
+  .disclaimer-badge{
+    display:inline-flex; align-items:center; gap:8px; margin-top:18px;
+    background:rgba(40,240,224,.08); border:1px solid rgba(40,240,224,.3);
+    color:var(--cyan); font-size:12.5px; font-weight:700; padding:9px 16px; border-radius:20px;
+  }
+
+  .chips-bar{
+    max-width:1180px; margin:0 auto 0; padding:0 24px 20px;
+    display:flex; justify-content:center;
+  }
+  .chips-display{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
+    padding:14px 28px; display:flex; align-items:center; gap:14px;
+  }
+  .chips-display .icon{ font-size:22px; }
+  .chips-display .amount{ font-family:var(--display); font-size:26px; color:var(--gold); }
+  .chips-display .label{ font-family:var(--mono); font-size:10px; color:var(--text-low); text-transform:uppercase; }
+
+  /* ---------- Game grid ---------- */
+  .game-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; }
+  .game-card{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column; transition:transform .2s, border-color .2s;
+    cursor:pointer;
+  }
+  .game-card:hover{ transform:translateY(-4px); border-color:var(--cyan); }
+  .game-card.locked{ cursor:default; opacity:.55; }
+  .game-card.locked:hover{ transform:none; border-color:var(--line); }
+  .game-banner{
+    aspect-ratio:4/3; display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .game-banner svg{ width:64px; height:64px; position:relative; z-index:2; }
+  .banner-mines{ background:linear-gradient(145deg,#2a1810,#0d0d13); }
+  .banner-coin{ background:linear-gradient(145deg,#2a2410,#0d0d13); }
+  .banner-crash{ background:linear-gradient(145deg,#1a1030,#0d0d13); }
+  .banner-plinko{ background:linear-gradient(145deg,#10182a,#0d0d13); }
+  .banner-roulette{ background:linear-gradient(145deg,#2a1018,#0d0d13); }
+  .banner-blackjack{ background:linear-gradient(145deg,#0f2a1c,#0d0d13); }
+  .soon-tag{
+    position:absolute; top:12px; right:12px; z-index:3;
+    font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase;
+    background:rgba(255,61,46,.15); color:var(--fuse-red); border:1px solid rgba(255,61,46,.4);
+    padding:4px 9px; border-radius:20px;
+  }
+  .game-body{ padding:18px 20px 20px; display:flex; flex-direction:column; gap:6px; }
+  .game-tag{ font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-low); }
+  .game-body h3{ font-family:var(--display); font-size:22px; text-transform:uppercase; }
+  .game-play{
+    margin-top:10px; text-align:center; font-weight:800; font-size:13px;
+    padding:11px; border-radius:7px; background:var(--fuse-red); color:#fff;
+  }
+  .game-play.locked-btn{ background:var(--bg-2); color:var(--text-low); }
+
+  /* ---------- Game views ---------- */
+  .game-view{ display:none; }
+  .game-view.active{ display:block; }
+  .game-view-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px; }
+  .game-view-header h2{ font-family:var(--display); font-size:clamp(24px,4vw,34px); text-transform:uppercase; }
+
+  .mines-layout{ display:grid; grid-template-columns:280px 1fr; gap:24px; }
+  @media(max-width:720px){ .mines-layout{ grid-template-columns:1fr; } }
+  .controls-panel{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; gap:16px; height:fit-content; }
+  .field label{ font-family:var(--mono); font-size:11px; color:var(--text-low); text-transform:uppercase; display:block; margin-bottom:6px; }
+  .field input, .field select{
+    width:100%; padding:11px 12px; border-radius:8px; border:1px solid var(--line);
+    background:var(--bg-2); color:var(--text-hi); font-family:var(--body); font-size:14px;
+  }
+  .bet-quick{ display:flex; gap:6px; margin-top:6px; }
+  .bet-quick button{ flex:1; font-size:11px; padding:6px; border-radius:6px; background:var(--bg-2); border:1px solid var(--line); color:var(--text-mid); cursor:pointer; }
+  .bet-quick button:hover{ border-color:var(--gold); color:var(--gold); }
+  .payout-info{ font-family:var(--mono); font-size:12px; color:var(--text-mid); display:flex; justify-content:space-between; }
+  .payout-info b{ color:var(--gold); }
+
+  .mines-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .mine-tile{
+    aspect-ratio:1; border-radius:10px; background:var(--bg-1); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer;
+    transition:transform .12s, background .2s;
+  }
+  .mine-tile:hover:not(.revealed){ transform:scale(1.04); border-color:var(--cyan); }
+  .mine-tile.revealed-safe{ background:rgba(40,240,224,.12); border-color:var(--cyan); cursor:default; }
+  .mine-tile.revealed-bomb{ background:rgba(255,61,46,.2); border-color:var(--fuse-red); cursor:default; }
+  .mine-tile.disabled{ pointer-events:none; opacity:.6; }
+
+  .coin-stage{ display:flex; flex-direction:column; align-items:center; gap:24px; padding:20px 0; }
+  .coin-3d{ width:140px; height:140px; position:relative; perspective:800px; }
+  .coin-face{
+    width:140px; height:140px; border-radius:50%; position:absolute; top:0; left:0;
+    display:flex; align-items:center; justify-content:center; font-family:var(--display); font-size:20px;
+    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 55%, #a6790f 100%);
+    color:#3a2a00; border:3px solid #a6790f;
+    backface-visibility:hidden;
+  }
+  .coin-face.tails{ transform:rotateY(180deg); }
+  .coin-flipping{ animation: flipcoin 1s ease-in-out; }
+  @keyframes flipcoin{ 0%{ transform:rotateY(0);} 100%{ transform:rotateY(1800deg);} }
+  .choice-row{ display:flex; gap:12px; }
+  .choice-btn{
+    padding:12px 24px; border-radius:8px; border:1px solid var(--line); background:var(--bg-1);
+    color:var(--text-mid); font-weight:800; cursor:pointer; font-size:14px;
+  }
+  .choice-btn.selected{ border-color:var(--gold); color:var(--gold); background:rgba(255,207,63,.1); }
+  .result-msg{ font-family:var(--display); font-size:22px; text-transform:uppercase; min-height:30px; }
+  .result-msg.win{ color:var(--cyan); }
+  .result-msg.lose{ color:var(--fuse-red); }
+
+  /* ---------- Support Chat Widget ---------- */
+  .support-btn{
+    position:fixed; bottom:24px; right:24px; z-index:300;
+    width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+    background:linear-gradient(135deg, var(--cyan), #0d8f85);
+    box-shadow:0 6px 20px var(--cyan-glow);
+    display:flex; align-items:center; justify-content:center;
+  }
+  @media(max-width:720px){ .support-btn{ bottom:80px; right:16px; } }
+  .support-btn svg{ width:26px; height:26px; color:#04211f; }
+  .support-panel{
+    position:fixed; bottom:92px; right:24px; z-index:300;
+    width:320px; max-width:calc(100vw - 32px); max-height:70vh;
+    background:var(--bg-1); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 20px 50px rgba(0,0,0,.5); display:none; flex-direction:column; overflow:hidden;
+  }
+  @media(max-width:720px){ .support-panel{ bottom:148px; right:16px; } }
+  .support-panel.open{ display:flex; }
+  .support-header{ padding:16px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .support-header h4{ font-family:var(--display); font-size:16px; text-transform:uppercase; }
+  .support-header button{ background:none; border:none; color:var(--text-low); cursor:pointer; font-size:18px; }
+  .support-body{ padding:14px 18px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .support-msg{ font-size:13px; line-height:1.5; }
+  .support-msg.bot{ background:var(--bg-2); padding:10px 12px; border-radius:10px; color:var(--text-mid); }
+  .support-msg.user{ background:rgba(255,207,63,.1); padding:10px 12px; border-radius:10px; color:var(--gold); align-self:flex-end; }
+  .faq-options{ display:flex; flex-direction:column; gap:6px; }
+  .faq-btn{
+    text-align:left; padding:9px 12px; border-radius:8px; border:1px solid var(--line);
+    background:var(--bg-2); color:var(--text-mid); font-size:12.5px; cursor:pointer;
+  }
+  .faq-btn:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  footer{ border-top:1px solid var(--line); padding:40px 24px 30px; }
+  .footer-inner{ max-width:1180px; margin:0 auto; }
+  .footer-legal{ font-size:11.5px; color:var(--text-low); line-height:1.7; max-width:760px; }
+</style>
+</head>
+<body>
+
+  <header>
+    <nav class="nav">
+      <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></a>
+      <div class="nav-links" id="main-nav-links">
+        <a href="index.html#casinos">Angebote</a>
+        <a href="index.html#streams">Streamer</a>
+        <a href="games.html" class="active">Spiele</a>
+        <a href="shop.html">Shop</a>
+        <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Tournierbaum</a>
+        <a href="index.html#verantwortung">Verantwortung</a>
+      </div>
+      <a class="nav-cta" href="index.html#casinos">Top Bonus sichern</a>
+      <div class="nav-auth" id="nav-auth"></div>
+      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menü öffnen"><span></span></button>
+    </nav>
+  </header>
+
+  <!-- LOGIN GATE -->
+  <section id="login-gate">
+    <div class="notify-box">
+      <h3>🔒 Nur für Mitglieder</h3>
+      <p>Logg dich mit deinem Twitch-Konto ein, um mit deinen TNT-Chips zu spielen. Jeder neue Spieler startet mit 1'000 Gratis-Chips.</p>
+      <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
+        Mit Twitch anmelden
+      </button>
+    </div>
+  </section>
+
+  <!-- GAMES CONTENT -->
+  <div id="games-content" style="display:none;">
+
+    <div class="games-hero">
+      <div class="eyebrow">TNT Originals</div>
+      <h1>TNT <span>Spiele</span></h1>
+      <p>Spiel mit deinen TNT-Chips um virtuelle Gewinne — nur zum Spaß, kein Echtgeld.</p>
+      <div class="disclaimer-badge">🛡️ Es wird ausschließlich mit virtuellen TNT-Chips gespielt, nie mit echtem Geld.</div>
+    </div>
+
+    <div class="chips-bar">
+      <div class="chips-display">
+        <span class="icon">🪙</span>
+        <div>
+          <div class="amount" id="chips-amount">–</div>
+          <div class="label">TNT-Chips</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME SELECTION GRID -->
+    <section id="game-selection">
+      <div class="game-grid">
+
+        <div class="game-card" onclick="openGame('mines')">
+          <div class="game-banner banner-mines">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ff3d2e" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 6V3M9 4l1 2M15 4l-1 2"/><path d="M9.5 12.5l1.5 1.5 3-3" stroke="#ffcf3f"/></svg>
+          </div>
+          <div class="game-body">
+            <div class="game-tag">Original</div>
+            <h3>Minen</h3>
+            <div class="game-play">Jetzt spielen →</div>
+          </div>
+        </div>
+
+        <div class="game-card" onclick="openGame('coinflip')">
+          <div class="game-banner banner-coin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffcf3f" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M9 12h6M12 9v6" stroke="#ffcf3f"/></svg>
+          </div>
+          <div class="game-body">
+            <div class="game-tag">Original</div>
+            <h3>Münzwurf</h3>
+            <div class="game-play">Jetzt spielen →</div>
+          </div>
+        </div>
+
+        <div class="game-card locked">
+          <div class="game-banner banner-crash">
+            <span class="soon-tag">Bald verfügbar</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a970ff" stroke-width="1.5"><path d="M12 2 9 9l3 3 3-3z"/><path d="M9 14l-3 7 6-3 6 3-3-7"/></svg>
+          </div>
+          <div class="game-body">
+            <div class="game-tag">Original</div>
+            <h3>Absturz</h3>
+            <div class="game-play locked-btn">Bald verfügbar</div>
+          </div>
+        </div>
+
+        <div class="game-card locked">
+          <div class="game-banner banner-plinko">
+            <span class="soon-tag">Bald verfügbar</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#28f0e0" stroke-width="1.5"><circle cx="12" cy="4" r="1.5" fill="#28f0e0" stroke="none"/><path d="M4 10h16M6 15h12M8 20h8"/></svg>
+          </div>
+          <div class="game-body">
+            <div class="game-tag">Original</div>
+            <h3>Plinko</h3>
+            <div class="game-play locked-btn">Bald verfügbar</div>
+          </div>
+        </div>
+
+        <div class="game-card locked">
+          <div class="game-banner banner-roulette">
+            <span class="soon-tag">Bald verfügbar</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ff3d2e" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2" fill="#ff3d2e" stroke="none"/></svg>
+          </div>
+          <div class="game-body">
+            <div class="game-tag">Original</div>
+            <h3>Roulette</h3>
+            <div class="game-play locked-btn">Bald verfügbar</div>
+          </div>
+        </div>
+
+        <div class="game-card locked">
+          <div class="game-banner banner-blackjack">
+            <span class="soon-tag">Bald verfügbar</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3ddc84" stroke-width="1.5"><rect x="4" y="5" width="10" height="14" rx="2"/><rect x="10" y="7" width="10" height="14" rx="2" fill="#0d0d13"/></svg>
+          </div>
+          <div class="game-body">
+            <div class="game-tag">Original</div>
+            <h3>Blackjack</h3>
+            <div class="game-play locked-btn">Bald verfügbar</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MINES GAME VIEW -->
+    <section class="game-view" id="view-mines">
+      <div class="game-view-header">
+        <h2>💣 Minen</h2>
+        <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
+      </div>
+      <div class="mines-layout">
+        <div class="controls-panel">
+          <div class="field">
+            <label>Einsatz</label>
+            <input type="number" id="mines-bet" value="10" min="1" step="1">
+            <div class="bet-quick">
+              <button onclick="mineBetAdjust(0.5)">½</button>
+              <button onclick="mineBetAdjust(2)">2×</button>
+              <button onclick="mineBetSet('max')">Max</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Anzahl Minen</label>
+            <select id="mines-count">
+              <option value="3">3 Minen</option>
+              <option value="5" selected>5 Minen</option>
+              <option value="10">10 Minen</option>
+            </select>
+          </div>
+          <div class="payout-info">
+            <span>Multiplikator</span>
+            <b id="mines-multiplier">1.00×</b>
+          </div>
+          <div class="payout-info">
+            <span>Möglicher Gewinn</span>
+            <b id="mines-potential">0</b>
+          </div>
+          <button class="btn btn-primary" id="mines-start-btn" onclick="startMines()">Spiel starten</button>
+          <button class="btn btn-ghost" id="mines-cashout-btn" onclick="cashoutMines()" style="display:none;">Auszahlen 💰</button>
+          <div class="result-msg" id="mines-result"></div>
+        </div>
+        <div class="mines-grid" id="mines-grid"></div>
+      </div>
+    </section>
+
+    <!-- COINFLIP GAME VIEW -->
+    <section class="game-view" id="view-coinflip">
+      <div class="game-view-header">
+        <h2>🪙 Münzwurf</h2>
+        <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
+      </div>
+      <div class="coin-stage">
+        <div class="coin-3d">
+          <div class="coin-face heads" id="coin-heads">TNT</div>
+          <div class="coin-face tails" id="coin-tails">🔥</div>
+        </div>
+        <div class="choice-row">
+          <button class="choice-btn selected" id="choice-heads" onclick="selectCoinSide('heads')">Kopf (TNT)</button>
+          <button class="choice-btn" id="choice-tails" onclick="selectCoinSide('tails')">Zahl (🔥)</button>
+        </div>
+        <div class="field" style="max-width:220px; width:100%;">
+          <label>Einsatz</label>
+          <input type="number" id="coin-bet" value="10" min="1" step="1">
+          <div class="bet-quick">
+            <button onclick="coinBetAdjust(0.5)">½</button>
+            <button onclick="coinBetAdjust(2)">2×</button>
+            <button onclick="coinBetSet('max')">Max</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="flipCoin()" id="coin-flip-btn">Werfen (1.94× bei Gewinn)</button>
+        <div class="result-msg" id="coin-result"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- SUPPORT CHAT WIDGET -->
+  <button class="support-btn" onclick="toggleSupport()" aria-label="Support öffnen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </button>
+  <div class="support-panel" id="support-panel">
+    <div class="support-header">
+      <h4>💬 Support</h4>
+      <button onclick="toggleSupport()">✕</button>
+    </div>
+    <div class="support-body" id="support-body">
+      <div class="support-msg bot">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
+      <div class="faq-options" id="faq-options"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-legal">
+        © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Die Spiele auf dieser Seite verwenden ausschließlich virtuelle TNT-Chips ohne Geldwert — es handelt sich nicht um Echtgeld-Glücksspiel.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="index.html#casinos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5h.01M14.5 14.5h.01M15 9l-6 6"/></svg>
+      Angebote
+    </a>
+    <a href="index.html#streams">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M9.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
+      Streamer
+    </a>
+    <a href="games.html" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
+      Spiele
+    </a>
+    <a href="shop.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
+      Shop
+    </a>
+    <a href="index.html#verantwortung">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
+      Schutz
+    </a>
+  </nav>
+
+<script>
+  /* ================= AUTH (gleiche Struktur wie shop.html) ================= */
+  let CURRENT_USER = null;
+
+  function loginWithTwitch(){
+    sb.auth.signInWithOAuth({ provider: 'twitch', options: { redirectTo: window.location.origin + '/games.html' } });
+  }
+  async function logout(){ await sb.auth.signOut(); location.reload(); }
+
+  function getTwitchUsername(user){
+    const meta = user.user_metadata || {};
+    return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || '';
+  }
+  function twitchIconSvg(){
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>';
+  }
+
+  function renderNavAuth(session){
+    const container = document.getElementById('nav-auth');
+    if(!container) return;
+    if(session && session.user){
+      const user = session.user;
+      const username = getTwitchUsername(user);
+      const avatar = user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture);
+      container.innerHTML = `
+        <div class="nav-user">
+          ${avatar ? `<img src="${avatar}" alt="">` : ''}
+          <div class="info">
+            <div class="name">${username || 'Twitch-Nutzer'}</div>
+            <div class="chips" id="nav-chips">🪙 –</div>
+          </div>
+        </div>
+        <button class="nav-logout" onclick="logout()">Logout</button>
+      `;
+    } else {
+      container.innerHTML = `<button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Login</button>`;
+    }
+  }
+
+  async function showLoggedIn(user){
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('games-content').style.display = 'block';
+    CURRENT_USER = getTwitchUsername(user);
+    await loadChips();
+  }
+  function showLoginGate(){
+    document.getElementById('login-gate').style.display = 'block';
+    document.getElementById('games-content').style.display = 'none';
+  }
+
+  (async function initAuth(){
+    const { data: { session } } = await sb.auth.getSession();
+    renderNavAuth(session);
+    if(session && session.user) showLoggedIn(session.user);
+    else showLoginGate();
+    sb.auth.onAuthStateChange((event, session) => {
+      renderNavAuth(session);
+      if(session && session.user) showLoggedIn(session.user);
+      else showLoginGate();
+    });
+  })();
+
+  /* ================= CHIPS WALLET ================= */
+  let CHIPS_BALANCE = 0;
+
+  async function loadChips(){
+    if(!CURRENT_USER) return;
+    let { data, error } = await sb.from('user_chips').select('*').eq('twitch_login', CURRENT_USER).maybeSingle();
+    if(!data && !error){
+      const insertRes = await sb.from('user_chips').insert({ twitch_login: CURRENT_USER, chips: 1000 }).select().maybeSingle();
+      data = insertRes.data;
+    }
+    CHIPS_BALANCE = data ? data.chips : 1000;
+    updateChipsDisplay();
+  }
+
+  function updateChipsDisplay(){
+    document.getElementById('chips-amount').textContent = CHIPS_BALANCE.toLocaleString('de-CH');
+    const navChips = document.getElementById('nav-chips');
+    if(navChips) navChips.textContent = '🪙 ' + CHIPS_BALANCE.toLocaleString('de-CH');
+  }
+
+  async function saveChips(newBalance){
+    CHIPS_BALANCE = Math.max(0, Math.round(newBalance));
+    updateChipsDisplay();
+    await sb.from('user_chips').update({ chips: CHIPS_BALANCE, updated_at: new Date().toISOString() }).eq('twitch_login', CURRENT_USER);
+  }
+
+  /* ================= GAME NAVIGATION ================= */
+  function openGame(name){
+    document.getElementById('game-selection').style.display = 'none';
+    document.querySelectorAll('.game-view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    if(name === 'mines') resetMinesUI();
+  }
+  function closeGame(){
+    document.getElementById('game-selection').style.display = 'block';
+    document.querySelectorAll('.game-view').forEach(v => v.classList.remove('active'));
+  }
+
+  /* ================= MINES GAME ================= */
+  const MINES_N = 25;
+  const MINES_HOUSE_EDGE = 0.97;
+  let minesState = null;
+
+  function mineBetAdjust(factor){
+    const el = document.getElementById('mines-bet');
+    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
+  }
+  function mineBetSet(mode){
+    if(mode === 'max') document.getElementById('mines-bet').value = CHIPS_BALANCE;
+  }
+
+  function resetMinesUI(){
+    const grid = document.getElementById('mines-grid');
+    grid.innerHTML = '';
+    for(let i=0;i<MINES_N;i++){
+      const tile = document.createElement('div');
+      tile.className = 'mine-tile';
+      tile.dataset.idx = i;
+      tile.onclick = () => revealMineTile(i);
+      grid.appendChild(tile);
+    }
+    document.getElementById('mines-start-btn').style.display = 'block';
+    document.getElementById('mines-cashout-btn').style.display = 'none';
+    document.getElementById('mines-multiplier').textContent = '1.00×';
+    document.getElementById('mines-potential').textContent = '0';
+    document.getElementById('mines-result').textContent = '';
+    document.getElementById('mines-result').className = 'result-msg';
+    minesState = null;
+  }
+
+  function startMines(){
+    const bet = parseInt(document.getElementById('mines-bet').value) || 0;
+    const mineCount = parseInt(document.getElementById('mines-count').value);
+    if(bet <= 0 || bet > CHIPS_BALANCE){
+      alert('Ungültiger Einsatz.');
+      return;
+    }
+    const minePositions = new Set();
+    while(minePositions.size < mineCount){
+      minePositions.add(Math.floor(Math.random() * MINES_N));
+    }
+    minesState = { bet, mineCount, minePositions, revealed: 0, active: true, multiplier: 1 };
+    saveChips(CHIPS_BALANCE - bet);
+    document.querySelectorAll('.mine-tile').forEach(t => { t.classList.remove('revealed-safe','revealed-bomb','disabled'); t.textContent=''; });
+    document.getElementById('mines-start-btn').style.display = 'none';
+    document.getElementById('mines-cashout-btn').style.display = 'block';
+    document.getElementById('mines-result').textContent = '';
+  }
+
+  function revealMineTile(idx){
+    if(!minesState || !minesState.active) return;
+    const tile = document.querySelector(`.mine-tile[data-idx="${idx}"]`);
+    if(tile.classList.contains('revealed-safe') || tile.classList.contains('revealed-bomb')) return;
+
+    if(minesState.minePositions.has(idx)){
+      tile.classList.add('revealed-bomb');
+      tile.textContent = '💥';
+      minesState.active = false;
+      document.querySelectorAll('.mine-tile').forEach(t => {
+        const i = parseInt(t.dataset.idx);
+        if(minesState.minePositions.has(i) && !t.classList.contains('revealed-bomb')){ t.classList.add('revealed-bomb'); t.textContent='💣'; }
+        t.classList.add('disabled');
+      });
+      document.getElementById('mines-result').textContent = 'Verloren! 💥';
+      document.getElementById('mines-result').className = 'result-msg lose';
+      document.getElementById('mines-cashout-btn').style.display = 'none';
+      document.getElementById('mines-start-btn').style.display = 'block';
+      return;
+    }
+
+    tile.classList.add('revealed-safe');
+    tile.textContent = '💎';
+    minesState.revealed++;
+
+    const tilesRemaining = MINES_N - (minesState.revealed - 1);
+    const safeRemaining = tilesRemaining - minesState.mineCount;
+    const stepMult = tilesRemaining / safeRemaining;
+    minesState.multiplier *= stepMult;
+
+    const displayMult = minesState.multiplier * MINES_HOUSE_EDGE;
+    document.getElementById('mines-multiplier').textContent = displayMult.toFixed(2) + '×';
+    document.getElementById('mines-potential').textContent = Math.round(minesState.bet * displayMult).toLocaleString('de-CH');
+
+    if(minesState.revealed === MINES_N - minesState.mineCount){
+      cashoutMines();
+    }
+  }
+
+  function cashoutMines(){
+    if(!minesState || !minesState.active) return;
+    const displayMult = minesState.multiplier * MINES_HOUSE_EDGE;
+    const winnings = Math.round(minesState.bet * displayMult);
+    minesState.active = false;
+    saveChips(CHIPS_BALANCE + winnings);
+    document.getElementById('mines-result').textContent = '✓ ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
+    document.getElementById('mines-result').className = 'result-msg win';
+    document.getElementById('mines-cashout-btn').style.display = 'none';
+    document.getElementById('mines-start-btn').style.display = 'block';
+    document.querySelectorAll('.mine-tile').forEach(t => t.classList.add('disabled'));
+  }
+
+  /* ================= COINFLIP GAME ================= */
+  let coinChoice = 'heads';
+  const COIN_MULTIPLIER = 1.94;
+
+  function selectCoinSide(side){
+    coinChoice = side;
+    document.getElementById('choice-heads').classList.toggle('selected', side === 'heads');
+    document.getElementById('choice-tails').classList.toggle('selected', side === 'tails');
+  }
+  function coinBetAdjust(factor){
+    const el = document.getElementById('coin-bet');
+    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
+  }
+  function coinBetSet(mode){
+    if(mode === 'max') document.getElementById('coin-bet').value = CHIPS_BALANCE;
+  }
+
+  function flipCoin(){
+    const bet = parseInt(document.getElementById('coin-bet').value) || 0;
+    if(bet <= 0 || bet > CHIPS_BALANCE){
+      alert('Ungültiger Einsatz.');
+      return;
+    }
+    const btn = document.getElementById('coin-flip-btn');
+    btn.disabled = true;
+    const coin = document.querySelector('.coin-3d');
+    document.getElementById('coin-result').textContent = '';
+    document.getElementById('coin-result').className = 'result-msg';
+
+    const outcome = Math.random() < 0.5 ? 'heads' : 'tails';
+    coin.classList.remove('coin-flipping');
+    void coin.offsetWidth;
+    coin.classList.add('coin-flipping');
+    coin.style.transform = outcome === 'heads' ? 'rotateY(1800deg)' : 'rotateY(1980deg)';
+
+    setTimeout(() => {
+      const win = outcome === coinChoice;
+      if(win){
+        const winnings = Math.round(bet * COIN_MULTIPLIER);
+        saveChips(CHIPS_BALANCE - bet + winnings);
+        document.getElementById('coin-result').textContent = '✓ ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
+        document.getElementById('coin-result').className = 'result-msg win';
+      } else {
+        saveChips(CHIPS_BALANCE - bet);
+        document.getElementById('coin-result').textContent = 'Verloren! Es war ' + (outcome === 'heads' ? 'Kopf' : 'Zahl');
+        document.getElementById('coin-result').className = 'result-msg lose';
+      }
+      btn.disabled = false;
+    }, 1000);
+  }
+
+  /* ================= MOBILE MENU ================= */
+  function toggleMobileMenu(){
+    const nav = document.getElementById('main-nav-links');
+    const btn = document.getElementById('hamburger-btn');
+    nav.classList.toggle('mobile-open');
+    btn.classList.toggle('open');
+  }
+
+  /* ================= SUPPORT CHAT (FAQ, keine echte KI) ================= */
+  const FAQ = [
+    { q: 'Wie bekomme ich TNT-Chips?', a: 'Jeder neue Spieler startet mit 1\'000 Gratis-Chips, sobald du dich mit Twitch einloggst. Weitere Chips gibt es aktuell nur durchs Gewinnen in den Spielen.' },
+    { q: 'Ist das echtes Geld?', a: 'Nein! TNT-Chips sind eine rein virtuelle Spielwährung ohne Geldwert. Es findet an keiner Stelle Echtgeld-Glücksspiel statt.' },
+    { q: 'Wie funktioniert Minen?', a: 'Du wählst einen Einsatz und die Anzahl Minen. Dann deckst du Felder auf — jedes sichere Feld erhöht deinen Multiplikator. Du kannst jederzeit auszahlen, bevor du eine Mine triffst!' },
+    { q: 'Wie funktioniert Münzwurf?', a: 'Du setzt auf Kopf oder Zahl und wirfst die Münze. Bei richtiger Wahl gewinnst du das 1.94-fache deines Einsatzes.' },
+    { q: 'Meine Chips sind alle weg, was jetzt?', a: 'Kein Problem — die Chips sind rein virtuell. Kontaktiere uns über unsere Social-Media-Kanäle, falls du einen Neustart brauchst.' },
+    { q: 'Wann kommen weitere Spiele?', a: 'Absturz, Plinko, Roulette und Blackjack sind in Arbeit und folgen bald!' }
+  ];
+
+  function toggleSupport(){
+    document.getElementById('support-panel').classList.toggle('open');
+    renderFaqOptions();
+  }
+  function renderFaqOptions(){
+    const el = document.getElementById('faq-options');
+    el.innerHTML = FAQ.map((item, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${item.q}</button>`).join('');
+  }
+  function answerFaq(i){
+    const body = document.getElementById('support-body');
+    const item = FAQ[i];
+    body.innerHTML += `<div class="support-msg user">${item.q}</div><div class="support-msg bot">${item.a}</div>`;
+    body.scrollTop = body.scrollHeight;
+  }
+</script>
+</body>
+</html>
