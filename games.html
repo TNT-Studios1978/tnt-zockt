@@ -217,27 +217,17 @@
   .result-msg.lose{ color:var(--fuse-red); }
 
   /* ---------- Roulette ---------- */
-  .roulette-stage{ display:flex; flex-direction:column; align-items:center; gap:20px; }
-  .wheel-wrap{ position:relative; width:170px; height:170px; }
-  .wheel{
-    width:170px; height:170px; border-radius:50%;
-    background:conic-gradient(
-      #16351b 0deg 9.7deg, #b8281c 9.7deg 19.4deg, #16151a 19.4deg 29.1deg, #b8281c 29.1deg 38.8deg,
-      #16151a 38.8deg 48.5deg, #b8281c 48.5deg 58.2deg, #16151a 58.2deg 67.9deg, #b8281c 67.9deg 77.6deg,
-      #16151a 77.6deg 87.3deg, #b8281c 87.3deg 97deg, #16151a 97deg 106.7deg, #b8281c 106.7deg 116.4deg,
-      #16151a 116.4deg 126.1deg, #b8281c 126.1deg 135.8deg, #16151a 135.8deg 145.5deg, #b8281c 145.5deg 155.2deg,
-      #16151a 155.2deg 164.9deg, #b8281c 164.9deg 174.6deg, #16151a 174.6deg 184.3deg, #b8281c 184.3deg 194deg,
-      #16151a 194deg 203.7deg, #b8281c 203.7deg 213.4deg, #16151a 213.4deg 223.1deg, #b8281c 223.1deg 232.8deg,
-      #16151a 232.8deg 242.5deg, #b8281c 242.5deg 252.2deg, #16151a 252.2deg 261.9deg, #b8281c 261.9deg 271.6deg,
-      #16151a 271.6deg 281.3deg, #b8281c 281.3deg 291deg, #16151a 291deg 300.7deg, #b8281c 300.7deg 310.4deg,
-      #16151a 310.4deg 320.1deg, #b8281c 320.1deg 329.8deg, #16151a 329.8deg 339.5deg, #b8281c 339.5deg 349.2deg,
-      #16151a 349.2deg 360deg
-    );
-    border:4px solid var(--gold); box-shadow:0 0 24px rgba(255,207,63,.3);
-    transition:transform 3s cubic-bezier(.15,.85,.25,1);
-    display:flex; align-items:center; justify-content:center;
+  .roulette-stage{ display:flex; flex-direction:row; align-items:flex-start; gap:32px; flex-wrap:wrap; justify-content:center; }
+  .roulette-left{ display:flex; flex-direction:column; align-items:center; gap:16px; flex-shrink:0; }
+  .roulette-right{ display:flex; flex-direction:column; align-items:center; gap:16px; flex:1; min-width:300px; }
+  @media(max-width:900px){
+    .roulette-stage{ flex-direction:column; align-items:center; }
   }
-  .wheel-center{ width:40px; height:40px; border-radius:50%; background:var(--bg-1); border:2px solid var(--gold); z-index:2; }
+
+  .wheel-wrap{ position:relative; width:220px; height:220px; }
+  .wheel-svg{ width:220px; height:220px; transition:transform 3.2s cubic-bezier(.15,.85,.25,1); }
+  .wheel-rim{ fill:none; stroke:var(--gold); stroke-width:4; }
+  .wheel-center-hub{ fill:var(--bg-1); stroke:var(--gold); stroke-width:2; }
   .wheel-pointer{
     position:absolute; top:-12px; left:50%; transform:translateX(-50%);
     width:0; height:0; border-left:9px solid transparent; border-right:9px solid transparent;
@@ -565,31 +555,36 @@
         <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
       </div>
       <div class="roulette-stage">
-        <div class="wheel-wrap">
-          <div class="wheel-pointer"></div>
-          <div class="wheel" id="roulette-wheel"><div class="wheel-center"></div></div>
-        </div>
-        <div class="roulette-result" id="roulette-result-badge" style="display:none;"></div>
 
-        <div class="chip-selector" id="chip-selector">
-          <button class="chip-btn selected" data-val="1" onclick="selectChip(1)">1</button>
-          <button class="chip-btn" data-val="5" onclick="selectChip(5)">5</button>
-          <button class="chip-btn" data-val="25" onclick="selectChip(25)">25</button>
-          <button class="chip-btn" data-val="100" onclick="selectChip(100)">100</button>
-        </div>
-
-        <div class="roulette-felt">
-          <div class="rt-grid" id="rt-grid"></div>
-          <div class="rt-row-outside" id="rt-dozens"></div>
-          <div class="rt-row-outside" id="rt-outside"></div>
+        <div class="roulette-left">
+          <div class="wheel-wrap">
+            <div class="wheel-pointer"></div>
+            <svg class="wheel-svg" id="roulette-wheel" viewBox="0 0 220 220"></svg>
+          </div>
+          <div class="roulette-result" id="roulette-result-badge" style="display:none;"></div>
+          <div class="chip-selector" id="chip-selector">
+            <button class="chip-btn selected" data-val="1" onclick="selectChip(1)">1</button>
+            <button class="chip-btn" data-val="5" onclick="selectChip(5)">5</button>
+            <button class="chip-btn" data-val="25" onclick="selectChip(25)">25</button>
+            <button class="chip-btn" data-val="100" onclick="selectChip(100)">100</button>
+          </div>
         </div>
 
-        <div class="roulette-controls">
-          <div class="total-bet-display">Gesamteinsatz: <b id="roulette-total-bet">0</b> Chips</div>
-          <button class="btn btn-ghost" onclick="clearRouletteBets()">Wetten zurücksetzen</button>
-          <button class="btn btn-primary" onclick="spinRoulette()" id="roulette-spin-btn">Rad drehen</button>
+        <div class="roulette-right">
+          <div class="roulette-felt">
+            <div class="rt-grid" id="rt-grid"></div>
+            <div class="rt-row-outside" id="rt-dozens"></div>
+            <div class="rt-row-outside" id="rt-outside"></div>
+          </div>
+
+          <div class="roulette-controls">
+            <div class="total-bet-display">Gesamteinsatz: <b id="roulette-total-bet">0</b> Chips</div>
+            <button class="btn btn-ghost" onclick="clearRouletteBets()">Wetten zurücksetzen</button>
+            <button class="btn btn-primary" onclick="spinRoulette()" id="roulette-spin-btn">Rad drehen</button>
+          </div>
+          <div class="result-msg" id="roulette-result"></div>
         </div>
-        <div class="result-msg" id="roulette-result"></div>
+
       </div>
     </section>
 
@@ -981,6 +976,46 @@
 
   /* ================= ROULETTE GAME ================= */
   const RED_NUMBERS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+  const WHEEL_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+
+  function polarPoint(cx, cy, r, angleDeg){
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  function buildRouletteWheelSVG(){
+    const svg = document.getElementById('roulette-wheel');
+    const cx = 110, cy = 110, rOuter = 105, rInner = 40, segAngle = 360 / 37;
+    const colorMap = { red:'#b8281c', black:'#16151a', green:'#16351b' };
+    let html = '';
+
+    WHEEL_ORDER.forEach((num, i) => {
+      const startAngle = i * segAngle;
+      const endAngle = startAngle + segAngle;
+      const p1 = polarPoint(cx, cy, rOuter, startAngle);
+      const p2 = polarPoint(cx, cy, rOuter, endAngle);
+      const p3 = polarPoint(cx, cy, rInner, endAngle);
+      const p4 = polarPoint(cx, cy, rInner, startAngle);
+      const largeArc = segAngle > 180 ? 1 : 0;
+      const color = colorMap[numberColor(num)];
+      html += `<path d="M${p1.x},${p1.y} A${rOuter},${rOuter} 0 ${largeArc} 1 ${p2.x},${p2.y} L${p3.x},${p3.y} A${rInner},${rInner} 0 ${largeArc} 0 ${p4.x},${p4.y} Z" fill="${color}" stroke="#0a0a0f" stroke-width="0.75"/>`;
+
+      const textPos = polarPoint(cx, cy, (rOuter + rInner) / 2 + 8, startAngle + segAngle / 2);
+      const textAngle = startAngle + segAngle / 2;
+      html += `<text x="${textPos.x}" y="${textPos.y}" fill="#fff" font-family="Anton" font-size="9" text-anchor="middle" dominant-baseline="middle" transform="rotate(${textAngle}, ${textPos.x}, ${textPos.y})">${num}</text>`;
+    });
+
+    html += `<circle class="wheel-rim" cx="${cx}" cy="${cy}" r="${rOuter}"/>`;
+    html += `<circle class="wheel-center-hub" cx="${cx}" cy="${cy}" r="${rInner - 2}"/>`;
+    svg.innerHTML = html;
+  }
+
+  function angleForNumber(num){
+    const idx = WHEEL_ORDER.indexOf(num);
+    const segAngle = 360 / 37;
+    return idx * segAngle + segAngle / 2;
+  }
+
   let activeChipValue = 1;
   let rouletteBets = {}; // key -> amount
   let rouletteSpinTotal = 0;
@@ -1067,6 +1102,7 @@
 
   function resetRouletteUI(){
     if(!document.getElementById('rt-grid').innerHTML) buildRouletteTable();
+    if(!document.getElementById('roulette-wheel').innerHTML) buildRouletteWheelSVG();
     clearRouletteBets();
     document.getElementById('roulette-result-badge').style.display = 'none';
     document.getElementById('roulette-result').textContent = '';
@@ -1116,8 +1152,7 @@
     document.getElementById('roulette-result-badge').style.display = 'none';
 
     const winningNumber = Math.floor(Math.random() * 37); // 0-36
-    const degreesPerSlot = 360 / 37;
-    const targetSlotCenter = winningNumber * degreesPerSlot + degreesPerSlot / 2;
+    const targetSlotCenter = angleForNumber(winningNumber);
     const extraSpins = 6 * 360;
     rouletteSpinTotal += extraSpins + (360 - targetSlotCenter) - (rouletteSpinTotal % 360);
 
