@@ -217,10 +217,10 @@
   .result-msg.lose{ color:var(--fuse-red); }
 
   /* ---------- Roulette ---------- */
-  .roulette-stage{ display:flex; flex-direction:column; align-items:center; gap:24px; }
-  .wheel-wrap{ position:relative; width:220px; height:220px; }
+  .roulette-stage{ display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .wheel-wrap{ position:relative; width:170px; height:170px; }
   .wheel{
-    width:220px; height:220px; border-radius:50%;
+    width:170px; height:170px; border-radius:50%;
     background:conic-gradient(
       #16351b 0deg 9.7deg, #b8281c 9.7deg 19.4deg, #16151a 19.4deg 29.1deg, #b8281c 29.1deg 38.8deg,
       #16151a 38.8deg 48.5deg, #b8281c 48.5deg 58.2deg, #16151a 58.2deg 67.9deg, #b8281c 67.9deg 77.6deg,
@@ -233,31 +233,72 @@
       #16151a 310.4deg 320.1deg, #b8281c 320.1deg 329.8deg, #16151a 329.8deg 339.5deg, #b8281c 339.5deg 349.2deg,
       #16151a 349.2deg 360deg
     );
-    border:4px solid var(--gold); box-shadow:0 0 30px rgba(255,207,63,.3);
+    border:4px solid var(--gold); box-shadow:0 0 24px rgba(255,207,63,.3);
     transition:transform 3s cubic-bezier(.15,.85,.25,1);
     display:flex; align-items:center; justify-content:center;
   }
-  .wheel-center{ width:50px; height:50px; border-radius:50%; background:var(--bg-1); border:2px solid var(--gold); z-index:2; }
+  .wheel-center{ width:40px; height:40px; border-radius:50%; background:var(--bg-1); border:2px solid var(--gold); z-index:2; }
   .wheel-pointer{
-    position:absolute; top:-14px; left:50%; transform:translateX(-50%);
-    width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent;
-    border-top:18px solid var(--gold); z-index:3;
+    position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:9px solid transparent; border-right:9px solid transparent;
+    border-top:16px solid var(--gold); z-index:3;
   }
   .roulette-result{
-    width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:26px; border:3px solid var(--line); color:var(--text-hi);
+    width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:22px; border:3px solid var(--line); color:var(--text-hi);
   }
   .roulette-result.red{ background:#b8281c; border-color:#ff6a5a; }
   .roulette-result.black{ background:#16151a; border-color:#555; }
   .roulette-result.green{ background:#16351b; border-color:#3ddc84; }
 
-  .bet-type-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-  .bet-type-btn{
-    padding:10px 6px; border-radius:8px; border:1px solid var(--line); background:var(--bg-2);
-    color:var(--text-mid); font-size:12px; font-weight:700; cursor:pointer; text-align:center;
+  /* Chip selector */
+  .chip-selector{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .chip-btn{
+    width:46px; height:46px; border-radius:50%; border:2px dashed rgba(255,255,255,.3);
+    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 60%, #a6790f 100%);
+    color:#3a2a00; font-family:var(--display); font-size:12px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
   }
-  .bet-type-btn.selected{ border-color:var(--gold); color:var(--gold); background:rgba(255,207,63,.1); }
-  .bet-type-btn.opt-red{ color:#ff6a5a; } .bet-type-btn.opt-black{ color:#ccc; }
+  .chip-btn.selected{ border:2px solid #fff; transform:scale(1.12); box-shadow:0 0 14px rgba(255,207,63,.6); }
+  .chip-btn[data-val="5"]{ background:radial-gradient(circle at 35% 30%, #c8fff9, var(--cyan) 60%, #0d8f85 100%); color:#04211f; }
+  .chip-btn[data-val="25"]{ background:radial-gradient(circle at 35% 30%, #ff9d8f, var(--fuse-red) 60%, #8f1a10 100%); color:#3a0a05; }
+  .chip-btn[data-val="100"]{ background:radial-gradient(circle at 35% 30%, #e0d0ff, #a970ff 60%, #5a2d99 100%); color:#fff; }
+
+  /* Casino felt table */
+  .roulette-felt{
+    background:radial-gradient(circle at 50% -10%, #1a4d2e, #0d2818 70%);
+    border:3px solid #8a6a1c; border-radius:12px; padding:14px;
+    width:100%; max-width:640px; overflow-x:auto;
+  }
+  .rt-grid{ display:grid; grid-template-columns: 40px repeat(12, minmax(30px,1fr)); gap:3px; min-width:560px; }
+  .rt-cell{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:12px; color:#fff; cursor:pointer;
+    border-radius:4px; user-select:none;
+  }
+  .rt-zero{ grid-row: 1 / 4; grid-column: 1; background:#16351b; font-size:14px; }
+  .rt-zero:hover{ background:#1f4d2b; }
+  .rt-num{ height:32px; background:#16151a; }
+  .rt-num.red{ background:#b8281c; }
+  .rt-num:hover{ filter:brightness(1.25); }
+  .rt-col-bet{ height:24px; background:var(--bg-2); border:1px solid var(--line); font-size:9px; color:var(--text-mid); font-family:var(--mono); }
+  .rt-col-bet:hover{ border-color:var(--gold); color:var(--gold); }
+  .rt-dozen{ grid-column:span 4; height:30px; background:var(--bg-2); border:1px solid var(--line); font-size:10px; color:var(--text-mid); font-family:var(--mono); }
+  .rt-dozen:hover{ border-color:var(--gold); color:var(--gold); }
+  .rt-outside{ height:30px; background:var(--bg-2); border:1px solid var(--line); font-size:10px; color:var(--text-mid); font-family:var(--mono); }
+  .rt-outside:hover{ border-color:var(--gold); color:var(--gold); }
+  .rt-outside.opt-red{ color:#ff6a5a; } .rt-outside.opt-black{ color:#ccc; }
+  .rt-row-dozens{ display:grid; grid-template-columns:repeat(12,minmax(30px,1fr)); gap:3px; margin:3px 0 3px 43px; min-width:517px; }
+  .rt-row-outside{ display:grid; grid-template-columns:repeat(12,minmax(30px,1fr)); gap:3px; margin-left:43px; min-width:517px; }
+
+  .chip-badge{
+    position:absolute; bottom:-7px; right:-7px; background:var(--gold); color:#1a1400;
+    font-size:9px; font-weight:800; border-radius:50%; width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center; border:2px solid #0d2818; z-index:2;
+  }
+  .roulette-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .total-bet-display{ font-family:var(--mono); font-size:13px; color:var(--text-mid); }
+  .total-bet-display b{ color:var(--gold); }
 
   /* ---------- Blackjack ---------- */
   .bj-table{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
@@ -530,27 +571,24 @@
         </div>
         <div class="roulette-result" id="roulette-result-badge" style="display:none;"></div>
 
-        <div class="field" style="max-width:220px; width:100%;">
-          <label>Einsatz</label>
-          <input type="number" id="roulette-bet" value="10" min="1" step="1">
-          <div class="bet-quick">
-            <button onclick="rouletteBetAdjust(0.5)">½</button>
-            <button onclick="rouletteBetAdjust(2)">2×</button>
-            <button onclick="rouletteBetSet('max')">Max</button>
-          </div>
+        <div class="chip-selector" id="chip-selector">
+          <button class="chip-btn selected" data-val="1" onclick="selectChip(1)">1</button>
+          <button class="chip-btn" data-val="5" onclick="selectChip(5)">5</button>
+          <button class="chip-btn" data-val="25" onclick="selectChip(25)">25</button>
+          <button class="chip-btn" data-val="100" onclick="selectChip(100)">100</button>
         </div>
 
-        <div class="bet-type-grid" style="max-width:420px; width:100%;">
-          <button class="bet-type-btn opt-red selected" data-bet="red" onclick="selectRouletteBet('red')">Rot (2×)</button>
-          <button class="bet-type-btn opt-black" data-bet="black" onclick="selectRouletteBet('black')">Schwarz (2×)</button>
-          <button class="bet-type-btn" data-bet="green" onclick="selectRouletteBet('green')">Grün / 0 (14×)</button>
-          <button class="bet-type-btn" data-bet="even" onclick="selectRouletteBet('even')">Gerade (2×)</button>
-          <button class="bet-type-btn" data-bet="odd" onclick="selectRouletteBet('odd')">Ungerade (2×)</button>
-          <button class="bet-type-btn" data-bet="low" onclick="selectRouletteBet('low')">1–18 (2×)</button>
-          <button class="bet-type-btn" data-bet="high" onclick="selectRouletteBet('high')">19–36 (2×)</button>
+        <div class="roulette-felt">
+          <div class="rt-grid" id="rt-grid"></div>
+          <div class="rt-row-outside" id="rt-dozens"></div>
+          <div class="rt-row-outside" id="rt-outside"></div>
         </div>
 
-        <button class="btn btn-primary" onclick="spinRoulette()" id="roulette-spin-btn">Rad drehen</button>
+        <div class="roulette-controls">
+          <div class="total-bet-display">Gesamteinsatz: <b id="roulette-total-bet">0</b> Chips</div>
+          <button class="btn btn-ghost" onclick="clearRouletteBets()">Wetten zurücksetzen</button>
+          <button class="btn btn-primary" onclick="spinRoulette()" id="roulette-spin-btn">Rad drehen</button>
+        </div>
         <div class="result-msg" id="roulette-result"></div>
       </div>
     </section>
@@ -943,53 +981,133 @@
 
   /* ================= ROULETTE GAME ================= */
   const RED_NUMBERS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-  let rouletteBetType = 'red';
-
-  function resetRouletteUI(){
-    document.getElementById('roulette-result-badge').style.display = 'none';
-    document.getElementById('roulette-result').textContent = '';
-    document.getElementById('roulette-result').className = 'result-msg';
-    document.getElementById('roulette-spin-btn').disabled = false;
-  }
-
-  function selectRouletteBet(type){
-    rouletteBetType = type;
-    document.querySelectorAll('.bet-type-btn').forEach(b => b.classList.toggle('selected', b.dataset.bet === type));
-  }
-  function rouletteBetAdjust(factor){
-    const el = document.getElementById('roulette-bet');
-    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
-  }
-  function rouletteBetSet(mode){
-    if(mode === 'max') document.getElementById('roulette-bet').value = CHIPS_BALANCE;
-  }
+  let activeChipValue = 1;
+  let rouletteBets = {}; // key -> amount
+  let rouletteSpinTotal = 0;
 
   function numberColor(n){
     if(n === 0) return 'green';
     return RED_NUMBERS.has(n) ? 'red' : 'black';
   }
 
-  function checkRouletteWin(n, betType){
-    const color = numberColor(n);
-    if(betType === 'red') return color === 'red';
-    if(betType === 'black') return color === 'black';
-    if(betType === 'green') return n === 0;
-    if(betType === 'even') return n !== 0 && n % 2 === 0;
-    if(betType === 'odd') return n !== 0 && n % 2 === 1;
-    if(betType === 'low') return n >= 1 && n <= 18;
-    if(betType === 'high') return n >= 19 && n <= 36;
-    return false;
-  }
-  function rouletteMultiplierFor(betType){
-    return betType === 'green' ? 14 : 2;
+  function selectChip(val){
+    activeChipValue = val;
+    document.querySelectorAll('.chip-btn').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.val) === val));
   }
 
-  let rouletteSpinTotal = 0;
+  function buildRouletteTable(){
+    const grid = document.getElementById('rt-grid');
+    let html = `<div class="rt-cell rt-zero" data-bet="straight-0" onclick="placeBet('straight-0', this)">0</div>`;
+    // 3 rows x 12 columns: top row = multiples of 3, middle = %3==2, bottom = %3==1
+    for(let row = 0; row < 3; row++){
+      for(let col = 0; col < 12; col++){
+        const num = col*3 + (3 - row);
+        const color = numberColor(num);
+        html += `<div class="rt-cell rt-num ${color}" style="grid-row:${row+1}; grid-column:${col+2};" data-bet="straight-${num}" onclick="placeBet('straight-${num}', this)">${num}</div>`;
+      }
+    }
+    // column (2:1) bets row 4
+    grid.innerHTML = html;
+
+    // Column bet buttons (2:1) - one per physical row (top/mid/bottom), spanning full width
+    const colBetsHtml = [2,1,0].map((remRow, i) => {
+      // row0(top) numbers are multiples of 3 -> remainder 0 ; row1 mid remainder 2 ; row2 bottom remainder 1
+      const remainder = i === 0 ? 0 : (i === 1 ? 2 : 1);
+      return `<div class="rt-cell rt-col-bet" style="grid-row:${i+1}; grid-column:14;" data-bet="col-${remainder}" onclick="placeBet('col-${remainder}', this)">2:1</div>`;
+    }).join('');
+    grid.style.gridTemplateColumns = '40px repeat(12, minmax(30px,1fr)) 34px';
+    grid.innerHTML += colBetsHtml;
+
+    // Dozens row
+    document.getElementById('rt-dozens').innerHTML = `
+      <div class="rt-cell rt-dozen" data-bet="dozen-1" onclick="placeBet('dozen-1', this)">1. Dutzend (1-12)</div>
+      <div class="rt-cell rt-dozen" data-bet="dozen-2" onclick="placeBet('dozen-2', this)">2. Dutzend (13-24)</div>
+      <div class="rt-cell rt-dozen" data-bet="dozen-3" onclick="placeBet('dozen-3', this)">3. Dutzend (25-36)</div>
+    `;
+    // Outside bets row
+    document.getElementById('rt-outside').innerHTML = `
+      <div class="rt-cell rt-outside" data-bet="low" onclick="placeBet('low', this)" style="grid-column:span 2;">1–18</div>
+      <div class="rt-cell rt-outside" data-bet="even" onclick="placeBet('even', this)" style="grid-column:span 2;">Gerade</div>
+      <div class="rt-cell rt-outside opt-red" data-bet="red" onclick="placeBet('red', this)" style="grid-column:span 2;">Rot</div>
+      <div class="rt-cell rt-outside opt-black" data-bet="black" onclick="placeBet('black', this)" style="grid-column:span 2;">Schwarz</div>
+      <div class="rt-cell rt-outside" data-bet="odd" onclick="placeBet('odd', this)" style="grid-column:span 2;">Ungerade</div>
+      <div class="rt-cell rt-outside" data-bet="high" onclick="placeBet('high', this)" style="grid-column:span 2;">19–36</div>
+    `;
+  }
+
+  function totalRouletteBet(){
+    return Object.values(rouletteBets).reduce((a,b) => a+b, 0);
+  }
+  function updateTotalBetDisplay(){
+    document.getElementById('roulette-total-bet').textContent = totalRouletteBet().toLocaleString('de-CH');
+  }
+
+  function placeBet(key, el){
+    if(document.getElementById('roulette-spin-btn').disabled) return;
+    if(totalRouletteBet() + activeChipValue > CHIPS_BALANCE){
+      alert('Nicht genug Chips für diesen Einsatz.');
+      return;
+    }
+    rouletteBets[key] = (rouletteBets[key] || 0) + activeChipValue;
+    let badge = el.querySelector('.chip-badge');
+    if(!badge){
+      badge = document.createElement('div');
+      badge.className = 'chip-badge';
+      el.appendChild(badge);
+    }
+    badge.textContent = rouletteBets[key];
+    updateTotalBetDisplay();
+  }
+
+  function clearRouletteBets(){
+    rouletteBets = {};
+    document.querySelectorAll('.chip-badge').forEach(b => b.remove());
+    updateTotalBetDisplay();
+  }
+
+  function resetRouletteUI(){
+    if(!document.getElementById('rt-grid').innerHTML) buildRouletteTable();
+    clearRouletteBets();
+    document.getElementById('roulette-result-badge').style.display = 'none';
+    document.getElementById('roulette-result').textContent = '';
+    document.getElementById('roulette-result').className = 'result-msg';
+    document.getElementById('roulette-spin-btn').disabled = false;
+  }
+
+  function resolveBet(key, amount, winNum){
+    if(key.startsWith('straight-')){
+      const num = parseInt(key.split('-')[1]);
+      return num === winNum ? amount * 36 : 0;
+    }
+    if(key.startsWith('col-')){
+      if(winNum === 0) return 0;
+      const remainder = parseInt(key.split('-')[1]);
+      const winRemainder = winNum % 3;
+      return winRemainder === remainder ? amount * 3 : 0;
+    }
+    if(key.startsWith('dozen-')){
+      if(winNum === 0) return 0;
+      const d = parseInt(key.split('-')[1]);
+      const inDozen = (d===1 && winNum<=12) || (d===2 && winNum>=13 && winNum<=24) || (d===3 && winNum>=25);
+      return inDozen ? amount * 3 : 0;
+    }
+    if(key === 'red') return (winNum !== 0 && RED_NUMBERS.has(winNum)) ? amount * 2 : 0;
+    if(key === 'black') return (winNum !== 0 && !RED_NUMBERS.has(winNum)) ? amount * 2 : 0;
+    if(key === 'even') return (winNum !== 0 && winNum % 2 === 0) ? amount * 2 : 0;
+    if(key === 'odd') return (winNum !== 0 && winNum % 2 === 1) ? amount * 2 : 0;
+    if(key === 'low') return (winNum >= 1 && winNum <= 18) ? amount * 2 : 0;
+    if(key === 'high') return (winNum >= 19 && winNum <= 36) ? amount * 2 : 0;
+    return 0;
+  }
 
   function spinRoulette(){
-    const bet = parseInt(document.getElementById('roulette-bet').value) || 0;
-    if(bet <= 0 || bet > CHIPS_BALANCE){
-      alert('Ungültiger Einsatz.');
+    const totalBet = totalRouletteBet();
+    if(totalBet <= 0){
+      alert('Bitte platziere zuerst mindestens eine Wette auf dem Tisch.');
+      return;
+    }
+    if(totalBet > CHIPS_BALANCE){
+      alert('Nicht genug Chips.');
       return;
     }
     document.getElementById('roulette-spin-btn').disabled = true;
@@ -1012,20 +1130,23 @@
       badge.className = 'roulette-result ' + numberColor(winningNumber);
       badge.style.display = 'flex';
 
-      const win = checkRouletteWin(winningNumber, rouletteBetType);
-      if(win){
-        const mult = rouletteMultiplierFor(rouletteBetType);
-        const winnings = Math.round(bet * mult);
-        saveChips(CHIPS_BALANCE - bet + winnings);
-        document.getElementById('roulette-result').textContent = '✓ ' + winningNumber + ' — ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
+      let totalWinnings = 0;
+      for(const [key, amount] of Object.entries(rouletteBets)){
+        totalWinnings += resolveBet(key, amount, winningNumber);
+      }
+
+      saveChips(CHIPS_BALANCE - totalBet + totalWinnings);
+
+      if(totalWinnings > 0){
+        document.getElementById('roulette-result').textContent = '✓ ' + winningNumber + ' (' + numberColor(winningNumber) + ') — ' + totalWinnings.toLocaleString('de-CH') + ' Chips gewonnen!';
         document.getElementById('roulette-result').className = 'result-msg win';
         playWinSound();
       } else {
-        saveChips(CHIPS_BALANCE - bet);
-        document.getElementById('roulette-result').textContent = 'Die Kugel landete auf ' + winningNumber + '. Verloren!';
+        document.getElementById('roulette-result').textContent = 'Die Kugel landete auf ' + winningNumber + ' (' + numberColor(winningNumber) + '). Verloren!';
         document.getElementById('roulette-result').className = 'result-msg lose';
         playLoseSound();
       }
+      clearRouletteBets();
       document.getElementById('roulette-spin-btn').disabled = false;
     }, 3050);
   }
