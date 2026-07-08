@@ -842,6 +842,16 @@
 
     sections.forEach(s => observer.observe(s));
   })();
+
+  /* ---------- Besucher-Tracking (datenschutzfreundlich: nur Seite, Zeit, Referrer) ---------- */
+  (function trackVisit(){
+    try{
+      sb.from('visits').insert({
+        page: location.pathname || '/',
+        referrer: document.referrer || null
+      }).then(()=>{});
+    }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
+  })();
 </script>
 </body>
 </html>
