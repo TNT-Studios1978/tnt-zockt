@@ -335,15 +335,40 @@
   .bj-box-result{ font-family:var(--display); font-size:12px; text-transform:uppercase; min-height:14px; }
   .bj-box-result.win{ color:var(--cyan); } .bj-box-result.lose{ color:var(--fuse-red); }
 
-  .bj-setup{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:20px; }
-  .bj-setup-row{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; justify-content:center; }
-  .bj-setup-row .field{ max-width:150px; }
-  .bj-side-toggle{
-    display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-mid);
-    background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px;
+  .bj-setup{ margin-bottom:20px; }
+  .bj-chip-selector-row{ display:flex; justify-content:center; margin-bottom:18px; }
+
+  .bj-betting-row{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .bj-spot{
+    background:rgba(0,0,0,.25); border:2px dashed rgba(255,255,255,.15); border-radius:12px;
+    padding:12px 10px; width:130px; display:flex; flex-direction:column; align-items:center; gap:8px;
   }
-  .bj-side-toggle input[type="checkbox"]{ width:16px; height:16px; accent-color:var(--gold); }
-  .bj-side-toggle .odds{ font-family:var(--mono); font-size:9.5px; color:var(--text-low); display:block; }
+  .bj-spot.has-bet{ border-color:var(--gold); border-style:solid; box-shadow:0 0 14px rgba(255,207,63,.25); }
+  .bj-spot-title{ font-family:var(--mono); font-size:10px; color:#cfe8d6; text-transform:uppercase; }
+  .bj-main-circle{
+    position:relative; width:64px; height:64px; border-radius:50%;
+    background:rgba(255,255,255,.05); border:2px solid rgba(255,255,255,.25);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:var(--mono); font-size:10px; color:var(--text-low);
+  }
+  .bj-main-circle:hover{ border-color:var(--gold); background:rgba(255,207,63,.08); }
+  .bj-side-circles{ display:flex; gap:8px; }
+  .bj-side-circle{
+    position:relative; width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.2);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:var(--mono); font-size:8px; color:var(--text-low); text-align:center; line-height:1.1;
+  }
+  .bj-side-circle:hover{ border-color:var(--cyan); background:rgba(40,240,224,.1); }
+  .bj-chip-token{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 60%, #a6790f 100%); color:#1a1400;
+    font-size:11px; font-weight:800; border-radius:50%; width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center;
+    border:2px dashed #1a1400; box-shadow:0 2px 6px rgba(0,0,0,.5); z-index:2;
+  }
+  .bj-side-circle .bj-chip-token{ width:24px; height:24px; font-size:9px; }
+  .bj-clear-spot{ font-size:9px; color:var(--text-low); background:none; border:none; cursor:pointer; text-decoration:underline; }
 
   .bj-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; justify-content:center; }
   .bj-actions .btn{ min-width:140px; }
@@ -636,41 +661,19 @@
         <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
       </div>
 
-      <div class="bj-setup" id="bj-setup">
-        <div class="bj-setup-row">
-          <div class="field">
-            <label>Anzahl Boxen</label>
-            <select id="bj-box-count" onchange="bjUpdateBoxCount()">
-              <option value="1">1 Box</option>
-              <option value="2">2 Boxen</option>
-              <option value="3" selected>3 Boxen</option>
-              <option value="4">4 Boxen</option>
-              <option value="5">5 Boxen</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Einsatz pro Box</label>
-            <input type="number" id="bj-bet" value="10" min="1" step="1">
-            <div class="bet-quick">
-              <button onclick="bjBetAdjust(0.5)">½</button>
-              <button onclick="bjBetAdjust(2)">2×</button>
-              <button onclick="bjBetSet('max')">Max</button>
+      <div class="bj-felt">
+        <div class="bj-setup" id="bj-setup">
+          <div class="bj-chip-selector-row">
+            <div class="chip-selector" id="bj-chip-selector">
+              <button class="chip-btn selected" data-val="1" onclick="selectBjChip(1)">1</button>
+              <button class="chip-btn" data-val="5" onclick="selectBjChip(5)">5</button>
+              <button class="chip-btn" data-val="25" onclick="selectBjChip(25)">25</button>
+              <button class="chip-btn" data-val="100" onclick="selectBjChip(100)">100</button>
             </div>
           </div>
-          <label class="bj-side-toggle">
-            <input type="checkbox" id="bj-side-pp">
-            Perfect Pairs
-            <span class="odds">Paar 6:1 / 12:1 / 25:1</span>
-          </label>
-          <label class="bj-side-toggle">
-            <input type="checkbox" id="bj-side-213">
-            21+3
-            <span class="odds">Flush/Straight/Drilling</span>
-          </label>
+          <div class="bj-betting-row" id="bj-betting-row"></div>
         </div>
-      </div>
 
-      <div class="bj-felt">
         <div class="bj-dealer-area">
           <div class="bj-dealer-label">Dealer</div>
           <div class="bj-dealer-cards" id="bj-dealer-cards"></div>
@@ -680,6 +683,8 @@
       </div>
 
       <div class="bj-actions">
+        <div class="total-bet-display">Gesamteinsatz: <b id="bj-total-bet">0</b> Chips</div>
+        <button class="btn btn-ghost" onclick="clearBjBets()">Wetten zurücksetzen</button>
         <button class="btn btn-primary" id="bj-deal-btn" onclick="startBlackjack()">Austeilen</button>
         <button class="btn btn-ghost" id="bj-hit-btn" onclick="bjHit()" style="display:none;">Karte (Hit)</button>
         <button class="btn btn-ghost" id="bj-stand-btn" onclick="bjStand()" style="display:none;">Halten (Stand)</button>
@@ -1370,8 +1375,55 @@
     return null;
   }
 
-  function bjUpdateBoxCount(){
-    // Nur relevant vor dem Austeilen; Anzeige wird beim Deal neu aufgebaut
+  let bjActiveChip = 1;
+  let bjBetState = [];
+
+  function selectBjChip(val){
+    bjActiveChip = val;
+    document.querySelectorAll('#bj-chip-selector .chip-btn').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.val) === val));
+  }
+
+  function bjTotalBet(){
+    return bjBetState.reduce((sum, spot) => sum + spot.main + spot.pp + spot.tp, 0);
+  }
+  function updateBjTotalDisplay(){
+    document.getElementById('bj-total-bet').textContent = bjTotalBet().toLocaleString('de-CH');
+  }
+
+  function placeBjChip(spotIndex, type){
+    if(bjTotalBet() + bjActiveChip > CHIPS_BALANCE){
+      alert('Nicht genug Chips.');
+      return;
+    }
+    bjBetState[spotIndex][type] += bjActiveChip;
+    renderBjBettingRow();
+    updateBjTotalDisplay();
+  }
+
+  function clearBjBets(){
+    bjBetState = bjBetState.map(() => ({ main:0, pp:0, tp:0 }));
+    renderBjBettingRow();
+    updateBjTotalDisplay();
+  }
+
+  function renderBjBettingRow(){
+    const row = document.getElementById('bj-betting-row');
+    row.innerHTML = bjBetState.map((spot, i) => `
+      <div class="bj-spot ${spot.main > 0 ? 'has-bet' : ''}">
+        <div class="bj-spot-title">Box ${i+1}</div>
+        <div class="bj-main-circle" onclick="placeBjChip(${i},'main')">
+          ${spot.main > 0 ? `<div class="bj-chip-token">${spot.main}</div>` : 'Setzen'}
+        </div>
+        <div class="bj-side-circles">
+          <div class="bj-side-circle" onclick="placeBjChip(${i},'pp')" title="Perfect Pairs">
+            ${spot.pp > 0 ? `<div class="bj-chip-token">${spot.pp}</div>` : 'PP'}
+          </div>
+          <div class="bj-side-circle" onclick="placeBjChip(${i},'tp')" title="21+3">
+            ${spot.tp > 0 ? `<div class="bj-chip-token">${spot.tp}</div>` : '21+3'}
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
 
   function resetBlackjackUI(){
@@ -1379,6 +1431,7 @@
     bjDealer = [];
     bjActiveBoxIndex = -1;
     bjPhase = 'setup';
+    bjBetState = [0,1,2,3,4].map(() => ({ main:0, pp:0, tp:0 }));
     document.getElementById('bj-dealer-cards').innerHTML = '';
     document.getElementById('bj-dealer-value').textContent = '';
     document.getElementById('bj-boxes-row').innerHTML = '';
@@ -1388,17 +1441,9 @@
     document.getElementById('bj-hit-btn').style.display = 'none';
     document.getElementById('bj-stand-btn').style.display = 'none';
     document.getElementById('bj-setup').style.display = 'block';
-  }
-
-  function bjBetAdjust(factor){
-    const el = document.getElementById('bj-bet');
-    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
-  }
-  function bjBetSet(mode){
-    if(mode === 'max'){
-      const count = parseInt(document.getElementById('bj-box-count').value);
-      document.getElementById('bj-bet').value = Math.max(1, Math.floor(CHIPS_BALANCE / count));
-    }
+    document.getElementById('bj-boxes-row').style.display = 'none';
+    renderBjBettingRow();
+    updateBjTotalDisplay();
   }
 
   function renderBjBoxes(){
@@ -1412,7 +1457,7 @@
       if(box.tpResult) sideText += '♦ ' + box.tpResult.name + ' (' + (box.tpResult.mult-1) + ':1)';
       return `
         <div class="bj-box ${isActive ? 'active-box' : ''} ${isDone ? 'done-box' : ''}">
-          <div class="bj-box-title">Box ${i+1}</div>
+          <div class="bj-box-title">Box ${box.spotIndex+1}</div>
           <div class="bj-box-cards">${box.cards.map(c => renderCard(c)).join('')}</div>
           <div class="bj-box-value">${val}${box.status==='bust' ? ' 💥' : ''}${box.status==='blackjack' ? ' ✦' : ''}</div>
           <div class="bj-box-bet">${box.bet} Chips${box.ppBet ? ' · PP:'+box.ppBet : ''}${box.tpBet ? ' · 21+3:'+box.tpBet : ''}</div>
@@ -1429,29 +1474,25 @@
   }
 
   function startBlackjack(){
-    const boxCount = parseInt(document.getElementById('bj-box-count').value);
-    const betPerBox = parseInt(document.getElementById('bj-bet').value) || 0;
-    const playPP = document.getElementById('bj-side-pp').checked;
-    const play213 = document.getElementById('bj-side-213').checked;
-    const ppBetPerBox = playPP ? Math.max(1, Math.round(betPerBox / 2)) : 0;
-    const tpBetPerBox = play213 ? Math.max(1, Math.round(betPerBox / 2)) : 0;
-
-    const totalCost = boxCount * (betPerBox + ppBetPerBox + tpBetPerBox);
-    if(betPerBox <= 0 || totalCost > CHIPS_BALANCE){
-      alert('Ungültiger Einsatz oder nicht genug Chips für alle Boxen/Side Bets.');
+    const activeSpots = bjBetState.map((s,i) => ({...s, index:i})).filter(s => s.main > 0);
+    if(activeSpots.length === 0){
+      alert('Bitte platziere zuerst mindestens einen Einsatz auf einer Box.');
+      return;
+    }
+    const totalCost = bjTotalBet();
+    if(totalCost > CHIPS_BALANCE){
+      alert('Nicht genug Chips.');
       return;
     }
     saveChips(CHIPS_BALANCE - totalCost);
 
     bjDealer = [drawCard(), drawCard()];
-    bjBoxes = [];
-    for(let i=0; i<boxCount; i++){
-      bjBoxes.push({
-        cards: [drawCard(), drawCard()],
-        bet: betPerBox, ppBet: ppBetPerBox, tpBet: tpBetPerBox,
-        status: 'playing', ppResult: null, tpResult: null, resultMsg: '', resultClass: ''
-      });
-    }
+    bjBoxes = activeSpots.map(spot => ({
+      spotIndex: spot.index,
+      cards: [drawCard(), drawCard()],
+      bet: spot.main, ppBet: spot.pp, tpBet: spot.tp,
+      status: 'playing', ppResult: null, tpResult: null, resultMsg: '', resultClass: ''
+    }));
 
     // Side Bets sofort auswerten
     let sideWinnings = 0;
@@ -1468,6 +1509,7 @@
     if(sideWinnings > 0) saveChips(CHIPS_BALANCE + sideWinnings);
 
     document.getElementById('bj-setup').style.display = 'none';
+    document.getElementById('bj-boxes-row').style.display = 'flex';
     document.getElementById('bj-deal-btn').style.display = 'none';
     document.getElementById('bj-result').textContent = sideWinnings > 0 ? ('✓ Side Bets: ' + sideWinnings.toLocaleString('de-CH') + ' Chips gewonnen!') : '';
     document.getElementById('bj-result').className = 'result-msg win';
