@@ -300,21 +300,53 @@
   .total-bet-display b{ color:var(--gold); }
 
   /* ---------- Blackjack ---------- */
-  .bj-table{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
-  .bj-row{ margin-bottom:18px; }
-  .bj-label{ font-family:var(--mono); font-size:11px; color:var(--text-low); text-transform:uppercase; margin-bottom:8px; display:flex; justify-content:space-between; }
-  .bj-cards{ display:flex; gap:8px; flex-wrap:wrap; min-height:88px; }
+  .bj-felt{
+    background:radial-gradient(circle at 50% -10%, #1a4d2e, #0d2818 70%);
+    border:3px solid #8a6a1c; border-radius:16px; padding:24px;
+  }
+  .bj-dealer-area{ text-align:center; margin-bottom:28px; }
+  .bj-dealer-label{ font-family:var(--mono); font-size:11px; color:#cfe8d6; text-transform:uppercase; margin-bottom:8px; }
+  .bj-dealer-cards{ display:flex; gap:6px; justify-content:center; min-height:76px; flex-wrap:wrap; }
+  .bj-dealer-value{ font-family:var(--display); font-size:16px; color:var(--gold); margin-top:6px; }
+
   .card{
-    width:58px; height:82px; border-radius:8px; background:#f4f1ea; color:#111;
+    width:50px; height:70px; border-radius:7px; background:#f4f1ea; color:#111;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:20px; box-shadow:0 3px 8px rgba(0,0,0,.4);
-    border:1px solid #ccc;
+    font-family:var(--display); font-size:16px; box-shadow:0 3px 8px rgba(0,0,0,.4);
+    border:1px solid #ccc; flex-shrink:0;
   }
   .card.red-suit{ color:#c62828; }
   .card.hidden{ background:linear-gradient(145deg, var(--bg-2), #0d0d13); border:2px solid var(--gold); color:transparent; }
-  .card .suit{ font-size:16px; margin-top:2px; }
-  .bj-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
-  .bj-actions .btn{ flex:1; min-width:120px; }
+  .card .suit{ font-size:13px; margin-top:1px; }
+
+  .bj-boxes-row{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .bj-box{
+    background:rgba(0,0,0,.28); border:2px solid rgba(255,255,255,.12); border-radius:12px;
+    padding:12px 10px; width:150px; display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .bj-box.active-box{ border-color:var(--gold); box-shadow:0 0 18px rgba(255,207,63,.4); }
+  .bj-box.done-box{ opacity:.65; }
+  .bj-box-title{ font-family:var(--mono); font-size:10px; color:#cfe8d6; text-transform:uppercase; }
+  .bj-box-cards{ display:flex; gap:4px; min-height:70px; flex-wrap:wrap; justify-content:center; }
+  .bj-box-value{ font-family:var(--display); font-size:15px; color:var(--gold); }
+  .bj-box-bet{ font-family:var(--mono); font-size:9.5px; color:var(--text-low); text-align:center; }
+  .bj-box-side{ font-size:9px; color:var(--cyan); text-align:center; min-height:11px; }
+  .bj-box-result{ font-family:var(--display); font-size:12px; text-transform:uppercase; min-height:14px; }
+  .bj-box-result.win{ color:var(--cyan); } .bj-box-result.lose{ color:var(--fuse-red); }
+
+  .bj-setup{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:20px; }
+  .bj-setup-row{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; justify-content:center; }
+  .bj-setup-row .field{ max-width:150px; }
+  .bj-side-toggle{
+    display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-mid);
+    background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px;
+  }
+  .bj-side-toggle input[type="checkbox"]{ width:16px; height:16px; accent-color:var(--gold); }
+  .bj-side-toggle .odds{ font-family:var(--mono); font-size:9.5px; color:var(--text-low); display:block; }
+
+  .bj-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; justify-content:center; }
+  .bj-actions .btn{ min-width:140px; }
 
   /* ---------- Support Chat Widget ---------- */
   .support-btn{
@@ -603,33 +635,56 @@
         <h2>🃏 Blackjack</h2>
         <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
       </div>
-      <div class="bj-table">
-        <div class="bj-row">
-          <div class="bj-label"><span>Dealer</span><span id="bj-dealer-value"></span></div>
-          <div class="bj-cards" id="bj-dealer-cards"></div>
-        </div>
-        <div class="bj-row">
-          <div class="bj-label"><span>Deine Hand</span><span id="bj-player-value"></span></div>
-          <div class="bj-cards" id="bj-player-cards"></div>
-        </div>
 
-        <div class="field" style="max-width:220px;" id="bj-bet-field">
-          <label>Einsatz</label>
-          <input type="number" id="bj-bet" value="10" min="1" step="1">
-          <div class="bet-quick">
-            <button onclick="bjBetAdjust(0.5)">½</button>
-            <button onclick="bjBetAdjust(2)">2×</button>
-            <button onclick="bjBetSet('max')">Max</button>
+      <div class="bj-setup" id="bj-setup">
+        <div class="bj-setup-row">
+          <div class="field">
+            <label>Anzahl Boxen</label>
+            <select id="bj-box-count" onchange="bjUpdateBoxCount()">
+              <option value="1">1 Box</option>
+              <option value="2">2 Boxen</option>
+              <option value="3" selected>3 Boxen</option>
+              <option value="4">4 Boxen</option>
+              <option value="5">5 Boxen</option>
+            </select>
           </div>
+          <div class="field">
+            <label>Einsatz pro Box</label>
+            <input type="number" id="bj-bet" value="10" min="1" step="1">
+            <div class="bet-quick">
+              <button onclick="bjBetAdjust(0.5)">½</button>
+              <button onclick="bjBetAdjust(2)">2×</button>
+              <button onclick="bjBetSet('max')">Max</button>
+            </div>
+          </div>
+          <label class="bj-side-toggle">
+            <input type="checkbox" id="bj-side-pp">
+            Perfect Pairs
+            <span class="odds">Paar 6:1 / 12:1 / 25:1</span>
+          </label>
+          <label class="bj-side-toggle">
+            <input type="checkbox" id="bj-side-213">
+            21+3
+            <span class="odds">Flush/Straight/Drilling</span>
+          </label>
         </div>
-
-        <div class="bj-actions">
-          <button class="btn btn-primary" id="bj-deal-btn" onclick="startBlackjack()">Austeilen</button>
-          <button class="btn btn-ghost" id="bj-hit-btn" onclick="bjHit()" style="display:none;">Karte (Hit)</button>
-          <button class="btn btn-ghost" id="bj-stand-btn" onclick="bjStand()" style="display:none;">Halten (Stand)</button>
-        </div>
-        <div class="result-msg" id="bj-result"></div>
       </div>
+
+      <div class="bj-felt">
+        <div class="bj-dealer-area">
+          <div class="bj-dealer-label">Dealer</div>
+          <div class="bj-dealer-cards" id="bj-dealer-cards"></div>
+          <div class="bj-dealer-value" id="bj-dealer-value"></div>
+        </div>
+        <div class="bj-boxes-row" id="bj-boxes-row"></div>
+      </div>
+
+      <div class="bj-actions">
+        <button class="btn btn-primary" id="bj-deal-btn" onclick="startBlackjack()">Austeilen</button>
+        <button class="btn btn-ghost" id="bj-hit-btn" onclick="bjHit()" style="display:none;">Karte (Hit)</button>
+        <button class="btn btn-ghost" id="bj-stand-btn" onclick="bjStand()" style="display:none;">Halten (Stand)</button>
+      </div>
+      <div class="result-msg" id="bj-result" style="text-align:center;"></div>
     </section>
 
   </div>
@@ -1263,10 +1318,14 @@
     }, 3050);
   }
 
-  /* ================= BLACKJACK GAME ================= */
-  let bjState = null;
+  /* ================= BLACKJACK GAME (5-Boxen-Tisch) ================= */
   const CARD_RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
   const CARD_SUITS = [{s:'♠',red:false},{s:'♥',red:true},{s:'♦',red:true},{s:'♣',red:false}];
+
+  let bjBoxes = [];      // [{cards, bet, ppBet, tpBet, status, ppResult, tpResult, resultMsg, resultClass}]
+  let bjDealer = [];
+  let bjActiveBoxIndex = -1;
+  let bjPhase = 'setup';
 
   function drawCard(){
     const rank = CARD_RANKS[Math.floor(Math.random()*CARD_RANKS.length)];
@@ -1284,12 +1343,51 @@
     if(hidden) return `<div class="card hidden">?</div>`;
     return `<div class="card ${card.red ? 'red-suit' : ''}"><span>${card.rank}</span><span class="suit">${card.suit}</span></div>`;
   }
-  function renderBjTable(){
-    const hideDealer = bjState.phase === 'player';
-    document.getElementById('bj-dealer-cards').innerHTML = bjState.dealer.map((c,i) => renderCard(c, hideDealer && i === 1)).join('');
-    document.getElementById('bj-player-cards').innerHTML = bjState.player.map(c => renderCard(c)).join('');
-    document.getElementById('bj-player-value').textContent = handValue(bjState.player);
-    document.getElementById('bj-dealer-value').textContent = hideDealer ? '?' : handValue(bjState.dealer);
+
+  function evalPerfectPair(c1, c2){
+    if(c1.rank !== c2.rank) return null;
+    if(c1.suit === c2.suit) return { name:'Perfect Pair', mult:26 };
+    if(c1.red === c2.red) return { name:'Colored Pair', mult:13 };
+    return { name:'Mixed Pair', mult:7 };
+  }
+  function eval21plus3(cards){
+    const values = cards.map(c => CARD_RANKS.indexOf(c.rank));
+    const suits = cards.map(c => c.suit);
+    const isFlush = suits[0]===suits[1] && suits[1]===suits[2];
+    function isSeq(vals){ for(let i=1;i<vals.length;i++) if(vals[i]!==vals[i-1]+1) return false; return true; }
+    let sorted = [...values].sort((a,b)=>a-b);
+    let isStraight = isSeq(sorted);
+    if(!isStraight){
+      const highAce = values.map(v => v===0?13:v).sort((a,b)=>a-b);
+      if(isSeq(highAce)) isStraight = true;
+    }
+    const isTrips = values[0]===values[1] && values[1]===values[2];
+    if(isTrips && isFlush) return { name:'Suited Trips', mult:101 };
+    if(isStraight && isFlush) return { name:'Straight Flush', mult:41 };
+    if(isTrips) return { name:'Drilling', mult:31 };
+    if(isStraight) return { name:'Straight', mult:11 };
+    if(isFlush) return { name:'Flush', mult:6 };
+    return null;
+  }
+
+  function bjUpdateBoxCount(){
+    // Nur relevant vor dem Austeilen; Anzeige wird beim Deal neu aufgebaut
+  }
+
+  function resetBlackjackUI(){
+    bjBoxes = [];
+    bjDealer = [];
+    bjActiveBoxIndex = -1;
+    bjPhase = 'setup';
+    document.getElementById('bj-dealer-cards').innerHTML = '';
+    document.getElementById('bj-dealer-value').textContent = '';
+    document.getElementById('bj-boxes-row').innerHTML = '';
+    document.getElementById('bj-result').textContent = '';
+    document.getElementById('bj-result').className = 'result-msg';
+    document.getElementById('bj-deal-btn').style.display = 'inline-block';
+    document.getElementById('bj-hit-btn').style.display = 'none';
+    document.getElementById('bj-stand-btn').style.display = 'none';
+    document.getElementById('bj-setup').style.display = 'block';
   }
 
   function bjBetAdjust(factor){
@@ -1297,118 +1395,196 @@
     el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
   }
   function bjBetSet(mode){
-    if(mode === 'max') document.getElementById('bj-bet').value = CHIPS_BALANCE;
+    if(mode === 'max'){
+      const count = parseInt(document.getElementById('bj-box-count').value);
+      document.getElementById('bj-bet').value = Math.max(1, Math.floor(CHIPS_BALANCE / count));
+    }
   }
 
-  function resetBlackjackUI(){
-    bjState = null;
-    document.getElementById('bj-dealer-cards').innerHTML = '';
-    document.getElementById('bj-player-cards').innerHTML = '';
-    document.getElementById('bj-dealer-value').textContent = '';
-    document.getElementById('bj-player-value').textContent = '';
-    document.getElementById('bj-result').textContent = '';
-    document.getElementById('bj-result').className = 'result-msg';
-    document.getElementById('bj-deal-btn').style.display = 'block';
-    document.getElementById('bj-hit-btn').style.display = 'none';
-    document.getElementById('bj-stand-btn').style.display = 'none';
-    document.getElementById('bj-bet-field').style.display = 'block';
+  function renderBjBoxes(){
+    const row = document.getElementById('bj-boxes-row');
+    row.innerHTML = bjBoxes.map((box, i) => {
+      const val = handValue(box.cards);
+      const isActive = bjPhase === 'boxes' && i === bjActiveBoxIndex;
+      const isDone = box.status !== 'playing';
+      let sideText = '';
+      if(box.ppResult) sideText += '🃏 ' + box.ppResult.name + ' (' + (box.ppResult.mult-1) + ':1)  ';
+      if(box.tpResult) sideText += '♦ ' + box.tpResult.name + ' (' + (box.tpResult.mult-1) + ':1)';
+      return `
+        <div class="bj-box ${isActive ? 'active-box' : ''} ${isDone ? 'done-box' : ''}">
+          <div class="bj-box-title">Box ${i+1}</div>
+          <div class="bj-box-cards">${box.cards.map(c => renderCard(c)).join('')}</div>
+          <div class="bj-box-value">${val}${box.status==='bust' ? ' 💥' : ''}${box.status==='blackjack' ? ' ✦' : ''}</div>
+          <div class="bj-box-bet">${box.bet} Chips${box.ppBet ? ' · PP:'+box.ppBet : ''}${box.tpBet ? ' · 21+3:'+box.tpBet : ''}</div>
+          <div class="bj-box-side">${sideText}</div>
+          <div class="bj-box-result ${box.resultClass||''}">${box.resultMsg||''}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderBjDealer(){
+    const hide = bjPhase === 'boxes';
+    document.getElementById('bj-dealer-cards').innerHTML = bjDealer.map((c,i) => renderCard(c, hide && i===1)).join('');
+    document.getElementById('bj-dealer-value').textContent = hide ? '?' : handValue(bjDealer);
   }
 
   function startBlackjack(){
-    const bet = parseInt(document.getElementById('bj-bet').value) || 0;
-    if(bet <= 0 || bet > CHIPS_BALANCE){
-      alert('Ungültiger Einsatz.');
+    const boxCount = parseInt(document.getElementById('bj-box-count').value);
+    const betPerBox = parseInt(document.getElementById('bj-bet').value) || 0;
+    const playPP = document.getElementById('bj-side-pp').checked;
+    const play213 = document.getElementById('bj-side-213').checked;
+    const ppBetPerBox = playPP ? Math.max(1, Math.round(betPerBox / 2)) : 0;
+    const tpBetPerBox = play213 ? Math.max(1, Math.round(betPerBox / 2)) : 0;
+
+    const totalCost = boxCount * (betPerBox + ppBetPerBox + tpBetPerBox);
+    if(betPerBox <= 0 || totalCost > CHIPS_BALANCE){
+      alert('Ungültiger Einsatz oder nicht genug Chips für alle Boxen/Side Bets.');
       return;
     }
-    saveChips(CHIPS_BALANCE - bet);
-    bjState = { bet, player: [drawCard(), drawCard()], dealer: [drawCard(), drawCard()], phase: 'player' };
-    document.getElementById('bj-deal-btn').style.display = 'none';
-    document.getElementById('bj-bet-field').style.display = 'none';
-    document.getElementById('bj-result').textContent = '';
-    document.getElementById('bj-result').className = 'result-msg';
-    renderBjTable();
+    saveChips(CHIPS_BALANCE - totalCost);
 
-    const playerVal = handValue(bjState.player);
-    if(playerVal === 21){
-      bjStand(); // Automatischer Blackjack-Check
+    bjDealer = [drawCard(), drawCard()];
+    bjBoxes = [];
+    for(let i=0; i<boxCount; i++){
+      bjBoxes.push({
+        cards: [drawCard(), drawCard()],
+        bet: betPerBox, ppBet: ppBetPerBox, tpBet: tpBetPerBox,
+        status: 'playing', ppResult: null, tpResult: null, resultMsg: '', resultClass: ''
+      });
+    }
+
+    // Side Bets sofort auswerten
+    let sideWinnings = 0;
+    bjBoxes.forEach(box => {
+      if(box.ppBet){
+        const pp = evalPerfectPair(box.cards[0], box.cards[1]);
+        if(pp){ box.ppResult = pp; sideWinnings += box.ppBet * pp.mult; }
+      }
+      if(box.tpBet){
+        const tp = eval21plus3([box.cards[0], box.cards[1], bjDealer[0]]);
+        if(tp){ box.tpResult = tp; sideWinnings += box.tpBet * tp.mult; }
+      }
+    });
+    if(sideWinnings > 0) saveChips(CHIPS_BALANCE + sideWinnings);
+
+    document.getElementById('bj-setup').style.display = 'none';
+    document.getElementById('bj-deal-btn').style.display = 'none';
+    document.getElementById('bj-result').textContent = sideWinnings > 0 ? ('✓ Side Bets: ' + sideWinnings.toLocaleString('de-CH') + ' Chips gewonnen!') : '';
+    document.getElementById('bj-result').className = 'result-msg win';
+
+    bjPhase = 'boxes';
+    bjActiveBoxIndex = 0;
+
+    // Auto-Blackjack-Check für jede Box
+    bjBoxes.forEach(box => {
+      if(handValue(box.cards) === 21) box.status = 'blackjack';
+    });
+
+    renderBjDealer();
+    advanceToNextBox();
+  }
+
+  function advanceToNextBox(){
+    while(bjActiveBoxIndex < bjBoxes.length && bjBoxes[bjActiveBoxIndex].status !== 'playing'){
+      bjActiveBoxIndex++;
+    }
+    renderBjBoxes();
+    if(bjActiveBoxIndex >= bjBoxes.length){
+      document.getElementById('bj-hit-btn').style.display = 'none';
+      document.getElementById('bj-stand-btn').style.display = 'none';
+      bjDealerPlay();
     } else {
-      document.getElementById('bj-hit-btn').style.display = 'block';
-      document.getElementById('bj-stand-btn').style.display = 'block';
+      document.getElementById('bj-hit-btn').style.display = 'inline-block';
+      document.getElementById('bj-stand-btn').style.display = 'inline-block';
     }
   }
 
   function bjHit(){
-    if(!bjState || bjState.phase !== 'player') return;
-    bjState.player.push(drawCard());
-    renderBjTable();
-    if(handValue(bjState.player) > 21){
-      finishBlackjack('bust');
+    if(bjPhase !== 'boxes' || bjActiveBoxIndex >= bjBoxes.length) return;
+    const box = bjBoxes[bjActiveBoxIndex];
+    box.cards.push(drawCard());
+    if(handValue(box.cards) > 21){
+      box.status = 'bust';
+      bjActiveBoxIndex++;
+      advanceToNextBox();
+    } else {
+      renderBjBoxes();
     }
   }
 
   function bjStand(){
-    if(!bjState) return;
-    bjState.phase = 'dealer';
-    document.getElementById('bj-hit-btn').style.display = 'none';
-    document.getElementById('bj-stand-btn').style.display = 'none';
-    renderBjTable();
+    if(bjPhase !== 'boxes' || bjActiveBoxIndex >= bjBoxes.length) return;
+    bjBoxes[bjActiveBoxIndex].status = 'stand';
+    bjActiveBoxIndex++;
+    advanceToNextBox();
+  }
 
-    const playerVal = handValue(bjState.player);
-    const playerBJ = playerVal === 21 && bjState.player.length === 2;
+  function bjDealerPlay(){
+    bjPhase = 'dealer';
+    const anyoneStillIn = bjBoxes.some(b => b.status === 'stand' || b.status === 'blackjack');
 
     function dealerStep(){
-      const dealerVal = handValue(bjState.dealer);
-      if(!playerBJ && dealerVal < 17){
-        bjState.dealer.push(drawCard());
-        renderBjTable();
-        setTimeout(dealerStep, 600);
+      renderBjDealer();
+      const dealerVal = handValue(bjDealer);
+      if(anyoneStillIn && dealerVal < 17){
+        bjDealer.push(drawCard());
+        setTimeout(dealerStep, 650);
       } else {
-        finishBlackjack(playerBJ ? 'blackjack' : 'normal');
+        finishBlackjack();
       }
     }
     setTimeout(dealerStep, 500);
   }
 
-  function finishBlackjack(reason){
-    bjState.phase = 'done';
-    renderBjTable();
-    document.getElementById('bj-dealer-value').textContent = handValue(bjState.dealer);
+  function finishBlackjack(){
+    bjPhase = 'done';
+    renderBjDealer();
+    document.getElementById('bj-dealer-value').textContent = handValue(bjDealer);
 
-    const playerVal = handValue(bjState.player);
-    const dealerVal = handValue(bjState.dealer);
+    const dealerVal = handValue(bjDealer);
+    const dealerBJ = dealerVal === 21 && bjDealer.length === 2;
+    let totalWinnings = 0;
+    let anyWin = false, anyLose = false;
+
+    bjBoxes.forEach(box => {
+      const playerVal = handValue(box.cards);
+      if(box.status === 'bust'){
+        box.resultMsg = 'Verloren'; box.resultClass = 'lose'; anyLose = true;
+        return;
+      }
+      const playerBJ = box.status === 'blackjack';
+      if(playerBJ && !dealerBJ){
+        const win = Math.round(box.bet * 2.5);
+        totalWinnings += win;
+        box.resultMsg = '✓ Blackjack! +' + win; box.resultClass = 'win'; anyWin = true;
+      } else if(playerBJ && dealerBJ){
+        totalWinnings += box.bet;
+        box.resultMsg = 'Push (BJ)'; box.resultClass = '';
+      } else if(dealerVal > 21 || playerVal > dealerVal){
+        const win = box.bet * 2;
+        totalWinnings += win;
+        box.resultMsg = '✓ Gewonnen +' + win; box.resultClass = 'win'; anyWin = true;
+      } else if(playerVal === dealerVal){
+        totalWinnings += box.bet;
+        box.resultMsg = 'Push'; box.resultClass = '';
+      } else {
+        box.resultMsg = 'Verloren'; box.resultClass = 'lose'; anyLose = true;
+      }
+    });
+
+    if(totalWinnings > 0) saveChips(CHIPS_BALANCE + totalWinnings);
+    renderBjBoxes();
+
     const resultEl = document.getElementById('bj-result');
-    let winnings = 0;
-    let msg = '';
+    resultEl.textContent = totalWinnings > 0
+      ? ('✓ Runde beendet — ' + totalWinnings.toLocaleString('de-CH') + ' Chips gesamt zurück/gewonnen!')
+      : 'Runde beendet — diesmal nichts gewonnen.';
+    resultEl.className = 'result-msg ' + (anyWin ? 'win' : (anyLose ? 'lose' : ''));
 
-    if(reason === 'bust'){
-      msg = 'Überkauft! Verloren.';
-      resultEl.className = 'result-msg lose';
-      playLoseSound();
-    } else if(reason === 'blackjack'){
-      winnings = Math.round(bjState.bet * 2.5);
-      msg = '✓ Blackjack! ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
-      resultEl.className = 'result-msg win';
-      playWinSound();
-    } else if(dealerVal > 21 || playerVal > dealerVal){
-      winnings = bjState.bet * 2;
-      msg = '✓ Gewonnen! ' + winnings.toLocaleString('de-CH') + ' Chips!';
-      resultEl.className = 'result-msg win';
-      playWinSound();
-    } else if(playerVal === dealerVal){
-      winnings = bjState.bet;
-      msg = 'Unentschieden — Einsatz zurück.';
-      resultEl.className = 'result-msg';
-      playClickSound();
-    } else {
-      msg = 'Dealer gewinnt. Verloren.';
-      resultEl.className = 'result-msg lose';
-      playLoseSound();
-    }
+    if(totalWinnings > 0) playWinSound(); else playLoseSound();
 
-    if(winnings > 0) saveChips(CHIPS_BALANCE + winnings);
-    resultEl.textContent = msg;
-    document.getElementById('bj-deal-btn').style.display = 'block';
-    document.getElementById('bj-bet-field').style.display = 'block';
+    document.getElementById('bj-deal-btn').style.display = 'inline-block';
+    document.getElementById('bj-setup').style.display = 'block';
   }
 
   /* ================= MOBILE MENU ================= */
