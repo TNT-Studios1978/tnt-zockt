@@ -48,7 +48,7 @@
   }
   .gate-card h2{ font-family:var(--display); text-transform:uppercase; font-size:20px; margin-bottom:8px; letter-spacing:.5px;}
   .gate-card p{ color:var(--text-mid); font-size:13px; margin-bottom:18px; }
-  .gate-card input{ margin-bottom:14px; text-align:center; letter-spacing:4px; }
+  .gate-card input{ margin-bottom:0; text-align:left; letter-spacing:normal; }
   .gate-note{ font-size:11px; color:var(--text-low); margin-top:14px; line-height:1.6; }
 
   /* ---------- Layout ---------- */
@@ -101,14 +101,16 @@
 </head>
 <body>
 
-  <!-- PIN GATE -->
+  <!-- LOGIN GATE -->
   <div id="gate">
     <div class="gate-card">
       <h2>🔧 Admin-Zugang</h2>
-      <p>Gib den PIN ein, um die Inhalte zu bearbeiten.</p>
-      <input id="pin-input" type="password" placeholder="PIN" inputmode="numeric">
-      <button class="btn-primary" style="width:100%;" onclick="checkPin()">Anmelden</button>
-      <div class="gate-note">Standard-PIN: <strong>1234</strong> — du kannst ihn unten im Code (Variable <code>ADMIN_PIN</code>) ändern. Das ist ein einfacher Schutz vor Zufallsbesuchern, keine echte Sicherheitsfunktion.</div>
+      <p>Melde dich mit deinem Admin-Konto an, um die Inhalte zu bearbeiten.</p>
+      <input id="admin-email" type="email" placeholder="E-Mail" autocomplete="username" style="margin-bottom:10px;">
+      <input id="admin-password" type="password" placeholder="Passwort" autocomplete="current-password">
+      <button class="btn-primary" style="width:100%; margin-top:12px;" onclick="doLogin()">Anmelden</button>
+      <div id="login-error" style="color:#ff6b6b; font-size:12px; margin-top:10px;"></div>
+      <div class="gate-note">Echter Login über Supabase Auth — nur dein Admin-Konto hat Zugriff.</div>
     </div>
   </div>
 
@@ -125,6 +127,7 @@
           <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Nutzer</button>
         </div>
         <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
+        <button class="btn-ghost" style="padding:9px 16px;" onclick="doLogout()">🚪 Logout</button>
       </div>
     </header>
 
@@ -193,20 +196,59 @@
   </div>
 
 <script>
-  const ADMIN_PIN = "2567305015Man1978@";
+  const ADMIN_EMAIL = "tnt-studios@gmx.ch"; // Nur dieses Konto darf ins Admin-Panel
   let CASINOS = [], STREAMERS = [], PRODUCTS = [];
 
-  function checkPin(){
-    const val = document.getElementById('pin-input').value;
-    if(val === ADMIN_PIN){
-      document.getElementById('gate').style.display = 'none';
-      document.getElementById('panel').style.display = 'block';
-      loadAll();
-    } else {
-      alert('Falscher PIN.');
+  async function doLogin(){
+    const email = document.getElementById('admin-email').value.trim();
+    const password = document.getElementById('admin-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+
+    if(!email || !password){
+      errEl.textContent = 'Bitte E-Mail und Passwort eingeben.';
+      return;
     }
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){
+      errEl.textContent = 'Anmeldung fehlgeschlagen: ' + error.message;
+      return;
+    }
+    if(data.user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+      errEl.textContent = 'Dieses Konto hat keinen Admin-Zugriff.';
+      await sb.auth.signOut();
+      return;
+    }
+    showPanel();
   }
-  document.getElementById('pin-input').addEventListener('keydown', e => { if(e.key === 'Enter') checkPin(); });
+
+  async function doLogout(){
+    await sb.auth.signOut();
+    location.reload();
+  }
+
+  function showPanel(){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+    loadAll();
+  }
+  function showGate(){
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('panel').style.display = 'none';
+  }
+
+  (async function initAdminAuth(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user && session.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
+      showPanel();
+    } else {
+      showGate();
+    }
+  })();
+
+  document.getElementById('admin-password').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+  document.getElementById('admin-email').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('admin-password').focus(); });
 
   function switchTab(name){
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
