@@ -930,11 +930,11 @@
     return null;
   }
 
-  async function loadNavPoints(username){
+  async function loadNavPoints(username, platform){
     const el = document.getElementById('nav-points');
     if(!el) return;
     try{
-      const res = await fetch('/api/points?username=' + encodeURIComponent(username));
+      const res = await fetch('/api/points?username=' + encodeURIComponent(username) + '&platform=' + encodeURIComponent(platform));
       const data = await res.json();
       console.log('Punkte-API-Antwort:', res.status, data);
       if(data && typeof data.points !== 'undefined'){
@@ -959,12 +959,12 @@
           ${identity.avatar ? `<img src="${identity.avatar}" alt="">` : ''}
           <div class="info">
             <div class="name">${identity.username || 'Nutzer'} <span style="opacity:.6; font-size:9px;">(${identity.provider === 'twitch' ? 'Twitch' : 'Kick'})</span></div>
-            <div class="points" id="nav-points">${identity.provider === 'twitch' ? 'Lädt…' : ''}</div>
+            <div class="points" id="nav-points">Lädt…</div>
           </div>
         </div>
         <button class="nav-logout" onclick="logout()">Logout</button>
       `;
-      if(identity.provider === 'twitch' && identity.username) loadNavPoints(identity.username);
+      if(identity.username) loadNavPoints(identity.username, identity.provider);
     } else {
       container.innerHTML = `
         <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Twitch</button>

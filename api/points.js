@@ -4,7 +4,7 @@
 // wird NIE an den Browser/Client gesendet.
 
 export default async function handler(req, res) {
-  const { username } = req.query;
+  const { username, platform } = req.query;
 
   if (!username) {
     return res.status(400).json({ error: "username fehlt" });
@@ -18,7 +18,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = `https://streamlabs.com/api/v2.0/points?username=${encodeURIComponent(username)}&channel=${encodeURIComponent(channel)}`;
+    let url = `https://streamlabs.com/api/v2.0/points?username=${encodeURIComponent(username)}&channel=${encodeURIComponent(channel)}`;
+    if (platform) url += `&platform=${encodeURIComponent(platform)}`;
     const streamlabsRes = await fetch(url, {
       headers: {
         "Authorization": `Bearer ${token}`,

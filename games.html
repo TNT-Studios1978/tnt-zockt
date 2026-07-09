@@ -308,6 +308,61 @@
   .bj-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
   .bj-actions .btn{ flex:1; min-width:120px; }
 
+  /* ---------- Crash (Absturz) ---------- */
+  .crash-stage{ display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .crash-board{
+    width:100%; max-width:640px; height:280px; position:relative;
+    background:radial-gradient(ellipse at bottom, #1a1030, #08080c 80%);
+    border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  }
+  .crash-grid-lines{
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 40px);
+  }
+  .crash-multiplier{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-family:var(--display); font-size:clamp(36px,6vw,56px); color:#fff; z-index:3;
+    text-shadow:0 0 20px rgba(169,112,255,.6);
+  }
+  .crash-multiplier.crashed{ color:var(--fuse-red); text-shadow:0 0 24px var(--fuse-red-glow); }
+  .crash-status{ position:absolute; top:16px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:11px; color:var(--text-low); text-transform:uppercase; letter-spacing:1px; z-index:3; }
+  .crash-line{ position:absolute; bottom:0; left:0; z-index:2; }
+  .crash-rocket{ position:absolute; z-index:3; font-size:22px; transition:none; }
+  .crash-controls{ display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+  .crash-history{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .crash-history-item{
+    font-family:var(--mono); font-size:11px; padding:5px 9px; border-radius:6px;
+    background:var(--bg-1); border:1px solid var(--line);
+  }
+  .crash-history-item.low{ color:var(--fuse-red); }
+  .crash-history-item.high{ color:var(--cyan); }
+
+  /* ---------- Plinko ---------- */
+  .plinko-stage{ display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .plinko-board{
+    position:relative; width:100%; max-width:520px; aspect-ratio:1/0.85;
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .plinko-peg{ position:absolute; width:7px; height:7px; border-radius:50%; background:#4a4658; transform:translate(-50%,-50%); }
+  .plinko-ball{
+    position:absolute; width:14px; height:14px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 60%, #a6790f 100%);
+    box-shadow:0 0 10px rgba(255,207,63,.7); transform:translate(-50%,-50%);
+    transition:left .28s ease-in, top .28s ease-in; z-index:5;
+  }
+  .plinko-slots{ position:absolute; bottom:0; left:0; right:0; display:flex; height:34px; }
+  .plinko-slot{
+    flex:1; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:9.5px; font-weight:700; color:#fff;
+    border-right:1px solid rgba(0,0,0,.3);
+  }
+  .plinko-slot.flash{ animation: slotFlash .6s ease; }
+  @keyframes slotFlash{ 0%{ filter:brightness(2.2); } 100%{ filter:brightness(1); } }
+  .plinko-controls{ display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+
   /* ---------- Support Chat Widget ---------- */
   .support-btn{
     position:fixed; bottom:24px; right:24px; z-index:300;
@@ -428,27 +483,25 @@
           </div>
         </div>
 
-        <div class="game-card locked">
+        <div class="game-card" onclick="openGame('crash')">
           <div class="game-banner banner-crash">
-            <span class="soon-tag">Bald verfügbar</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="#a970ff" stroke-width="1.5"><path d="M12 2 9 9l3 3 3-3z"/><path d="M9 14l-3 7 6-3 6 3-3-7"/></svg>
           </div>
           <div class="game-body">
             <div class="game-tag">Original</div>
             <h3>Absturz</h3>
-            <div class="game-play locked-btn">Bald verfügbar</div>
+            <div class="game-play">Jetzt spielen →</div>
           </div>
         </div>
 
-        <div class="game-card locked">
+        <div class="game-card" onclick="openGame('plinko')">
           <div class="game-banner banner-plinko">
-            <span class="soon-tag">Bald verfügbar</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="#28f0e0" stroke-width="1.5"><circle cx="12" cy="4" r="1.5" fill="#28f0e0" stroke="none"/><path d="M4 10h16M6 15h12M8 20h8"/></svg>
           </div>
           <div class="game-body">
             <div class="game-tag">Original</div>
             <h3>Plinko</h3>
-            <div class="game-play locked-btn">Bald verfügbar</div>
+            <div class="game-play">Jetzt spielen →</div>
           </div>
         </div>
 
@@ -630,6 +683,73 @@
       </div>
     </section>
 
+    <!-- CRASH (ABSTURZ) GAME VIEW -->
+    <section class="game-view" id="view-crash">
+      <div class="game-view-header">
+        <h2>🚀 Absturz</h2>
+        <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
+      </div>
+      <div class="crash-stage">
+        <div class="crash-board" id="crash-board">
+          <div class="crash-grid-lines"></div>
+          <div class="crash-status" id="crash-status">Warte auf nächste Runde…</div>
+          <svg class="crash-line" id="crash-line-svg" width="100%" height="280" viewBox="0 0 640 280" preserveAspectRatio="none"></svg>
+          <div class="crash-rocket" id="crash-rocket">🚀</div>
+          <div class="crash-multiplier" id="crash-multiplier">1.00×</div>
+        </div>
+
+        <div class="crash-history" id="crash-history"></div>
+
+        <div class="crash-controls">
+          <div class="field" style="max-width:180px;">
+            <label>Einsatz</label>
+            <input type="number" id="crash-bet" value="10" min="1" step="1">
+            <div class="bet-quick">
+              <button onclick="crashBetAdjust(0.5)">½</button>
+              <button onclick="crashBetAdjust(2)">2×</button>
+              <button onclick="crashBetSet('max')">Max</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="crash-bet-btn" onclick="placeCrashBet()">Einsatz platzieren</button>
+          <button class="btn btn-primary" id="crash-cashout-btn" style="display:none; background:linear-gradient(135deg, var(--cyan), #0d8f85);" onclick="cashoutCrash()">Auszahlen 💰</button>
+        </div>
+        <div class="result-msg" id="crash-result"></div>
+      </div>
+    </section>
+
+    <!-- PLINKO GAME VIEW -->
+    <section class="game-view" id="view-plinko">
+      <div class="game-view-header">
+        <h2>🔵 Plinko</h2>
+        <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
+      </div>
+      <div class="plinko-stage">
+        <div class="plinko-board" id="plinko-board"></div>
+
+        <div class="plinko-controls">
+          <div class="field" style="max-width:180px;">
+            <label>Einsatz</label>
+            <input type="number" id="plinko-bet" value="10" min="1" step="1">
+            <div class="bet-quick">
+              <button onclick="plinkoBetAdjust(0.5)">½</button>
+              <button onclick="plinkoBetAdjust(2)">2×</button>
+              <button onclick="plinkoBetSet('max')">Max</button>
+            </div>
+          </div>
+          <div class="field" style="max-width:160px;">
+            <label>Risiko</label>
+            <select id="plinko-risk">
+              <option value="low">Niedrig</option>
+              <option value="medium" selected>Mittel</option>
+              <option value="high">Hoch</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="plinko-drop-btn" onclick="dropPlinkoBall()">Ball fallen lassen</button>
+        </div>
+        <div class="result-msg" id="plinko-result"></div>
+      </div>
+    </section>
+
   </div>
 
   <!-- SUPPORT CHAT WIDGET -->
@@ -797,10 +917,13 @@
     if(name === 'mines') resetMinesUI();
     if(name === 'roulette') resetRouletteUI();
     if(name === 'blackjack') resetBlackjackUI();
+    if(name === 'crash') resetCrashUI();
+    if(name === 'plinko') resetPlinkoUI();
   }
   function closeGame(){
     document.getElementById('game-selection').style.display = 'block';
     document.querySelectorAll('.game-view').forEach(v => v.classList.remove('active'));
+    stopCrashLoop();
   }
 
   /* ================= MINES GAME ================= */
@@ -1363,6 +1486,283 @@
     document.getElementById('bj-bet-field').style.display = 'block';
   }
 
+  /* ================= CRASH (ABSTURZ) GAME ================= */
+  let crashState = null;
+  let crashAnimHandle = null;
+  let crashHistory = [];
+
+  function crashBetAdjust(factor){
+    const el = document.getElementById('crash-bet');
+    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
+  }
+  function crashBetSet(mode){
+    if(mode === 'max') document.getElementById('crash-bet').value = CHIPS_BALANCE;
+  }
+
+  function stopCrashLoop(){
+    if(crashAnimHandle) cancelAnimationFrame(crashAnimHandle);
+    crashAnimHandle = null;
+  }
+
+  function resetCrashUI(){
+    stopCrashLoop();
+    crashState = null;
+    document.getElementById('crash-multiplier').textContent = '1.00×';
+    document.getElementById('crash-multiplier').classList.remove('crashed');
+    document.getElementById('crash-status').textContent = 'Bereit für die nächste Runde';
+    document.getElementById('crash-bet-btn').style.display = 'inline-block';
+    document.getElementById('crash-cashout-btn').style.display = 'none';
+    document.getElementById('crash-result').textContent = '';
+    document.getElementById('crash-result').className = 'result-msg';
+    document.getElementById('crash-rocket').style.left = '4%';
+    document.getElementById('crash-rocket').style.bottom = '4%';
+    document.getElementById('crash-line-svg').innerHTML = '';
+    renderCrashHistory();
+  }
+
+  function renderCrashHistory(){
+    const el = document.getElementById('crash-history');
+    el.innerHTML = crashHistory.slice(-12).map(m =>
+      `<span class="crash-history-item ${m >= 2 ? 'high' : 'low'}">${m.toFixed(2)}×</span>`
+    ).join('');
+  }
+
+  function generateCrashPoint(){
+    const r = Math.random();
+    const houseEdge = 0.97;
+    let point = houseEdge / (1 - r);
+    return Math.max(1.00, Math.min(point, 100));
+  }
+
+  function placeCrashBet(){
+    const bet = parseInt(document.getElementById('crash-bet').value) || 0;
+    if(bet <= 0 || bet > CHIPS_BALANCE){
+      alert('Ungültiger Einsatz.');
+      return;
+    }
+    saveChips(CHIPS_BALANCE - bet);
+    const crashPoint = generateCrashPoint();
+    crashState = { bet, crashPoint, startTime: performance.now(), cashedOut: false, crashed: false };
+
+    document.getElementById('crash-bet-btn').style.display = 'none';
+    document.getElementById('crash-cashout-btn').style.display = 'inline-block';
+    document.getElementById('crash-status').textContent = 'Läuft…';
+    document.getElementById('crash-multiplier').classList.remove('crashed');
+    document.getElementById('crash-result').textContent = '';
+    document.getElementById('crash-result').className = 'result-msg';
+
+    runCrashLoop();
+  }
+
+  function crashMultiplierAt(elapsedSec){
+    return Math.exp(elapsedSec * 0.17);
+  }
+
+  function runCrashLoop(){
+    const board = document.getElementById('crash-board');
+    const rocket = document.getElementById('crash-rocket');
+    const multEl = document.getElementById('crash-multiplier');
+    const svg = document.getElementById('crash-line-svg');
+    let pathPoints = 'M 20 260 ';
+
+    function frame(now){
+      if(!crashState || crashState.crashed || crashState.cashedOut){ return; }
+      const elapsed = (now - crashState.startTime) / 1000;
+      const mult = crashMultiplierAt(elapsed);
+
+      if(mult >= crashState.crashPoint){
+        crashState.crashed = true;
+        multEl.textContent = crashState.crashPoint.toFixed(2) + '×';
+        multEl.classList.add('crashed');
+        document.getElementById('crash-status').textContent = 'ABGESTÜRZT 💥';
+        document.getElementById('crash-cashout-btn').style.display = 'none';
+        document.getElementById('crash-bet-btn').style.display = 'inline-block';
+        crashHistory.push(crashState.crashPoint);
+        renderCrashHistory();
+        if(!crashState.cashedOut){
+          document.getElementById('crash-result').textContent = 'Verloren! Bei ' + crashState.crashPoint.toFixed(2) + '× abgestürzt.';
+          document.getElementById('crash-result').className = 'result-msg lose';
+          playLoseSound();
+        }
+        return;
+      }
+
+      multEl.textContent = mult.toFixed(2) + '×';
+
+      const progressX = Math.min(20 + elapsed * 40, 600);
+      const progressY = Math.max(260 - (mult - 1) * 60, 20);
+      pathPoints += `L ${progressX} ${progressY} `;
+      svg.innerHTML = `<path d="${pathPoints}" stroke="#a970ff" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+      rocket.style.left = Math.min((progressX / 640) * 100, 92) + '%';
+      rocket.style.bottom = Math.min(((280 - progressY) / 280) * 100, 90) + '%';
+
+      crashAnimHandle = requestAnimationFrame(frame);
+    }
+    crashAnimHandle = requestAnimationFrame(frame);
+  }
+
+  function cashoutCrash(){
+    if(!crashState || crashState.crashed || crashState.cashedOut) return;
+    const elapsed = (performance.now() - crashState.startTime) / 1000;
+    const mult = crashMultiplierAt(elapsed);
+    crashState.cashedOut = true;
+    const winnings = Math.round(crashState.bet * mult);
+    saveChips(CHIPS_BALANCE + winnings);
+    document.getElementById('crash-result').textContent = '✓ Bei ' + mult.toFixed(2) + '× ausgezahlt — ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
+    document.getElementById('crash-result').className = 'result-msg win';
+    document.getElementById('crash-status').textContent = 'Ausgezahlt ✓';
+    document.getElementById('crash-cashout-btn').style.display = 'none';
+    document.getElementById('crash-bet-btn').style.display = 'inline-block';
+    playWinSound();
+  }
+
+  /* ================= PLINKO GAME ================= */
+  const PLINKO_ROWS = 8;
+  const PLINKO_MULTIPLIERS = {
+    low:    [5.6, 2.1, 1.1, 1.0, 0.5, 1.0, 1.1, 2.1, 5.6],
+    medium: [9, 3, 1.5, 0.6, 0.3, 0.6, 1.5, 3, 9],
+    high:   [18, 5, 1.5, 0.3, 0.15, 0.3, 1.5, 5, 18]
+  };
+  const PLINKO_SLOT_COLORS = {
+    low:    ['#ff3d2e','#ff8a3d','#ffcf3f','#c8e678','#28f0e0','#c8e678','#ffcf3f','#ff8a3d','#ff3d2e'],
+    medium: ['#ff3d2e','#ff8a3d','#ffcf3f','#c8e678','#28f0e0','#c8e678','#ffcf3f','#ff8a3d','#ff3d2e'],
+    high:   ['#ff3d2e','#ff8a3d','#ffcf3f','#c8e678','#28f0e0','#c8e678','#ffcf3f','#ff8a3d','#ff3d2e']
+  };
+
+  function plinkoBetAdjust(factor){
+    const el = document.getElementById('plinko-bet');
+    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
+  }
+  function plinkoBetSet(mode){
+    if(mode === 'max') document.getElementById('plinko-bet').value = CHIPS_BALANCE;
+  }
+
+  function buildPlinkoBoard(){
+    const board = document.getElementById('plinko-board');
+    board.innerHTML = '';
+    const rows = PLINKO_ROWS;
+    const boardWidth = 100;
+    for(let r = 0; r <= rows; r++){
+      const pegCount = r + 3;
+      const y = 8 + (r / rows) * 74;
+      for(let c = 0; c < pegCount; c++){
+        const x = (boardWidth / 2) + (c - (pegCount - 1) / 2) * (boardWidth / (rows + 4));
+        const peg = document.createElement('div');
+        peg.className = 'plinko-peg';
+        peg.style.left = x + '%';
+        peg.style.top = y + '%';
+        board.appendChild(peg);
+      }
+    }
+    // Slots
+    const risk = document.getElementById('plinko-risk').value;
+    const slotsWrap = document.createElement('div');
+    slotsWrap.className = 'plinko-slots';
+    slotsWrap.id = 'plinko-slots';
+    PLINKO_MULTIPLIERS[risk].forEach((m, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'plinko-slot';
+      slot.style.background = PLINKO_SLOT_COLORS[risk][i];
+      slot.style.color = (m >= 2) ? '#1a1400' : '#1a1400';
+      slot.textContent = m + '×';
+      slot.dataset.idx = i;
+      slotsWrap.appendChild(slot);
+    });
+    board.appendChild(slotsWrap);
+
+    const ball = document.createElement('div');
+    ball.className = 'plinko-ball';
+    ball.id = 'plinko-ball';
+    ball.style.left = '50%';
+    ball.style.top = '4%';
+    ball.style.display = 'none';
+    board.appendChild(ball);
+  }
+
+  function resetPlinkoUI(){
+    buildPlinkoBoard();
+    document.getElementById('plinko-result').textContent = '';
+    document.getElementById('plinko-result').className = 'result-msg';
+    document.getElementById('plinko-drop-btn').disabled = false;
+    document.getElementById('plinko-risk').onchange = buildPlinkoBoard;
+  }
+
+  function dropPlinkoBall(){
+    const bet = parseInt(document.getElementById('plinko-bet').value) || 0;
+    if(bet <= 0 || bet > CHIPS_BALANCE){
+      alert('Ungültiger Einsatz.');
+      return;
+    }
+    const risk = document.getElementById('plinko-risk').value;
+    const dropBtn = document.getElementById('plinko-drop-btn');
+    dropBtn.disabled = true;
+    saveChips(CHIPS_BALANCE - bet);
+    document.getElementById('plinko-result').textContent = '';
+    document.getElementById('plinko-result').className = 'result-msg';
+
+    const rows = PLINKO_ROWS;
+    let rightMoves = 0;
+    const path = [];
+    for(let r = 0; r < rows; r++){
+      const goRight = Math.random() < 0.5;
+      if(goRight) rightMoves++;
+      path.push(goRight);
+    }
+
+    const ball = document.getElementById('plinko-ball');
+    ball.style.display = 'block';
+    ball.style.transition = 'none';
+    ball.style.left = '50%';
+    ball.style.top = '4%';
+    void ball.offsetWidth;
+    ball.style.transition = 'left .28s ease-in, top .28s ease-in';
+
+    let step = 0;
+    let curOffset = 0;
+    function stepBall(){
+      if(step >= rows){
+        const finalSlot = rightMoves;
+        const board = document.getElementById('plinko-board');
+        const slotEl = document.querySelectorAll('.plinko-slot')[finalSlot];
+        if(slotEl) slotEl.classList.add('flash');
+        ball.style.top = '92%';
+
+        const multiplier = PLINKO_MULTIPLIERS[risk][finalSlot];
+        const winnings = Math.round(bet * multiplier);
+        setTimeout(() => {
+          if(winnings > bet){
+            saveChips(CHIPS_BALANCE + winnings);
+            document.getElementById('plinko-result').textContent = '✓ ' + multiplier + '× — ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
+            document.getElementById('plinko-result').className = 'result-msg win';
+            playWinSound();
+          } else if(winnings === bet){
+            saveChips(CHIPS_BALANCE + winnings);
+            document.getElementById('plinko-result').textContent = multiplier + '× — Einsatz zurück.';
+            document.getElementById('plinko-result').className = 'result-msg';
+            playClickSound();
+          } else {
+            saveChips(CHIPS_BALANCE + winnings);
+            document.getElementById('plinko-result').textContent = 'Nur ' + multiplier + '× getroffen — ' + (bet - winnings).toLocaleString('de-CH') + ' Chips verloren.';
+            document.getElementById('plinko-result').className = 'result-msg lose';
+            playLoseSound();
+          }
+          dropBtn.disabled = false;
+          ball.style.display = 'none';
+          if(slotEl) slotEl.classList.remove('flash');
+        }, 400);
+        return;
+      }
+      curOffset += path[step] ? 1 : -1;
+      const y = 8 + ((step + 1) / rows) * 74;
+      const x = 50 + curOffset * (50 / (rows + 4));
+      ball.style.left = Math.max(4, Math.min(96, x)) + '%';
+      ball.style.top = y + '%';
+      step++;
+      setTimeout(stepBall, 280);
+    }
+    stepBall();
+  }
+
   /* ================= MOBILE MENU ================= */
   function toggleMobileMenu(){
     const nav = document.getElementById('main-nav-links');
@@ -1373,12 +1773,13 @@
 
   /* ================= SUPPORT CHAT (FAQ, keine echte KI) ================= */
   const FAQ = [
-    { q: 'Wie bekomme ich TNT-Chips?', a: 'Jeder neue Spieler startet mit 1\'000 Gratis-Chips, sobald du dich mit Twitch einloggst. Weitere Chips gibt es aktuell nur durchs Gewinnen in den Spielen.' },
+    { q: 'Wie bekomme ich TNT-Chips?', a: 'Jeder neue Spieler startet mit 1\'000 Gratis-Chips, sobald du dich mit Twitch oder Kick einloggst. Weitere Chips gibt es aktuell nur durchs Gewinnen in den Spielen.' },
     { q: 'Ist das echtes Geld?', a: 'Nein! TNT-Chips sind eine rein virtuelle Spielwährung ohne Geldwert. Es findet an keiner Stelle Echtgeld-Glücksspiel statt.' },
     { q: 'Wie funktioniert Minen?', a: 'Du wählst einen Einsatz und die Anzahl Minen. Dann deckst du Felder auf — jedes sichere Feld erhöht deinen Multiplikator. Du kannst jederzeit auszahlen, bevor du eine Mine triffst!' },
     { q: 'Wie funktioniert Münzwurf?', a: 'Du setzt auf Kopf oder Zahl und wirfst die Münze. Bei richtiger Wahl gewinnst du das 1.94-fache deines Einsatzes.' },
-    { q: 'Meine Chips sind alle weg, was jetzt?', a: 'Kein Problem — die Chips sind rein virtuell. Kontaktiere uns über unsere Social-Media-Kanäle, falls du einen Neustart brauchst.' },
-    { q: 'Wann kommen weitere Spiele?', a: 'Absturz, Plinko, Roulette und Blackjack sind in Arbeit und folgen bald!' }
+    { q: 'Wie funktioniert Absturz?', a: 'Der Multiplikator steigt immer weiter — du kannst jederzeit auszahlen. Wartest du zu lange, stürzt die Rakete ab und du verlierst deinen Einsatz.' },
+    { q: 'Wie funktioniert Plinko?', a: 'Du lässt einen Ball durch ein Nagel-Feld fallen. Je nachdem, wo er landet, gewinnst du unterschiedliche Multiplikatoren — höheres Risiko bedeutet größere mögliche Gewinne, aber auch größere Verluste.' },
+    { q: 'Meine Chips sind alle weg, was jetzt?', a: 'Kein Problem — die Chips sind rein virtuell. Kontaktiere uns über unsere Social-Media-Kanäle, falls du einen Neustart brauchst.' }
   ];
 
   function toggleSupport(){
