@@ -261,7 +261,7 @@
     border:3px solid #8a6a1c; border-radius:12px; padding:14px;
     width:100%; max-width:640px; overflow-x:auto;
   }
-  .rt-grid{ display:grid; grid-template-columns: 40px repeat(12, minmax(30px,1fr)); gap:3px; min-width:560px; }
+  .rt-grid{ display:grid; grid-template-columns: 40px repeat(12, minmax(30px,1fr)); gap:3px; min-width:560px; position:relative; }
   .rt-cell{
     position:relative; display:flex; align-items:center; justify-content:center;
     font-family:var(--display); font-size:12px; color:#fff; cursor:pointer;
@@ -282,10 +282,19 @@
   .rt-row-dozens{ display:grid; grid-template-columns:repeat(12,minmax(30px,1fr)); gap:3px; margin:3px 0 3px 43px; min-width:517px; }
   .rt-row-outside{ display:grid; grid-template-columns:repeat(12,minmax(30px,1fr)); gap:3px; margin-left:43px; min-width:517px; }
 
+  .rt-split, .rt-corner{
+    position:absolute; width:14px; height:14px; margin-left:-7px; margin-top:-7px;
+    border-radius:50%; background:transparent; border:1.5px solid transparent;
+    cursor:pointer; z-index:5; transition:background .15s, border-color .15s;
+  }
+  .rt-split:hover, .rt-corner:hover{ background:rgba(255,207,63,.55); border-color:var(--gold); box-shadow:0 0 8px rgba(255,207,63,.6); }
+
   .chip-badge{
-    position:absolute; bottom:-7px; right:-7px; background:var(--gold); color:#1a1400;
-    font-size:9px; font-weight:800; border-radius:50%; width:20px; height:20px;
-    display:flex; align-items:center; justify-content:center; border:2px solid #0d2818; z-index:2;
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 60%, #a6790f 100%); color:#1a1400;
+    font-size:10px; font-weight:800; border-radius:50%; width:22px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+    border:2px dashed #1a1400; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,.5);
   }
   .roulette-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
   .total-bet-display{ font-family:var(--mono); font-size:13px; color:var(--text-mid); }
@@ -1342,6 +1351,66 @@
       <div class="rt-cell rt-outside" data-bet="odd" onclick="placeBet('odd', this)" style="grid-column:span 2;">Ungerade</div>
       <div class="rt-cell rt-outside" data-bet="high" onclick="placeBet('high', this)" style="grid-column:span 2;">19–36</div>
     `;
+
+    buildSplitAndCornerBets();
+  }
+
+  function buildSplitAndCornerBets(){
+    const grid = document.getElementById('rt-grid');
+    grid.querySelectorAll('.rt-split, .rt-corner').forEach(e => e.remove());
+
+    function cellEl(num){ return grid.querySelector(`.rt-num[data-bet="straight-${num}"]`); }
+    function addHotspot(cls, x, y, betKey){
+      const el = document.createElement('div');
+      el.className = cls;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.dataset.bet = betKey;
+      el.onclick = () => placeBet(betKey, el);
+      grid.appendChild(el);
+    }
+
+    // Horizontale Splits (2er-Gruppe, gleiche Reihe, benachbarte Spalten)
+    for(let row=0; row<3; row++){
+      for(let col=0; col<11; col++){
+        const n1 = col*3 + (3-row);
+        const n2 = (col+1)*3 + (3-row);
+        const e1 = cellEl(n1);
+        if(!e1) continue;
+        const x = e1.offsetLeft + e1.offsetWidth;
+        const y = e1.offsetTop + e1.offsetHeight/2;
+        const nums = [n1,n2].sort((a,b)=>a-b);
+        addHotspot('rt-split', x, y, `split-${nums.join('-')}`);
+      }
+    }
+    // Vertikale Splits (2er-Gruppe, gleiche Spalte, benachbarte Reihen)
+    for(let row=0; row<2; row++){
+      for(let col=0; col<12; col++){
+        const n1 = col*3 + (3-row);
+        const n2 = col*3 + (3-(row+1));
+        const e1 = cellEl(n1);
+        if(!e1) continue;
+        const x = e1.offsetLeft + e1.offsetWidth/2;
+        const y = e1.offsetTop + e1.offsetHeight;
+        const nums = [n1,n2].sort((a,b)=>a-b);
+        addHotspot('rt-split', x, y, `split-${nums.join('-')}`);
+      }
+    }
+    // Corner-Wetten (4er-Gruppe, Eckpunkt zwischen 4 Zahlen)
+    for(let row=0; row<2; row++){
+      for(let col=0; col<11; col++){
+        const a = col*3 + (3-row);
+        const b = (col+1)*3 + (3-row);
+        const c = col*3 + (3-(row+1));
+        const d = (col+1)*3 + (3-(row+1));
+        const ea = cellEl(a);
+        if(!ea) continue;
+        const x = ea.offsetLeft + ea.offsetWidth;
+        const y = ea.offsetTop + ea.offsetHeight;
+        const nums = [a,b,c,d].sort((x,y)=>x-y);
+        addHotspot('rt-corner', x, y, `corner-${nums.join('-')}`);
+      }
+    }
   }
 
   function totalRouletteBet(){
@@ -1388,6 +1457,14 @@
     if(key.startsWith('straight-')){
       const num = parseInt(key.split('-')[1]);
       return num === winNum ? amount * 36 : 0;
+    }
+    if(key.startsWith('split-')){
+      const nums = key.split('-').slice(1).map(Number);
+      return nums.includes(winNum) ? amount * 18 : 0; // 17:1
+    }
+    if(key.startsWith('corner-')){
+      const nums = key.split('-').slice(1).map(Number);
+      return nums.includes(winNum) ? amount * 9 : 0; // 8:1
     }
     if(key.startsWith('col-')){
       if(winNum === 0) return 0;
