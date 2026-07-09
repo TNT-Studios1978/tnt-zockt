@@ -114,7 +114,6 @@
           <button class="tab-btn active" data-tab="casinos" onclick="switchTab('casinos')">Casinos</button>
           <button class="tab-btn" data-tab="streamers" onclick="switchTab('streamers')">Streamer</button>
           <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
-          <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
         </div>
         <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
       </div>
@@ -144,20 +143,6 @@
         <div class="toolbar"><h2>Shop-Produkte</h2></div>
         <div id="product-list"></div>
         <div class="add-row"><button class="btn-ghost" onclick="addProduct()">+ Produkt hinzufügen</button></div>
-      </div>
-
-      <!-- VISITS TAB -->
-      <div class="tab-panel" id="tab-visits">
-        <div class="toolbar"><h2>Besucher-Historie</h2></div>
-        <div class="info-box" style="margin-bottom:20px;">
-          Es werden nur <strong>Seite, Zeitpunkt und Herkunft (Referrer)</strong> gespeichert — keine IP-Adressen oder andere persönlichen Daten.
-        </div>
-        <div id="visits-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px;"></div>
-        <div class="toolbar">
-          <h2 style="font-size:16px;">Letzte Besuche</h2>
-          <button class="btn-ghost" onclick="loadVisits()">🔄 Aktualisieren</button>
-        </div>
-        <div id="visits-list"></div>
       </div>
     </main>
 
@@ -211,60 +196,7 @@
     }
     CASINOS = c.data; STREAMERS = s.data; PRODUCTS = p.data;
     renderCasinoList(); renderStreamerList(); renderProductList();
-    loadVisits();
     setStatus('✓ Geladen (' + new Date().toLocaleTimeString() + ')');
-  }
-
-  async function loadVisits(){
-    const statsEl = document.getElementById('visits-stats');
-    const listEl = document.getElementById('visits-list');
-    statsEl.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
-    listEl.innerHTML = '';
-
-    const { data, error } = await sb.from('visits').select('*').order('created_at', { ascending: false }).limit(500);
-    if(error){
-      statsEl.innerHTML = '';
-      listEl.innerHTML = '<p style="color:#ff6b6b">Besucherdaten konnten nicht geladen werden.</p>';
-      console.error(error);
-      return;
-    }
-
-    const now = Date.now();
-    const dayMs = 24*60*60*1000;
-    const today = data.filter(v => now - new Date(v.created_at).getTime() < dayMs).length;
-    const last7 = data.filter(v => now - new Date(v.created_at).getTime() < 7*dayMs).length;
-    const total = data.length;
-
-    const byPage = {};
-    data.forEach(v => { byPage[v.page] = (byPage[v.page]||0) + 1; });
-    const topPage = Object.entries(byPage).sort((a,b)=>b[1]-a[1])[0];
-
-    statsEl.innerHTML = `
-      <div class="entry-card" style="text-align:center;">
-        <div style="font-family:var(--display); font-size:26px; color:var(--gold);">${today}</div>
-        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Heute</div>
-      </div>
-      <div class="entry-card" style="text-align:center;">
-        <div style="font-family:var(--display); font-size:26px; color:var(--gold);">${last7}</div>
-        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Letzte 7 Tage</div>
-      </div>
-      <div class="entry-card" style="text-align:center;">
-        <div style="font-family:var(--display); font-size:26px; color:var(--gold);">${total}</div>
-        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Insgesamt (letzte 500)</div>
-      </div>
-      <div class="entry-card" style="text-align:center;">
-        <div style="font-family:var(--display); font-size:18px; color:var(--cyan);">${topPage ? topPage[0] : '–'}</div>
-        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Beliebteste Seite</div>
-      </div>
-    `;
-
-    listEl.innerHTML = data.slice(0, 100).map(v => `
-      <div class="entry-card" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div style="font-family:var(--mono); font-size:12px; color:var(--text-hi);">${v.page}</div>
-        <div style="font-size:11px; color:var(--text-low);">${v.referrer ? 'von ' + v.referrer : 'direkter Aufruf'}</div>
-        <div style="font-family:var(--mono); font-size:11px; color:var(--text-low);">${new Date(v.created_at).toLocaleString('de-CH')}</div>
-      </div>
-    `).join('') || '<p style="color:var(--text-low)">Noch keine Besucher aufgezeichnet.</p>';
   }
 
   /* ---------- CASINOS ---------- */

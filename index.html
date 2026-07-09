@@ -108,95 +108,19 @@
   .nav{
     max-width:1180px; margin:0 auto; padding:16px 24px;
     display:flex; align-items:center; justify-content:space-between;
-    position:relative;
   }
   .logo{
     font-family:var(--display); font-size:22px; letter-spacing:.5px;
     display:flex; align-items:center; gap:8px;
   }
   .logo .dot{color:var(--fuse-red);}
-  .logo-badge{
-    display:inline-flex; align-items:center; justify-content:center;
-    padding:4px; border-radius:10px;
-    background:linear-gradient(145deg, var(--bg-2), #0d0d13);
-    border:1px solid rgba(255,207,63,.35);
-    box-shadow:0 0 16px rgba(255,207,63,.25), 0 0 4px rgba(255,61,46,.3);
-    transition:transform .2s, box-shadow .2s;
-  }
-  .logo-badge:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 22px rgba(255,207,63,.4), 0 0 8px rgba(255,61,46,.4);
-  }
-  .logo-badge img{ display:block; border-radius:7px; }
-  .nav-links{display:flex; gap:6px; font-size:14px; font-weight:600; color:var(--text-mid);}
-  .nav-links a{
-    padding:8px 14px; border-radius:8px;
-    transition:background .2s, color .2s;
-  }
-  .nav-links a:hover{color:var(--text-hi); background:rgba(255,255,255,.05);}
-  .nav-links a.active{
-    color:var(--gold);
-    background:rgba(255,207,63,.12);
-    box-shadow:inset 0 0 0 1px rgba(255,207,63,.3);
-  }
+  .nav-links{display:flex; gap:28px; font-size:14px; font-weight:600; color:var(--text-mid);}
+  .nav-links a:hover{color:var(--text-hi);}
   .nav-cta{
     font-size:13px; font-weight:800; padding:10px 18px; border-radius:7px;
     background:var(--gold); color:#1a1400;
   }
-
-  /* ---------- Mobile Hamburger Menu ---------- */
-  .hamburger-btn{
-    display:none;
-    background:var(--bg-1); border:1px solid var(--line); border-radius:8px;
-    width:42px; height:42px; align-items:center; justify-content:center;
-    cursor:pointer; flex-shrink:0;
-  }
-  .hamburger-btn span, .hamburger-btn span::before, .hamburger-btn span::after{
-    content:''; display:block; width:20px; height:2px; background:var(--text-hi);
-    position:relative; transition:transform .2s, opacity .2s;
-  }
-  .hamburger-btn span::before{ position:absolute; top:-6px; }
-  .hamburger-btn span::after{ position:absolute; top:6px; }
-  .hamburger-btn.open span{ background:transparent; }
-  .hamburger-btn.open span::before{ transform:translateY(6px) rotate(45deg); }
-  .hamburger-btn.open span::after{ transform:translateY(-6px) rotate(-45deg); }
-
-  @media(max-width:720px){
-    .nav-links{
-      display:none;
-      position:absolute; top:100%; left:0; right:0;
-      flex-direction:column; gap:2px;
-      background:var(--bg-1); border-bottom:1px solid var(--line);
-      padding:12px; box-shadow:0 12px 24px rgba(0,0,0,.4);
-    }
-    .nav-links.mobile-open{ display:flex; }
-    .nav-links a{ padding:12px 14px; }
-    .hamburger-btn{ display:flex; }
-    .nav-cta{ display:none; }
-  }
-
-  /* ---------- Mobile Bottom Navigation (fixed) ---------- */
-  .bottom-nav{
-    display:none;
-    position:fixed; left:0; right:0; bottom:0; z-index:150;
-    background:rgba(8,8,12,.94); backdrop-filter:blur(12px);
-    border-top:1px solid var(--line);
-    padding:8px 4px calc(8px + env(safe-area-inset-bottom));
-    box-shadow:0 -8px 24px rgba(0,0,0,.4);
-  }
-  .bottom-nav a{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
-    padding:6px 2px; border-radius:10px;
-    font-family:var(--body); font-size:10.5px; font-weight:700;
-    color:var(--text-low); text-align:center;
-  }
-  .bottom-nav a svg{ width:20px; height:20px; }
-  .bottom-nav a.active{ color:var(--gold); }
-  .bottom-nav a.active svg{ filter:drop-shadow(0 0 6px rgba(255,207,63,.6)); }
-  @media(max-width:720px){
-    .bottom-nav{ display:flex; }
-    body{ padding-bottom:64px; }
-  }
+  @media(max-width:720px){ .nav-links{display:none;} }
 
   /* ---------- Nav Auth Widget ---------- */
   .nav-auth{ display:flex; align-items:center; gap:10px; }
@@ -264,7 +188,19 @@
   .hero-stats div small{color:var(--text-low); font-size:11px; letter-spacing:1px; text-transform:uppercase;}
 
   /* TNT hero visual */
-  .tnt-visual{position:relative; height:400px; display:flex; align-items:center; justify-content:center;}
+  .tnt-visual{position:relative; height:340px; display:flex; align-items:center; justify-content:center;}
+  .fuse-spark{
+    position:absolute; width:10px; height:10px; border-radius:50%;
+    background:var(--gold); box-shadow:0 0 16px 4px var(--gold-glow);
+    animation:travel 2.4s ease-in-out infinite;
+  }
+  @keyframes travel{
+    0%{ top:8%; left:62%; opacity:1;}
+    50%{ top:2%; left:48%; opacity:1;}
+    95%{ top:24%; left:52%; opacity:0;}
+    100%{opacity:0;}
+  }
+
   /* ---------- Section shared ---------- */
   section{max-width:1180px; margin:0 auto; padding:70px 24px;}
   .section-head{margin-bottom:36px; max-width:600px;}
@@ -289,151 +225,81 @@
     font-size:18px;
   }
 
-  /* ---------- Casino offer rows (zoanbonus-style) ---------- */
+  /* ---------- Casino cards ---------- */
   .casino-grid{
-    display:flex; flex-direction:column; gap:22px;
-    padding-left:22px;
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+    gap:20px;
   }
   .casino-card{
     background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    position:relative;
-    display:flex; align-items:center; gap:20px;
-    padding:18px 24px 18px 34px;
+    padding:24px; display:flex; flex-direction:column; gap:14px;
+    position:relative; overflow:hidden;
     transition:transform .2s, border-color .2s;
   }
-  .casino-card:hover{transform:translateY(-3px); border-color:var(--fuse-red);}
+  .casino-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
   .casino-card .rank{
-    position:absolute; left:-22px; top:50%; transform:translateY(-50%);
-    width:44px; height:44px; border-radius:50%;
-    background:linear-gradient(145deg, var(--fuse-red), #b8281c);
-    display:flex; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:18px; color:#fff;
-    box-shadow:0 0 20px var(--fuse-red-glow);
-    z-index:2;
+    position:absolute; top:16px; right:18px;
+    font-family:var(--mono); font-size:12px; color:var(--text-low);
   }
-  .casino-banner{
-    width:110px; height:110px; flex-shrink:0; border-radius:12px;
+  .casino-logo{
+    width:52px; height:52px; border-radius:10px;
     background:linear-gradient(145deg, var(--bg-2), #0d0d13);
     display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:20px; color:var(--gold);
     border:1px solid var(--line);
     overflow:hidden;
   }
-  .casino-banner img{
-    width:100%; height:100%; object-fit:cover;
-  }
-  .casino-banner .badge-fallback{
-    font-family:var(--display); font-size:26px; color:var(--gold);
-    letter-spacing:1px;
-  }
-  .casino-card-body{
-    flex:1; min-width:0;
-    display:flex; flex-direction:column; gap:6px;
-  }
-  .casino-card h3{
-    font-family:var(--display); font-size:clamp(18px,2.4vw,26px);
-    font-weight:400; letter-spacing:.3px; text-transform:uppercase;
-    color:var(--gold);
-  }
+  .casino-card h3{font-size:18px; font-weight:800;}
   .casino-card .bonus{
-    font-family:var(--mono); font-size:12.5px; color:var(--text-mid);
-    letter-spacing:.3px;
+    font-family:var(--mono); font-size:13px; color:var(--cyan);
+    background:rgba(40,240,224,.08); border:1px solid rgba(40,240,224,.25);
+    padding:8px 10px; border-radius:6px;
   }
-  .casino-card .bonus b{ color:var(--cyan); font-weight:700; }
-  .stars{color:var(--gold); font-size:13px; letter-spacing:2px; white-space:nowrap;}
-  .casino-card-actions{
-    display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;
-  }
+  .stars{color:var(--gold); font-size:13px; letter-spacing:2px;}
   .casino-card .go{
-    text-align:center; font-weight:800; font-size:14px;
-    padding:13px 26px; border-radius:8px; white-space:nowrap;
+    margin-top:auto;
+    text-align:center; font-weight:800; font-size:13px;
+    padding:11px; border-radius:7px;
     background:var(--fuse-red); color:#fff;
-    box-shadow:0 4px 16px var(--fuse-red-glow);
   }
   .casino-card .go:hover{filter:brightness(1.1);}
-  .casino-card details{ width:100%; text-align:center; }
-  .casino-card summary{
-    font-family:var(--mono); font-size:10.5px; color:var(--text-low);
-    cursor:pointer; list-style:none; letter-spacing:.5px;
-  }
-  .casino-card summary::-webkit-details-marker{ display:none; }
-  .casino-card details[open] summary{ color:var(--cyan); }
-  .casino-card .details-panel{
-    margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);
-    font-size:11px; color:var(--text-low); text-align:left;
-  }
   .fine{font-size:10px; color:var(--text-low);}
 
-  @media(max-width:720px){
-    .casino-card{ flex-wrap:wrap; padding:16px 18px 16px 30px; }
-    .casino-banner{ width:70px; height:70px; }
-    .casino-card-actions{ width:100%; flex-direction:row; justify-content:space-between; }
-  }
-
-  /* ---------- Streamers (im Casino-Zeilen-Stil) ---------- */
+  /* ---------- Streamers ---------- */
   .stream-grid{
-    display:flex; flex-direction:column; gap:22px;
-    padding-left:22px;
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+    gap:20px;
   }
   .stream-card{
     background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    position:relative;
-    display:flex; align-items:center; gap:20px;
-    padding:18px 24px 18px 34px;
-    transition:transform .2s, border-color .2s;
+    padding:22px; display:flex; align-items:center; gap:16px;
+    transition:border-color .2s;
   }
-  .stream-card:hover{transform:translateY(-3px); border-color:var(--cyan);}
-  .stream-card .rank{
-    position:absolute; left:-22px; top:50%; transform:translateY(-50%);
-    width:44px; height:44px; border-radius:50%;
-    background:linear-gradient(145deg, var(--cyan), #0d8f85);
-    display:flex; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:18px; color:#04211f;
-    box-shadow:0 0 20px var(--cyan-glow);
-    z-index:2;
-  }
+  .stream-card:hover{border-color:var(--cyan);}
   .stream-avatar{
-    width:110px; height:110px; flex-shrink:0; border-radius:12px;
-    background:linear-gradient(145deg, var(--bg-2), #0d0d13);
+    width:54px; height:54px; border-radius:50%; flex-shrink:0;
+    background:conic-gradient(from 180deg, var(--fuse-red), var(--gold), var(--cyan), var(--fuse-red));
     display:flex; align-items:center; justify-content:center;
-    border:1px solid var(--line);
-    overflow:hidden;
   }
-  .stream-avatar img{ width:100%; height:100%; object-fit:cover; }
   .stream-avatar span{
-    font-family:var(--display); font-size:26px; color:var(--gold); letter-spacing:1px;
+    width:46px; height:46px; border-radius:50%; background:var(--bg-2);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:16px;
   }
-  .stream-card-body{
-    flex:1; min-width:0;
-    display:flex; flex-direction:column; gap:6px;
-  }
-  .stream-card h3{
-    font-family:var(--display); font-size:clamp(18px,2.4vw,26px);
-    font-weight:400; letter-spacing:.3px; text-transform:uppercase;
-    color:var(--gold);
-  }
-  .stream-card .platform{
-    font-family:var(--mono); font-size:12.5px;
-    display:inline-flex; align-items:center; gap:6px; width:fit-content;
+  .stream-info h4{font-size:15px; font-weight:800; margin-bottom:2px;}
+  .stream-info .platform{
+    font-family:var(--mono); font-size:11px;
+    display:inline-flex; align-items:center; gap:5px;
   }
   .plat-twitch{color:#a970ff;}
   .plat-kick{color:#53fc18;}
   .live-dot{width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 6px currentColor;}
-  .stream-card-actions{
-    display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;
-  }
   .stream-card .watch{
-    text-align:center; font-weight:800; font-size:14px;
-    padding:13px 26px; border-radius:8px; white-space:nowrap;
-    background:var(--cyan); color:#04211f;
-    box-shadow:0 4px 16px var(--cyan-glow);
+    margin-left:auto; font-size:12px; font-weight:800;
+    border:1px solid var(--line); padding:9px 14px; border-radius:7px;
+    white-space:nowrap;
   }
-  .stream-card .watch:hover{filter:brightness(1.1);}
-
-  @media(max-width:720px){
-    .stream-card{ flex-wrap:wrap; padding:16px 18px 16px 30px; }
-    .stream-avatar{ width:70px; height:70px; }
-    .stream-card-actions{ width:100%; }
-  }
+  .stream-card .watch:hover{border-color:var(--gold); color:var(--gold);}
 
   /* ---------- Responsible gaming ---------- */
   .responsible{
@@ -483,18 +349,16 @@
 
     <header>
       <nav class="nav">
-        <div class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></div>
-        <div class="nav-links" id="main-nav-links">
-          <a href="#casinos" data-section="casinos">Angebote</a>
-          <a href="#streams" data-section="streams">Streamer</a>
-          <a href="games.html">Spiele</a>
+        <div class="logo"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:40px; width:auto; border-radius:6px;"></div>
+        <div class="nav-links">
+          <a href="#casinos">Angebote</a>
+          <a href="#streams">Streamer</a>
           <a href="shop.html">Shop</a>
           <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Tournierbaum</a>
-          <a href="#verantwortung" data-section="verantwortung">Verantwortung</a>
+          <a href="#verantwortung">Verantwortung</a>
         </div>
         <a class="nav-cta" href="#casinos">Top Bonus sichern</a>
         <div class="nav-auth" id="nav-auth"></div>
-        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menü öffnen"><span></span></button>
       </nav>
     </header>
 
@@ -502,7 +366,7 @@
     <div class="hero">
       <div>
         <div class="eyebrow">Live · Casino Bonusse & Streams</div>
-        <h1>Zünde dein <span class="flame">Glück</span> mit TNT-Zockt</h1>
+        <h1>Zünde dein <span class="flame">Glück.</span><br>Zock mit TNT.</h1>
         <p>Geprüfte Online-Casinos, exklusive Boni und die besten Twitch- & Kick-Streamer an einem Ort. Kurze Zündschnur, große Wirkung.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#casinos">Top Casinos ansehen</a>
@@ -515,115 +379,20 @@
         </div>
       </div>
       <div class="tnt-visual">
-        <svg viewBox="0 0 340 420" width="100%" style="max-width:360px;">
-          <defs>
-            <linearGradient id="cabFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#181022"/>
-              <stop offset="100%" stop-color="#050308"/>
-            </linearGradient>
-            <linearGradient id="screenFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#1a0c26"/>
-              <stop offset="100%" stop-color="#020103"/>
-            </linearGradient>
-            <linearGradient id="reflectFade" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff" stop-opacity="0.18"/>
-              <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
-            </linearGradient>
-            <filter id="neonPink" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="4" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="neonCyan" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="4" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="neonGoldF" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="3.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-
-          <!-- floor glow reflection -->
-          <ellipse cx="170" cy="392" rx="120" ry="14" fill="#ff2e9a" opacity="0.18"/>
-          <ellipse cx="170" cy="392" rx="80" ry="9" fill="#28f0e0" opacity="0.16"/>
-
-          <!-- fuse coming out of the machine, right side -->
-          <path d="M242 58 C 255 44, 248 30, 262 20 S 258 6, 272 2" stroke="#8a7a5c" stroke-width="5" fill="none" stroke-linecap="round"/>
-
-          <!-- flickering glow at fuse tip (fixed position, no drift) -->
-          <g transform="translate(272,2)">
-            <circle r="15" fill="#ffcf3f" opacity="0.35" filter="url(#neonGoldF)">
-              <animate attributeName="r" values="12;18;10;17;12" dur="0.9s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.25;0.5;0.2;0.45;0.25" dur="0.9s" repeatCount="indefinite"/>
-            </circle>
-            <path d="M0,-16 C2.8,-5.6 5.6,-2.8 16,0 C5.6,2.8 2.8,5.6 0,16 C-2.8,5.6 -5.6,2.8 -16,0 C-5.6,-2.8 -2.8,-5.6 0,-16 Z"
-                  fill="#fff3c0" filter="url(#neonGoldF)">
-              <animate attributeName="opacity" values="0.7;1;0.6;1;0.75" dur="0.7s" repeatCount="indefinite"/>
-            </path>
-          </g>
-
-          <!-- neon crown antennas -->
-          <g filter="url(#neonPink)" stroke="#ff2e9a" stroke-width="4" stroke-linecap="round" fill="none">
-            <line x1="120" y1="52" x2="120" y2="14"/>
-            <line x1="145" y1="52" x2="145" y2="0"/>
-            <line x1="195" y1="52" x2="195" y2="0"/>
-            <line x1="220" y1="52" x2="220" y2="14"/>
-          </g>
-          <g filter="url(#neonCyan)" stroke="#28f0e0" stroke-width="4" stroke-linecap="round" fill="none">
-            <line x1="132" y1="52" x2="132" y2="24"/>
-            <line x1="170" y1="52" x2="170" y2="6"/>
-            <line x1="208" y1="52" x2="208" y2="24"/>
-          </g>
-
-          <!-- cabinet body -->
-          <rect x="70" y="52" width="200" height="290" rx="20" fill="url(#cabFill)"/>
-          <rect x="70" y="52" width="200" height="290" rx="20" fill="none" stroke="#ff2e9a" stroke-width="3" filter="url(#neonPink)"/>
-          <rect x="80" y="62" width="180" height="270" rx="14" fill="none" stroke="#28f0e0" stroke-width="1.5" opacity="0.7" filter="url(#neonCyan)"/>
-
-          <!-- screen frame -->
-          <rect x="90" y="88" width="160" height="108" rx="10" fill="url(#screenFill)" stroke="#ffcf3f" stroke-width="3" filter="url(#neonGoldF)"/>
-
-          <!-- reels -->
-          <g font-family="Anton" font-size="32" text-anchor="middle">
-            <rect x="98" y="96" width="46" height="92" rx="6" fill="#100916"/>
-            <text x="121" y="150" fill="#ff2e9a" filter="url(#neonPink)">7</text>
-            <rect x="147" y="96" width="46" height="92" rx="6" fill="#100916"/>
-            <text x="170" y="150" fill="#ffcf3f" filter="url(#neonGoldF)">★</text>
-            <rect x="196" y="96" width="46" height="92" rx="6" fill="#100916"/>
-            <text x="219" y="150" fill="#28f0e0" filter="url(#neonCyan)">7</text>
-          </g>
-          <!-- glass glare -->
-          <path d="M92 90 L134 90 L104 194 L92 194 Z" fill="#fff" opacity="0.05"/>
-
-          <!-- payline -->
-          <rect x="90" y="140" width="160" height="3" fill="#ffcf3f" opacity="0.9" filter="url(#neonGoldF)"/>
-
-          <!-- label -->
-          <rect x="122" y="206" width="96" height="20" rx="6" fill="#0a0510" stroke="#ff2e9a" stroke-width="1.5" filter="url(#neonPink)"/>
-          <text x="170" y="220" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#ff6fc4">TNT-ZOCKT</text>
-
-          <!-- buttons -->
-          <circle cx="106" cy="250" r="13" fill="#100916" stroke="#ffcf3f" stroke-width="2.5" filter="url(#neonGoldF)"/>
-          <circle cx="145" cy="250" r="13" fill="#100916" stroke="#28f0e0" stroke-width="2.5" filter="url(#neonCyan)"/>
-          <circle cx="184" cy="250" r="13" fill="#100916" stroke="#fff" stroke-width="2.5" opacity="0.9"/>
-          <circle cx="223" cy="250" r="13" fill="#100916" stroke="#ff2e9a" stroke-width="2.5" filter="url(#neonPink)"/>
-
-          <!-- lower panel neon lines -->
-          <line x1="86" y1="280" x2="254" y2="280" stroke="#28f0e0" stroke-width="2" filter="url(#neonCyan)"/>
-          <line x1="86" y1="292" x2="254" y2="292" stroke="#ff2e9a" stroke-width="2" filter="url(#neonPink)" opacity="0.7"/>
-
-          <!-- base -->
-          <rect x="70" y="316" width="200" height="26" rx="8" fill="#100916" stroke="#ff2e9a" stroke-width="2" filter="url(#neonPink)"/>
-
-          <!-- lever -->
+        <svg viewBox="0 0 320 340" width="100%" style="max-width:340px;">
+          <!-- bundle of dynamite -->
           <g>
-            <rect x="276" y="96" width="9" height="78" rx="4.5" fill="#1a1a24" stroke="#28f0e0" stroke-width="1.5" filter="url(#neonCyan)"/>
-            <circle cx="280" cy="88" r="15" fill="#100916" stroke="#ffcf3f" stroke-width="2.5" filter="url(#neonGoldF)"/>
+            <rect x="70" y="120" width="46" height="150" rx="8" fill="#b8281c" stroke="#3a0f0a" stroke-width="2"/>
+            <rect x="120" y="105" width="46" height="165" rx="8" fill="#ff3d2e" stroke="#3a0f0a" stroke-width="2"/>
+            <rect x="170" y="120" width="46" height="150" rx="8" fill="#b8281c" stroke="#3a0f0a" stroke-width="2"/>
+            <rect x="70" y="150" width="146" height="8" fill="#1a1400" opacity="0.5"/>
+            <rect x="70" y="220" width="146" height="8" fill="#1a1400" opacity="0.5"/>
+            <text x="143" y="200" text-anchor="middle" font-family="Anton" font-size="20" fill="#ffcf3f" opacity="0.85">TNT</text>
           </g>
-
-          <!-- reflective sheen over whole cabinet -->
-          <rect x="70" y="52" width="200" height="130" rx="20" fill="url(#reflectFade)" opacity="0.5"/>
+          <!-- fuse -->
+          <path d="M143 105 C 150 80, 130 60, 150 40 S 140 10, 155 5" stroke="#8a7a5c" stroke-width="4" fill="none" stroke-linecap="round"/>
         </svg>
+        <div class="fuse-spark"></div>
       </div>
     </div>
 
@@ -667,7 +436,7 @@
     <footer>
       <div class="footer-inner">
         <div class="footer-top">
-          <div class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:38px; width:auto;"></span></div>
+          <div class="logo"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:32px; width:auto; border-radius:5px;"></div>
           <div class="footer-badges">
             <span class="badge">18+</span>
             <span class="badge">Spielerschutz</span>
@@ -696,69 +465,14 @@
       </div>
     </footer>
 
-    <!-- Mobile Bottom Navigation -->
-    <nav class="bottom-nav" id="bottom-nav">
-      <a href="#casinos" data-section="casinos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5h.01M14.5 14.5h.01M15 9l-6 6"/></svg>
-        Angebote
-      </a>
-      <a href="#streams" data-section="streams">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M9.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
-        Streamer
-      </a>
-      <a href="games.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
-        Spiele
-      </a>
-      <a href="shop.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
-        Shop
-      </a>
-      <a href="#verantwortung" data-section="verantwortung">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
-        Schutz
-      </a>
-    </nav>
-
   </div>
 
 <script>
-  function toggleMobileMenu(){
-    const nav = document.getElementById('main-nav-links');
-    const btn = document.getElementById('hamburger-btn');
-    nav.classList.toggle('mobile-open');
-    btn.classList.toggle('open');
-  }
-  document.addEventListener('click', function(e){
-    const nav = document.getElementById('main-nav-links');
-    const btn = document.getElementById('hamburger-btn');
-    if(nav && nav.classList.contains('mobile-open')){
-      if(e.target.closest('#main-nav-links a')){
-        nav.classList.remove('mobile-open');
-        btn.classList.remove('open');
-      } else if(!e.target.closest('#main-nav-links') && !e.target.closest('#hamburger-btn')){
-        nav.classList.remove('mobile-open');
-        btn.classList.remove('open');
-      }
-    }
-  });
-
   function enterSite(){
-    try{ localStorage.setItem('tnt_zockt_age_verified', 'true'); }catch(e){}
     document.getElementById('agegate').style.display = 'none';
     document.getElementById('site').style.display = 'block';
     document.body.classList.remove('locked');
   }
-
-  (function checkAgeGate(){
-    let alreadyVerified = false;
-    try{ alreadyVerified = localStorage.getItem('tnt_zockt_age_verified') === 'true'; }catch(e){}
-    if(alreadyVerified){
-      document.getElementById('agegate').style.display = 'none';
-      document.getElementById('site').style.display = 'block';
-      document.body.classList.remove('locked');
-    }
-  })();
 
   function starString(n){
     return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
@@ -769,57 +483,15 @@
     const { data, error } = await sb.from('casinos').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Casinos konnten nicht geladen werden.</p>'; console.error(error); return; }
     grid.innerHTML = data.map((c, i) => `
-      <div class="casino-card">
-        <div class="rank">${i+1}</div>
-        <div class="casino-banner">
-          ${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo">` : `<span class="badge-fallback">${c.badge || c.name.slice(0,2).toUpperCase()}</span>`}
-        </div>
-        <div class="casino-card-body">
-          <h3>${c.name}</h3>
-          <div class="bonus"><b>${c.bonus || ''}</b></div>
-        </div>
-        <div class="casino-card-actions">
-          <div class="stars">${starString(c.stars)}</div>
-          <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
-          <details>
-            <summary>Details &amp; Infos ▾</summary>
-            <div class="details-panel">18+ · AGB gelten · verantwortungsvoll spielen</div>
-          </details>
-        </div>
+      <div class="casino-card"><div class="rank">#${i+1}</div>
+        <div class="casino-logo">${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo" style="width:100%; height:100%; object-fit:contain; border-radius:8px;">` : (c.badge || '?')}</div>
+        <h3>${c.name}</h3>
+        <div class="stars">${starString(c.stars)}</div>
+        <div class="bonus">${c.bonus || ''}</div>
+        <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
+        <div class="fine">18+ · AGB gelten · verantwortungsvoll spielen</div>
       </div>
     `).join('');
-  }
-
-  function getChannelLogin(platform, link){
-    try{
-      const url = new URL(link);
-      const path = url.pathname.replace(/\/$/,'');
-      if(platform === 'twitch' && url.hostname.includes('twitch.tv')){
-        return path.replace('/','').trim().toLowerCase() || null;
-      }
-      if(platform === 'youtube' && url.hostname.includes('youtube.com')){
-        // erwartet Format https://www.youtube.com/@Handle
-        const seg = path.split('/').pop();
-        return seg ? seg.replace(/^@/,'') : null;
-      }
-      if(platform === 'kick' && url.hostname.includes('kick.com')){
-        return path.replace('/','').trim().toLowerCase() || null;
-      }
-      return null;
-    }catch(e){ return null; }
-  }
-
-  async function loadStreamerAvatar(streamerId, platform, login){
-    try{
-      const res = await fetch(`/api/avatar?platform=${encodeURIComponent(platform)}&login=${encodeURIComponent(login)}`);
-      const data = await res.json();
-      if(data && data.avatar){
-        const el = document.getElementById('avatar-' + streamerId);
-        if(el){ el.innerHTML = `<img src="${data.avatar}" alt="">`; }
-      } else {
-        console.warn('Kein Avatar für', platform, login, data);
-      }
-    }catch(e){ console.warn('Avatar konnte nicht geladen werden für', platform, login, e); }
   }
 
   async function renderStreamers(){
@@ -831,28 +503,19 @@
     };
     const { data, error } = await sb.from('streamers').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Streamer konnten nicht geladen werden.</p>'; console.error(error); return; }
-    grid.innerHTML = data.map((s, i) => {
+    grid.innerHTML = data.map(s => {
       const p = platMap[s.platform] || {label:s.platform, cls:''};
       const initials = s.name.replace(/[\[\]]/g,'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
       return `
       <div class="stream-card">
-        <div class="rank">${i+1}</div>
-        <div class="stream-avatar" id="avatar-${s.id}"><span>${initials}</span></div>
-        <div class="stream-card-body">
-          <h3>${s.name}</h3>
+        <div class="stream-avatar"><span>${initials}</span></div>
+        <div class="stream-info">
+          <h4>${s.name}</h4>
           <div class="platform ${p.cls}" ${p.style ? `style="${p.style}"` : ''}><span class="live-dot"></span> ${p.label}</div>
         </div>
-        <div class="stream-card-actions">
-          <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">Kanal ansehen</a>
-        </div>
+        <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">Kanal ansehen</a>
       </div>`;
     }).join('');
-
-    // Echte Profilbilder für alle Plattformen im Hintergrund nachladen
-    data.forEach(s => {
-      const login = getChannelLogin(s.platform, s.link);
-      if(login) loadStreamerAvatar(s.id, s.platform, login);
-    });
   }
 
   renderCasinos();
@@ -929,42 +592,6 @@
     const { data: { session } } = await sb.auth.getSession();
     renderNavAuth(session);
     sb.auth.onAuthStateChange((event, session) => renderNavAuth(session));
-  })();
-
-  /* ---------- Scroll-Spy: aktuellen Abschnitt in der Nav hervorheben ---------- */
-  (function initScrollSpy(){
-    const navLinks = document.querySelectorAll('#main-nav-links a[data-section], .bottom-nav a[data-section]');
-    const sections = Array.from(navLinks)
-      .map(a => document.getElementById(a.dataset.section))
-      .filter(Boolean)
-      .filter((el, i, arr) => arr.indexOf(el) === i);
-
-    if(!sections.length) return;
-
-    function setActive(id){
-      navLinks.forEach(a => a.classList.toggle('active', a.dataset.section === id));
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      // Wähle den Abschnitt, der am weitesten oben sichtbar ist
-      const visible = entries.filter(e => e.isIntersecting);
-      if(visible.length){
-        visible.sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        setActive(visible[0].target.id);
-      }
-    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
-
-    sections.forEach(s => observer.observe(s));
-  })();
-
-  /* ---------- Besucher-Tracking (datenschutzfreundlich: nur Seite, Zeit, Referrer) ---------- */
-  (function trackVisit(){
-    try{
-      sb.from('visits').insert({
-        page: location.pathname || '/',
-        referrer: document.referrer || null
-      }).then(()=>{});
-    }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
   })();
 </script>
 </body>
