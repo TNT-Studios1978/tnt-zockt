@@ -6,6 +6,7 @@
 <title>Spiele | TNT-Zockt</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="kick-config.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -260,7 +261,7 @@
     border:3px solid #8a6a1c; border-radius:12px; padding:14px;
     width:100%; max-width:640px; overflow-x:auto;
   }
-  .rt-grid{ display:grid; grid-template-columns: 40px repeat(12, minmax(30px,1fr)); gap:3px; min-width:560px; position:relative; }
+  .rt-grid{ display:grid; grid-template-columns: 40px repeat(12, minmax(30px,1fr)); gap:3px; min-width:560px; }
   .rt-cell{
     position:relative; display:flex; align-items:center; justify-content:center;
     font-family:var(--display); font-size:12px; color:#fff; cursor:pointer;
@@ -281,97 +282,31 @@
   .rt-row-dozens{ display:grid; grid-template-columns:repeat(12,minmax(30px,1fr)); gap:3px; margin:3px 0 3px 43px; min-width:517px; }
   .rt-row-outside{ display:grid; grid-template-columns:repeat(12,minmax(30px,1fr)); gap:3px; margin-left:43px; min-width:517px; }
 
-  .rt-split, .rt-corner{
-    position:absolute; width:14px; height:14px; margin-left:-7px; margin-top:-7px;
-    border-radius:50%; background:transparent; border:1.5px solid transparent;
-    cursor:pointer; z-index:5; transition:background .15s, border-color .15s;
-  }
-  .rt-split:hover, .rt-corner:hover{ background:rgba(255,207,63,.55); border-color:var(--gold); box-shadow:0 0 8px rgba(255,207,63,.6); }
-
   .chip-badge{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 60%, #a6790f 100%); color:#1a1400;
-    font-size:10px; font-weight:800; border-radius:50%; width:22px; height:22px;
-    display:flex; align-items:center; justify-content:center;
-    border:2px dashed #1a1400; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,.5);
+    position:absolute; bottom:-7px; right:-7px; background:var(--gold); color:#1a1400;
+    font-size:9px; font-weight:800; border-radius:50%; width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center; border:2px solid #0d2818; z-index:2;
   }
   .roulette-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
   .total-bet-display{ font-family:var(--mono); font-size:13px; color:var(--text-mid); }
   .total-bet-display b{ color:var(--gold); }
 
   /* ---------- Blackjack ---------- */
-  .bj-felt{
-    background:radial-gradient(circle at 50% -10%, #1a4d2e, #0d2818 70%);
-    border:3px solid #8a6a1c; border-radius:16px; padding:24px;
-  }
-  .bj-dealer-area{ text-align:center; margin-bottom:28px; }
-  .bj-dealer-label{ font-family:var(--mono); font-size:11px; color:#cfe8d6; text-transform:uppercase; margin-bottom:8px; }
-  .bj-dealer-cards{ display:flex; gap:6px; justify-content:center; min-height:76px; flex-wrap:wrap; }
-  .bj-dealer-value{ font-family:var(--display); font-size:16px; color:var(--gold); margin-top:6px; }
-
+  .bj-table{ background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
+  .bj-row{ margin-bottom:18px; }
+  .bj-label{ font-family:var(--mono); font-size:11px; color:var(--text-low); text-transform:uppercase; margin-bottom:8px; display:flex; justify-content:space-between; }
+  .bj-cards{ display:flex; gap:8px; flex-wrap:wrap; min-height:88px; }
   .card{
-    width:50px; height:70px; border-radius:7px; background:#f4f1ea; color:#111;
+    width:58px; height:82px; border-radius:8px; background:#f4f1ea; color:#111;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    font-family:var(--display); font-size:16px; box-shadow:0 3px 8px rgba(0,0,0,.4);
-    border:1px solid #ccc; flex-shrink:0;
+    font-family:var(--display); font-size:20px; box-shadow:0 3px 8px rgba(0,0,0,.4);
+    border:1px solid #ccc;
   }
   .card.red-suit{ color:#c62828; }
   .card.hidden{ background:linear-gradient(145deg, var(--bg-2), #0d0d13); border:2px solid var(--gold); color:transparent; }
-  .card .suit{ font-size:13px; margin-top:1px; }
-
-  .bj-boxes-row{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-  .bj-box{
-    background:rgba(0,0,0,.28); border:2px solid rgba(255,255,255,.12); border-radius:12px;
-    padding:12px 10px; width:150px; display:flex; flex-direction:column; align-items:center; gap:6px;
-    transition:border-color .2s, box-shadow .2s;
-  }
-  .bj-box.active-box{ border-color:var(--gold); box-shadow:0 0 18px rgba(255,207,63,.4); }
-  .bj-box.done-box{ opacity:.65; }
-  .bj-box-title{ font-family:var(--mono); font-size:10px; color:#cfe8d6; text-transform:uppercase; }
-  .bj-box-cards{ display:flex; gap:4px; min-height:70px; flex-wrap:wrap; justify-content:center; }
-  .bj-box-value{ font-family:var(--display); font-size:15px; color:var(--gold); }
-  .bj-box-bet{ font-family:var(--mono); font-size:9.5px; color:var(--text-low); text-align:center; }
-  .bj-box-side{ font-size:9px; color:var(--cyan); text-align:center; min-height:11px; }
-  .bj-box-result{ font-family:var(--display); font-size:12px; text-transform:uppercase; min-height:14px; }
-  .bj-box-result.win{ color:var(--cyan); } .bj-box-result.lose{ color:var(--fuse-red); }
-
-  .bj-setup{ margin-bottom:20px; }
-  .bj-chip-selector-row{ display:flex; justify-content:center; margin-bottom:18px; }
-
-  .bj-betting-row{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
-  .bj-spot{
-    background:rgba(0,0,0,.25); border:2px dashed rgba(255,255,255,.15); border-radius:12px;
-    padding:12px 10px; width:130px; display:flex; flex-direction:column; align-items:center; gap:8px;
-  }
-  .bj-spot.has-bet{ border-color:var(--gold); border-style:solid; box-shadow:0 0 14px rgba(255,207,63,.25); }
-  .bj-spot-title{ font-family:var(--mono); font-size:10px; color:#cfe8d6; text-transform:uppercase; }
-  .bj-main-circle{
-    position:relative; width:64px; height:64px; border-radius:50%;
-    background:rgba(255,255,255,.05); border:2px solid rgba(255,255,255,.25);
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    font-family:var(--mono); font-size:10px; color:var(--text-low);
-  }
-  .bj-main-circle:hover{ border-color:var(--gold); background:rgba(255,207,63,.08); }
-  .bj-side-circles{ display:flex; gap:8px; }
-  .bj-side-circle{
-    position:relative; width:34px; height:34px; border-radius:50%;
-    background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.2);
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    font-family:var(--mono); font-size:8px; color:var(--text-low); text-align:center; line-height:1.1;
-  }
-  .bj-side-circle:hover{ border-color:var(--cyan); background:rgba(40,240,224,.1); }
-  .bj-chip-token{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 60%, #a6790f 100%); color:#1a1400;
-    font-size:11px; font-weight:800; border-radius:50%; width:34px; height:34px;
-    display:flex; align-items:center; justify-content:center;
-    border:2px dashed #1a1400; box-shadow:0 2px 6px rgba(0,0,0,.5); z-index:2;
-  }
-  .bj-side-circle .bj-chip-token{ width:24px; height:24px; font-size:9px; }
-  .bj-clear-spot{ font-size:9px; color:var(--text-low); background:none; border:none; cursor:pointer; text-decoration:underline; }
-
-  .bj-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; justify-content:center; }
-  .bj-actions .btn{ min-width:140px; }
+  .card .suit{ font-size:16px; margin-top:2px; }
+  .bj-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .bj-actions .btn{ flex:1; min-width:120px; }
 
   /* ---------- Support Chat Widget ---------- */
   .support-btn{
@@ -433,11 +368,17 @@
   <section id="login-gate">
     <div class="notify-box">
       <h3>🔒 Nur für Mitglieder</h3>
-      <p>Logg dich mit deinem Twitch-Konto ein, um mit deinen TNT-Chips zu spielen. Jeder neue Spieler startet mit 1'000 Gratis-Chips.</p>
-      <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
-        Mit Twitch anmelden
-      </button>
+      <p>Logg dich mit Twitch oder Kick ein, um mit deinen TNT-Chips zu spielen. Jeder neue Spieler startet mit 1'000 Gratis-Chips.</p>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
+          Mit Twitch anmelden
+        </button>
+        <button class="btn" style="background:#53fc18; color:#04210a; display:inline-flex; align-items:center; gap:8px;" onclick="loginWithKick()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>
+          Mit Kick anmelden
+        </button>
+      </div>
     </div>
   </section>
 
@@ -660,36 +601,33 @@
         <h2>🃏 Blackjack</h2>
         <button class="btn btn-ghost" onclick="closeGame()">← Zurück zur Übersicht</button>
       </div>
+      <div class="bj-table">
+        <div class="bj-row">
+          <div class="bj-label"><span>Dealer</span><span id="bj-dealer-value"></span></div>
+          <div class="bj-cards" id="bj-dealer-cards"></div>
+        </div>
+        <div class="bj-row">
+          <div class="bj-label"><span>Deine Hand</span><span id="bj-player-value"></span></div>
+          <div class="bj-cards" id="bj-player-cards"></div>
+        </div>
 
-      <div class="bj-felt">
-        <div class="bj-setup" id="bj-setup">
-          <div class="bj-chip-selector-row">
-            <div class="chip-selector" id="bj-chip-selector">
-              <button class="chip-btn selected" data-val="1" onclick="selectBjChip(1)">1</button>
-              <button class="chip-btn" data-val="5" onclick="selectBjChip(5)">5</button>
-              <button class="chip-btn" data-val="25" onclick="selectBjChip(25)">25</button>
-              <button class="chip-btn" data-val="100" onclick="selectBjChip(100)">100</button>
-            </div>
+        <div class="field" style="max-width:220px;" id="bj-bet-field">
+          <label>Einsatz</label>
+          <input type="number" id="bj-bet" value="10" min="1" step="1">
+          <div class="bet-quick">
+            <button onclick="bjBetAdjust(0.5)">½</button>
+            <button onclick="bjBetAdjust(2)">2×</button>
+            <button onclick="bjBetSet('max')">Max</button>
           </div>
-          <div class="bj-betting-row" id="bj-betting-row"></div>
         </div>
 
-        <div class="bj-dealer-area">
-          <div class="bj-dealer-label">Dealer</div>
-          <div class="bj-dealer-cards" id="bj-dealer-cards"></div>
-          <div class="bj-dealer-value" id="bj-dealer-value"></div>
+        <div class="bj-actions">
+          <button class="btn btn-primary" id="bj-deal-btn" onclick="startBlackjack()">Austeilen</button>
+          <button class="btn btn-ghost" id="bj-hit-btn" onclick="bjHit()" style="display:none;">Karte (Hit)</button>
+          <button class="btn btn-ghost" id="bj-stand-btn" onclick="bjStand()" style="display:none;">Halten (Stand)</button>
         </div>
-        <div class="bj-boxes-row" id="bj-boxes-row"></div>
+        <div class="result-msg" id="bj-result"></div>
       </div>
-
-      <div class="bj-actions">
-        <div class="total-bet-display">Gesamteinsatz: <b id="bj-total-bet">0</b> Chips</div>
-        <button class="btn btn-ghost" onclick="clearBjBets()">Wetten zurücksetzen</button>
-        <button class="btn btn-primary" id="bj-deal-btn" onclick="startBlackjack()">Austeilen</button>
-        <button class="btn btn-ghost" id="bj-hit-btn" onclick="bjHit()" style="display:none;">Karte (Hit)</button>
-        <button class="btn btn-ghost" id="bj-stand-btn" onclick="bjStand()" style="display:none;">Halten (Stand)</button>
-      </div>
-      <div class="result-msg" id="bj-result" style="text-align:center;"></div>
     </section>
 
   </div>
@@ -742,13 +680,17 @@
   </nav>
 
 <script>
-  /* ================= AUTH (gleiche Struktur wie shop.html) ================= */
-  let CURRENT_USER = null;
+  /* ================= AUTH (Twitch via Supabase + Kick via eigener Session) ================= */
+  let CURRENT_USER = null;      // Schlüssel für die Chips-Wallet (z.B. "tnt_studiosch" oder "kick:someuser")
+  let CURRENT_IDENTITY = null;  // {provider, username, avatar}
 
   function loginWithTwitch(){
     sb.auth.signInWithOAuth({ provider: 'twitch', options: { redirectTo: window.location.origin + '/games.html' } });
   }
-  async function logout(){ await sb.auth.signOut(); location.reload(); }
+  async function logout(){
+    await sb.auth.signOut();
+    logoutKick();
+  }
 
   function getTwitchUsername(user){
     const meta = user.user_metadata || {};
@@ -757,33 +699,51 @@
   function twitchIconSvg(){
     return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>';
   }
+  function kickIconSvg(){
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>';
+  }
 
-  function renderNavAuth(session){
+  async function resolveIdentity(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      const username = getTwitchUsername(session.user);
+      const avatar = session.user.user_metadata && (session.user.user_metadata.avatar_url || session.user.user_metadata.picture);
+      return { provider:'twitch', username, avatar, key: username };
+    }
+    const kick = getKickSession();
+    if(kick){
+      return { provider:'kick', username: kick.username, avatar: kick.avatar, key: 'kick:' + kick.username };
+    }
+    return null;
+  }
+
+  function renderNavAuth(identity){
     const container = document.getElementById('nav-auth');
     if(!container) return;
-    if(session && session.user){
-      const user = session.user;
-      const username = getTwitchUsername(user);
-      const avatar = user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture);
+    if(identity){
       container.innerHTML = `
         <div class="nav-user">
-          ${avatar ? `<img src="${avatar}" alt="">` : ''}
+          ${identity.avatar ? `<img src="${identity.avatar}" alt="">` : ''}
           <div class="info">
-            <div class="name">${username || 'Twitch-Nutzer'}</div>
+            <div class="name">${identity.username || 'Nutzer'} <span style="opacity:.6; font-size:9px;">(${identity.provider === 'twitch' ? 'Twitch' : 'Kick'})</span></div>
             <div class="chips" id="nav-chips">🪙 –</div>
           </div>
         </div>
         <button class="nav-logout" onclick="logout()">Logout</button>
       `;
     } else {
-      container.innerHTML = `<button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Login</button>`;
+      container.innerHTML = `
+        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Twitch</button>
+        <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} Kick</button>
+      `;
     }
   }
 
-  async function showLoggedIn(user){
+  async function showLoggedIn(identity){
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('games-content').style.display = 'block';
-    CURRENT_USER = getTwitchUsername(user);
+    CURRENT_IDENTITY = identity;
+    CURRENT_USER = identity.key;
     await loadChips();
   }
   function showLoginGate(){
@@ -791,16 +751,16 @@
     document.getElementById('games-content').style.display = 'none';
   }
 
-  (async function initAuth(){
-    const { data: { session } } = await sb.auth.getSession();
-    renderNavAuth(session);
-    if(session && session.user) showLoggedIn(session.user);
+  async function refreshAuthUI(){
+    const identity = await resolveIdentity();
+    renderNavAuth(identity);
+    if(identity) showLoggedIn(identity);
     else showLoginGate();
-    sb.auth.onAuthStateChange((event, session) => {
-      renderNavAuth(session);
-      if(session && session.user) showLoggedIn(session.user);
-      else showLoginGate();
-    });
+  }
+
+  (async function initAuth(){
+    await refreshAuthUI();
+    sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
   })();
 
   /* ================= CHIPS WALLET ================= */
@@ -1137,66 +1097,6 @@
       <div class="rt-cell rt-outside" data-bet="odd" onclick="placeBet('odd', this)" style="grid-column:span 2;">Ungerade</div>
       <div class="rt-cell rt-outside" data-bet="high" onclick="placeBet('high', this)" style="grid-column:span 2;">19–36</div>
     `;
-
-    buildSplitAndCornerBets();
-  }
-
-  function buildSplitAndCornerBets(){
-    const grid = document.getElementById('rt-grid');
-    grid.querySelectorAll('.rt-split, .rt-corner').forEach(e => e.remove());
-
-    function cellEl(num){ return grid.querySelector(`.rt-num[data-bet="straight-${num}"]`); }
-    function addHotspot(cls, x, y, betKey){
-      const el = document.createElement('div');
-      el.className = cls;
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      el.dataset.bet = betKey;
-      el.onclick = () => placeBet(betKey, el);
-      grid.appendChild(el);
-    }
-
-    // Horizontale Splits (2er-Gruppe, gleiche Reihe, benachbarte Spalten)
-    for(let row=0; row<3; row++){
-      for(let col=0; col<11; col++){
-        const n1 = col*3 + (3-row);
-        const n2 = (col+1)*3 + (3-row);
-        const e1 = cellEl(n1);
-        if(!e1) continue;
-        const x = e1.offsetLeft + e1.offsetWidth;
-        const y = e1.offsetTop + e1.offsetHeight/2;
-        const nums = [n1,n2].sort((a,b)=>a-b);
-        addHotspot('rt-split', x, y, `split-${nums.join('-')}`);
-      }
-    }
-    // Vertikale Splits (2er-Gruppe, gleiche Spalte, benachbarte Reihen)
-    for(let row=0; row<2; row++){
-      for(let col=0; col<12; col++){
-        const n1 = col*3 + (3-row);
-        const n2 = col*3 + (3-(row+1));
-        const e1 = cellEl(n1);
-        if(!e1) continue;
-        const x = e1.offsetLeft + e1.offsetWidth/2;
-        const y = e1.offsetTop + e1.offsetHeight;
-        const nums = [n1,n2].sort((a,b)=>a-b);
-        addHotspot('rt-split', x, y, `split-${nums.join('-')}`);
-      }
-    }
-    // Corner-Wetten (4er-Gruppe, Eckpunkt zwischen 4 Zahlen)
-    for(let row=0; row<2; row++){
-      for(let col=0; col<11; col++){
-        const a = col*3 + (3-row);
-        const b = (col+1)*3 + (3-row);
-        const c = col*3 + (3-(row+1));
-        const d = (col+1)*3 + (3-(row+1));
-        const ea = cellEl(a);
-        if(!ea) continue;
-        const x = ea.offsetLeft + ea.offsetWidth;
-        const y = ea.offsetTop + ea.offsetHeight;
-        const nums = [a,b,c,d].sort((x,y)=>x-y);
-        addHotspot('rt-corner', x, y, `corner-${nums.join('-')}`);
-      }
-    }
   }
 
   function totalRouletteBet(){
@@ -1243,14 +1143,6 @@
     if(key.startsWith('straight-')){
       const num = parseInt(key.split('-')[1]);
       return num === winNum ? amount * 36 : 0;
-    }
-    if(key.startsWith('split-')){
-      const nums = key.split('-').slice(1).map(Number);
-      return nums.includes(winNum) ? amount * 18 : 0; // 17:1
-    }
-    if(key.startsWith('corner-')){
-      const nums = key.split('-').slice(1).map(Number);
-      return nums.includes(winNum) ? amount * 9 : 0; // 8:1
     }
     if(key.startsWith('col-')){
       if(winNum === 0) return 0;
@@ -1323,14 +1215,10 @@
     }, 3050);
   }
 
-  /* ================= BLACKJACK GAME (5-Boxen-Tisch) ================= */
+  /* ================= BLACKJACK GAME ================= */
+  let bjState = null;
   const CARD_RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
   const CARD_SUITS = [{s:'♠',red:false},{s:'♥',red:true},{s:'♦',red:true},{s:'♣',red:false}];
-
-  let bjBoxes = [];      // [{cards, bet, ppBet, tpBet, status, ppResult, tpResult, resultMsg, resultClass}]
-  let bjDealer = [];
-  let bjActiveBoxIndex = -1;
-  let bjPhase = 'setup';
 
   function drawCard(){
     const rank = CARD_RANKS[Math.floor(Math.random()*CARD_RANKS.length)];
@@ -1348,285 +1236,131 @@
     if(hidden) return `<div class="card hidden">?</div>`;
     return `<div class="card ${card.red ? 'red-suit' : ''}"><span>${card.rank}</span><span class="suit">${card.suit}</span></div>`;
   }
-
-  function evalPerfectPair(c1, c2){
-    if(c1.rank !== c2.rank) return null;
-    if(c1.suit === c2.suit) return { name:'Perfect Pair', mult:26 };
-    if(c1.red === c2.red) return { name:'Colored Pair', mult:13 };
-    return { name:'Mixed Pair', mult:7 };
-  }
-  function eval21plus3(cards){
-    const values = cards.map(c => CARD_RANKS.indexOf(c.rank));
-    const suits = cards.map(c => c.suit);
-    const isFlush = suits[0]===suits[1] && suits[1]===suits[2];
-    function isSeq(vals){ for(let i=1;i<vals.length;i++) if(vals[i]!==vals[i-1]+1) return false; return true; }
-    let sorted = [...values].sort((a,b)=>a-b);
-    let isStraight = isSeq(sorted);
-    if(!isStraight){
-      const highAce = values.map(v => v===0?13:v).sort((a,b)=>a-b);
-      if(isSeq(highAce)) isStraight = true;
-    }
-    const isTrips = values[0]===values[1] && values[1]===values[2];
-    if(isTrips && isFlush) return { name:'Suited Trips', mult:101 };
-    if(isStraight && isFlush) return { name:'Straight Flush', mult:41 };
-    if(isTrips) return { name:'Drilling', mult:31 };
-    if(isStraight) return { name:'Straight', mult:11 };
-    if(isFlush) return { name:'Flush', mult:6 };
-    return null;
+  function renderBjTable(){
+    const hideDealer = bjState.phase === 'player';
+    document.getElementById('bj-dealer-cards').innerHTML = bjState.dealer.map((c,i) => renderCard(c, hideDealer && i === 1)).join('');
+    document.getElementById('bj-player-cards').innerHTML = bjState.player.map(c => renderCard(c)).join('');
+    document.getElementById('bj-player-value').textContent = handValue(bjState.player);
+    document.getElementById('bj-dealer-value').textContent = hideDealer ? '?' : handValue(bjState.dealer);
   }
 
-  let bjActiveChip = 1;
-  let bjBetState = [];
-
-  function selectBjChip(val){
-    bjActiveChip = val;
-    document.querySelectorAll('#bj-chip-selector .chip-btn').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.val) === val));
+  function bjBetAdjust(factor){
+    const el = document.getElementById('bj-bet');
+    el.value = Math.max(1, Math.round(parseFloat(el.value || 1) * factor));
   }
-
-  function bjTotalBet(){
-    return bjBetState.reduce((sum, spot) => sum + spot.main + spot.pp + spot.tp, 0);
-  }
-  function updateBjTotalDisplay(){
-    document.getElementById('bj-total-bet').textContent = bjTotalBet().toLocaleString('de-CH');
-  }
-
-  function placeBjChip(spotIndex, type){
-    if(bjTotalBet() + bjActiveChip > CHIPS_BALANCE){
-      alert('Nicht genug Chips.');
-      return;
-    }
-    bjBetState[spotIndex][type] += bjActiveChip;
-    renderBjBettingRow();
-    updateBjTotalDisplay();
-  }
-
-  function clearBjBets(){
-    bjBetState = bjBetState.map(() => ({ main:0, pp:0, tp:0 }));
-    renderBjBettingRow();
-    updateBjTotalDisplay();
-  }
-
-  function renderBjBettingRow(){
-    const row = document.getElementById('bj-betting-row');
-    row.innerHTML = bjBetState.map((spot, i) => `
-      <div class="bj-spot ${spot.main > 0 ? 'has-bet' : ''}">
-        <div class="bj-spot-title">Box ${i+1}</div>
-        <div class="bj-main-circle" onclick="placeBjChip(${i},'main')">
-          ${spot.main > 0 ? `<div class="bj-chip-token">${spot.main}</div>` : 'Setzen'}
-        </div>
-        <div class="bj-side-circles">
-          <div class="bj-side-circle" onclick="placeBjChip(${i},'pp')" title="Perfect Pairs">
-            ${spot.pp > 0 ? `<div class="bj-chip-token">${spot.pp}</div>` : 'PP'}
-          </div>
-          <div class="bj-side-circle" onclick="placeBjChip(${i},'tp')" title="21+3">
-            ${spot.tp > 0 ? `<div class="bj-chip-token">${spot.tp}</div>` : '21+3'}
-          </div>
-        </div>
-      </div>
-    `).join('');
+  function bjBetSet(mode){
+    if(mode === 'max') document.getElementById('bj-bet').value = CHIPS_BALANCE;
   }
 
   function resetBlackjackUI(){
-    bjBoxes = [];
-    bjDealer = [];
-    bjActiveBoxIndex = -1;
-    bjPhase = 'setup';
-    bjBetState = [0,1,2,3,4].map(() => ({ main:0, pp:0, tp:0 }));
+    bjState = null;
     document.getElementById('bj-dealer-cards').innerHTML = '';
+    document.getElementById('bj-player-cards').innerHTML = '';
     document.getElementById('bj-dealer-value').textContent = '';
-    document.getElementById('bj-boxes-row').innerHTML = '';
+    document.getElementById('bj-player-value').textContent = '';
     document.getElementById('bj-result').textContent = '';
     document.getElementById('bj-result').className = 'result-msg';
-    document.getElementById('bj-deal-btn').style.display = 'inline-block';
+    document.getElementById('bj-deal-btn').style.display = 'block';
     document.getElementById('bj-hit-btn').style.display = 'none';
     document.getElementById('bj-stand-btn').style.display = 'none';
-    document.getElementById('bj-setup').style.display = 'block';
-    document.getElementById('bj-boxes-row').style.display = 'none';
-    renderBjBettingRow();
-    updateBjTotalDisplay();
-  }
-
-  function renderBjBoxes(){
-    const row = document.getElementById('bj-boxes-row');
-    row.innerHTML = bjBoxes.map((box, i) => {
-      const val = handValue(box.cards);
-      const isActive = bjPhase === 'boxes' && i === bjActiveBoxIndex;
-      const isDone = box.status !== 'playing';
-      let sideText = '';
-      if(box.ppResult) sideText += '🃏 ' + box.ppResult.name + ' (' + (box.ppResult.mult-1) + ':1)  ';
-      if(box.tpResult) sideText += '♦ ' + box.tpResult.name + ' (' + (box.tpResult.mult-1) + ':1)';
-      return `
-        <div class="bj-box ${isActive ? 'active-box' : ''} ${isDone ? 'done-box' : ''}">
-          <div class="bj-box-title">Box ${box.spotIndex+1}</div>
-          <div class="bj-box-cards">${box.cards.map(c => renderCard(c)).join('')}</div>
-          <div class="bj-box-value">${val}${box.status==='bust' ? ' 💥' : ''}${box.status==='blackjack' ? ' ✦' : ''}</div>
-          <div class="bj-box-bet">${box.bet} Chips${box.ppBet ? ' · PP:'+box.ppBet : ''}${box.tpBet ? ' · 21+3:'+box.tpBet : ''}</div>
-          <div class="bj-box-side">${sideText}</div>
-          <div class="bj-box-result ${box.resultClass||''}">${box.resultMsg||''}</div>
-        </div>`;
-    }).join('');
-  }
-
-  function renderBjDealer(){
-    const hide = bjPhase === 'boxes';
-    document.getElementById('bj-dealer-cards').innerHTML = bjDealer.map((c,i) => renderCard(c, hide && i===1)).join('');
-    document.getElementById('bj-dealer-value').textContent = hide ? '?' : handValue(bjDealer);
+    document.getElementById('bj-bet-field').style.display = 'block';
   }
 
   function startBlackjack(){
-    const activeSpots = bjBetState.map((s,i) => ({...s, index:i})).filter(s => s.main > 0);
-    if(activeSpots.length === 0){
-      alert('Bitte platziere zuerst mindestens einen Einsatz auf einer Box.');
+    const bet = parseInt(document.getElementById('bj-bet').value) || 0;
+    if(bet <= 0 || bet > CHIPS_BALANCE){
+      alert('Ungültiger Einsatz.');
       return;
     }
-    const totalCost = bjTotalBet();
-    if(totalCost > CHIPS_BALANCE){
-      alert('Nicht genug Chips.');
-      return;
-    }
-    saveChips(CHIPS_BALANCE - totalCost);
-
-    bjDealer = [drawCard(), drawCard()];
-    bjBoxes = activeSpots.map(spot => ({
-      spotIndex: spot.index,
-      cards: [drawCard(), drawCard()],
-      bet: spot.main, ppBet: spot.pp, tpBet: spot.tp,
-      status: 'playing', ppResult: null, tpResult: null, resultMsg: '', resultClass: ''
-    }));
-
-    // Side Bets sofort auswerten
-    let sideWinnings = 0;
-    bjBoxes.forEach(box => {
-      if(box.ppBet){
-        const pp = evalPerfectPair(box.cards[0], box.cards[1]);
-        if(pp){ box.ppResult = pp; sideWinnings += box.ppBet * pp.mult; }
-      }
-      if(box.tpBet){
-        const tp = eval21plus3([box.cards[0], box.cards[1], bjDealer[0]]);
-        if(tp){ box.tpResult = tp; sideWinnings += box.tpBet * tp.mult; }
-      }
-    });
-    if(sideWinnings > 0) saveChips(CHIPS_BALANCE + sideWinnings);
-
-    document.getElementById('bj-setup').style.display = 'none';
-    document.getElementById('bj-boxes-row').style.display = 'flex';
+    saveChips(CHIPS_BALANCE - bet);
+    bjState = { bet, player: [drawCard(), drawCard()], dealer: [drawCard(), drawCard()], phase: 'player' };
     document.getElementById('bj-deal-btn').style.display = 'none';
-    document.getElementById('bj-result').textContent = sideWinnings > 0 ? ('✓ Side Bets: ' + sideWinnings.toLocaleString('de-CH') + ' Chips gewonnen!') : '';
-    document.getElementById('bj-result').className = 'result-msg win';
+    document.getElementById('bj-bet-field').style.display = 'none';
+    document.getElementById('bj-result').textContent = '';
+    document.getElementById('bj-result').className = 'result-msg';
+    renderBjTable();
 
-    bjPhase = 'boxes';
-    bjActiveBoxIndex = 0;
-
-    // Auto-Blackjack-Check für jede Box
-    bjBoxes.forEach(box => {
-      if(handValue(box.cards) === 21) box.status = 'blackjack';
-    });
-
-    renderBjDealer();
-    advanceToNextBox();
-  }
-
-  function advanceToNextBox(){
-    while(bjActiveBoxIndex < bjBoxes.length && bjBoxes[bjActiveBoxIndex].status !== 'playing'){
-      bjActiveBoxIndex++;
-    }
-    renderBjBoxes();
-    if(bjActiveBoxIndex >= bjBoxes.length){
-      document.getElementById('bj-hit-btn').style.display = 'none';
-      document.getElementById('bj-stand-btn').style.display = 'none';
-      bjDealerPlay();
+    const playerVal = handValue(bjState.player);
+    if(playerVal === 21){
+      bjStand(); // Automatischer Blackjack-Check
     } else {
-      document.getElementById('bj-hit-btn').style.display = 'inline-block';
-      document.getElementById('bj-stand-btn').style.display = 'inline-block';
+      document.getElementById('bj-hit-btn').style.display = 'block';
+      document.getElementById('bj-stand-btn').style.display = 'block';
     }
   }
 
   function bjHit(){
-    if(bjPhase !== 'boxes' || bjActiveBoxIndex >= bjBoxes.length) return;
-    const box = bjBoxes[bjActiveBoxIndex];
-    box.cards.push(drawCard());
-    if(handValue(box.cards) > 21){
-      box.status = 'bust';
-      bjActiveBoxIndex++;
-      advanceToNextBox();
-    } else {
-      renderBjBoxes();
+    if(!bjState || bjState.phase !== 'player') return;
+    bjState.player.push(drawCard());
+    renderBjTable();
+    if(handValue(bjState.player) > 21){
+      finishBlackjack('bust');
     }
   }
 
   function bjStand(){
-    if(bjPhase !== 'boxes' || bjActiveBoxIndex >= bjBoxes.length) return;
-    bjBoxes[bjActiveBoxIndex].status = 'stand';
-    bjActiveBoxIndex++;
-    advanceToNextBox();
-  }
+    if(!bjState) return;
+    bjState.phase = 'dealer';
+    document.getElementById('bj-hit-btn').style.display = 'none';
+    document.getElementById('bj-stand-btn').style.display = 'none';
+    renderBjTable();
 
-  function bjDealerPlay(){
-    bjPhase = 'dealer';
-    const anyoneStillIn = bjBoxes.some(b => b.status === 'stand' || b.status === 'blackjack');
+    const playerVal = handValue(bjState.player);
+    const playerBJ = playerVal === 21 && bjState.player.length === 2;
 
     function dealerStep(){
-      renderBjDealer();
-      const dealerVal = handValue(bjDealer);
-      if(anyoneStillIn && dealerVal < 17){
-        bjDealer.push(drawCard());
-        setTimeout(dealerStep, 650);
+      const dealerVal = handValue(bjState.dealer);
+      if(!playerBJ && dealerVal < 17){
+        bjState.dealer.push(drawCard());
+        renderBjTable();
+        setTimeout(dealerStep, 600);
       } else {
-        finishBlackjack();
+        finishBlackjack(playerBJ ? 'blackjack' : 'normal');
       }
     }
     setTimeout(dealerStep, 500);
   }
 
-  function finishBlackjack(){
-    bjPhase = 'done';
-    renderBjDealer();
-    document.getElementById('bj-dealer-value').textContent = handValue(bjDealer);
+  function finishBlackjack(reason){
+    bjState.phase = 'done';
+    renderBjTable();
+    document.getElementById('bj-dealer-value').textContent = handValue(bjState.dealer);
 
-    const dealerVal = handValue(bjDealer);
-    const dealerBJ = dealerVal === 21 && bjDealer.length === 2;
-    let totalWinnings = 0;
-    let anyWin = false, anyLose = false;
-
-    bjBoxes.forEach(box => {
-      const playerVal = handValue(box.cards);
-      if(box.status === 'bust'){
-        box.resultMsg = 'Verloren'; box.resultClass = 'lose'; anyLose = true;
-        return;
-      }
-      const playerBJ = box.status === 'blackjack';
-      if(playerBJ && !dealerBJ){
-        const win = Math.round(box.bet * 2.5);
-        totalWinnings += win;
-        box.resultMsg = '✓ Blackjack! +' + win; box.resultClass = 'win'; anyWin = true;
-      } else if(playerBJ && dealerBJ){
-        totalWinnings += box.bet;
-        box.resultMsg = 'Push (BJ)'; box.resultClass = '';
-      } else if(dealerVal > 21 || playerVal > dealerVal){
-        const win = box.bet * 2;
-        totalWinnings += win;
-        box.resultMsg = '✓ Gewonnen +' + win; box.resultClass = 'win'; anyWin = true;
-      } else if(playerVal === dealerVal){
-        totalWinnings += box.bet;
-        box.resultMsg = 'Push'; box.resultClass = '';
-      } else {
-        box.resultMsg = 'Verloren'; box.resultClass = 'lose'; anyLose = true;
-      }
-    });
-
-    if(totalWinnings > 0) saveChips(CHIPS_BALANCE + totalWinnings);
-    renderBjBoxes();
-
+    const playerVal = handValue(bjState.player);
+    const dealerVal = handValue(bjState.dealer);
     const resultEl = document.getElementById('bj-result');
-    resultEl.textContent = totalWinnings > 0
-      ? ('✓ Runde beendet — ' + totalWinnings.toLocaleString('de-CH') + ' Chips gesamt zurück/gewonnen!')
-      : 'Runde beendet — diesmal nichts gewonnen.';
-    resultEl.className = 'result-msg ' + (anyWin ? 'win' : (anyLose ? 'lose' : ''));
+    let winnings = 0;
+    let msg = '';
 
-    if(totalWinnings > 0) playWinSound(); else playLoseSound();
+    if(reason === 'bust'){
+      msg = 'Überkauft! Verloren.';
+      resultEl.className = 'result-msg lose';
+      playLoseSound();
+    } else if(reason === 'blackjack'){
+      winnings = Math.round(bjState.bet * 2.5);
+      msg = '✓ Blackjack! ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
+      resultEl.className = 'result-msg win';
+      playWinSound();
+    } else if(dealerVal > 21 || playerVal > dealerVal){
+      winnings = bjState.bet * 2;
+      msg = '✓ Gewonnen! ' + winnings.toLocaleString('de-CH') + ' Chips!';
+      resultEl.className = 'result-msg win';
+      playWinSound();
+    } else if(playerVal === dealerVal){
+      winnings = bjState.bet;
+      msg = 'Unentschieden — Einsatz zurück.';
+      resultEl.className = 'result-msg';
+      playClickSound();
+    } else {
+      msg = 'Dealer gewinnt. Verloren.';
+      resultEl.className = 'result-msg lose';
+      playLoseSound();
+    }
 
-    document.getElementById('bj-deal-btn').style.display = 'inline-block';
-    document.getElementById('bj-setup').style.display = 'block';
+    if(winnings > 0) saveChips(CHIPS_BALANCE + winnings);
+    resultEl.textContent = msg;
+    document.getElementById('bj-deal-btn').style.display = 'block';
+    document.getElementById('bj-bet-field').style.display = 'block';
   }
 
   /* ================= MOBILE MENU ================= */

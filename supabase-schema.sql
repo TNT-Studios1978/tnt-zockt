@@ -87,3 +87,44 @@ insert into products (id, name, description, price, icon, sort_order) values
 ('p3', '[Hoodie Name]',     '[Kurzbeschreibung: Material, Passform, Print]',        '[--,-- CHF]', 'hoodie', 3),
 ('p4', '[Accessoire Name]', '[z. B. Tasse, Sticker-Set, Lanyard]',                  '[--,-- CHF]', 'mug',    4)
 on conflict (id) do nothing;
+
+-- ============================================================
+-- Migration: Besucher-Historie
+-- Speichert NUR Seite, Zeitstempel und Referrer — keine IP-Adressen
+-- oder andere personenbezogenen Daten.
+-- ============================================================
+create table if not exists visits (
+  id bigserial primary key,
+  page text not null,
+  referrer text,
+  created_at timestamptz not null default now()
+);
+
+alter table visits enable row level security;
+
+drop policy if exists "Public insert visits" on visits;
+drop policy if exists "Public read visits" on visits;
+
+create policy "Public insert visits" on visits for insert with check (true);
+create policy "Public read visits" on visits for select using (true);
+
+-- ============================================================
+-- Migration: TNT-Chips (virtuelle Spielwährung)
+-- Jeder eingeloggte Twitch-Nutzer hat ein eigenes Chip-Guthaben,
+-- komplett unabhängig von Streamlabs-Punkten.
+-- ============================================================
+create table if not exists user_chips (
+  twitch_login text primary key,
+  chips integer not null default 1000,
+  updated_at timestamptz not null default now()
+);
+
+alter table user_chips enable row level security;
+
+drop policy if exists "Public read chips" on user_chips;
+drop policy if exists "Public write chips" on user_chips;
+
+create policy "Public read chips" on user_chips for select using (true);
+create policy "Public write chips" on user_chips for all using (true) with check (true);
+
+
