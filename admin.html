@@ -122,6 +122,7 @@
           <button class="tab-btn" data-tab="streamers" onclick="switchTab('streamers')">Streamer</button>
           <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
           <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
+          <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Nutzer</button>
         </div>
         <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
       </div>
@@ -166,6 +167,23 @@
         </div>
         <div id="visits-list"></div>
       </div>
+
+      <!-- USERS TAB -->
+      <div class="tab-panel" id="tab-users">
+        <div class="toolbar">
+          <h2>Nutzer & Chips</h2>
+          <button class="btn-ghost" onclick="loadUsers()">🔄 Aktualisieren</button>
+        </div>
+        <div class="info-box" style="margin-bottom:20px;">
+          Übersicht aller Spieler, die sich mit Twitch oder Kick eingeloggt haben, inkl. aktuellem TNT-Chips-Guthaben. Du kannst Chips direkt vergeben oder den Kontostand korrigieren.
+        </div>
+        <div style="margin-bottom:16px;">
+          <input type="text" id="user-search" placeholder="🔍 Nutzer suchen…" oninput="renderUserList()"
+            style="width:100%; max-width:340px; padding:10px 14px; border-radius:8px; border:1px solid var(--line); background:var(--bg-1); color:var(--text-hi); font-family:var(--body); font-size:14px;">
+        </div>
+        <div id="users-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px;"></div>
+        <div id="users-list"></div>
+      </div>
     </main>
 
     <div class="save-bar">
@@ -194,6 +212,7 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
+    if(name === 'users' && !USERS_LOADED) loadUsers();
   }
 
   function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
@@ -272,6 +291,119 @@
         <div style="font-family:var(--mono); font-size:11px; color:var(--text-low);">${new Date(v.created_at).toLocaleString('de-CH')}</div>
       </div>
     `).join('') || '<p style="color:var(--text-low)">Noch keine Besucher aufgezeichnet.</p>';
+  }
+
+  /* ---------- USERS (Chips-Verwaltung) ---------- */
+  let USERS = [];
+  let USERS_LOADED = false;
+
+  function parseUserIdentity(twitchLogin){
+    if(twitchLogin.startsWith('kick:')){
+      return { provider: 'Kick', username: twitchLogin.slice(5), color: '#53fc18' };
+    }
+    return { provider: 'Twitch', username: twitchLogin, color: '#9146FF' };
+  }
+
+  async function loadUsers(){
+    const statsEl = document.getElementById('users-stats');
+    const listEl = document.getElementById('users-list');
+    statsEl.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
+    listEl.innerHTML = '';
+
+    const { data, error } = await sb.from('user_chips').select('*').order('chips', { ascending: false });
+    if(error){
+      statsEl.innerHTML = '';
+      listEl.innerHTML = '<p style="color:#ff6b6b">Nutzerdaten konnten nicht geladen werden.</p>';
+      console.error(error);
+      return;
+    }
+
+    USERS = data;
+    USERS_LOADED = true;
+
+    const totalUsers = data.length;
+    const twitchCount = data.filter(u => !u.twitch_login.startsWith('kick:')).length;
+    const kickCount = data.filter(u => u.twitch_login.startsWith('kick:')).length;
+    const totalChips = data.reduce((sum, u) => sum + u.chips, 0);
+
+    statsEl.innerHTML = `
+      <div class="entry-card" style="text-align:center;">
+        <div style="font-family:var(--display); font-size:26px; color:var(--gold);">${totalUsers}</div>
+        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Nutzer gesamt</div>
+      </div>
+      <div class="entry-card" style="text-align:center;">
+        <div style="font-family:var(--display); font-size:22px; color:#9146FF;">${twitchCount}</div>
+        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">via Twitch</div>
+      </div>
+      <div class="entry-card" style="text-align:center;">
+        <div style="font-family:var(--display); font-size:22px; color:#53fc18;">${kickCount}</div>
+        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">via Kick</div>
+      </div>
+      <div class="entry-card" style="text-align:center;">
+        <div style="font-family:var(--display); font-size:22px; color:var(--cyan);">${totalChips.toLocaleString('de-CH')}</div>
+        <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Chips im Umlauf</div>
+      </div>
+    `;
+
+    renderUserList();
+  }
+
+  function renderUserList(){
+    const listEl = document.getElementById('users-list');
+    const query = (document.getElementById('user-search').value || '').toLowerCase();
+    const filtered = USERS.filter(u => u.twitch_login.toLowerCase().includes(query));
+
+    if(!filtered.length){
+      listEl.innerHTML = '<p style="color:var(--text-low)">Keine Nutzer gefunden.</p>';
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(u => {
+      const identity = parseUserIdentity(u.twitch_login);
+      return `
+      <div class="entry-card" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:14px 16px;">
+        <div style="min-width:160px;">
+          <div style="font-weight:800; font-size:14px;">${identity.username}</div>
+          <div style="font-family:var(--mono); font-size:10px; color:${identity.color};">● ${identity.provider}</div>
+        </div>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--text-low); min-width:140px;">
+          Zuletzt aktiv: ${u.updated_at ? new Date(u.updated_at).toLocaleString('de-CH') : '–'}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+          <label style="font-size:11px; color:var(--text-low);">Chips:</label>
+          <input type="number" value="${u.chips}" id="user-chips-${u.twitch_login}"
+            style="width:100px; padding:8px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-hi); font-family:var(--mono); font-size:13px;">
+          <button class="btn-ghost" style="padding:8px 12px; font-size:12px;" onclick="saveUserChips('${u.twitch_login}')">💾 Speichern</button>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.twitch_login}', 100)">+100</button>
+          <button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.twitch_login}', 1000)">+1'000</button>
+          <button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.twitch_login}', -100)">−100</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function saveUserChips(twitchLogin){
+    const input = document.getElementById('user-chips-' + twitchLogin);
+    const newValue = Math.max(0, parseInt(input.value) || 0);
+    setStatus('Speichere Chips für ' + twitchLogin + '…');
+    const { error } = await sb.from('user_chips').update({ chips: newValue, updated_at: new Date().toISOString() }).eq('twitch_login', twitchLogin);
+    if(error){
+      setStatus('Fehler beim Speichern.', true);
+      console.error(error);
+      return;
+    }
+    const user = USERS.find(u => u.twitch_login === twitchLogin);
+    if(user) user.chips = newValue;
+    setStatus('✓ Chips aktualisiert (' + new Date().toLocaleTimeString() + ')');
+  }
+
+  async function adjustUserChips(twitchLogin, delta){
+    const input = document.getElementById('user-chips-' + twitchLogin);
+    const current = parseInt(input.value) || 0;
+    input.value = Math.max(0, current + delta);
+    await saveUserChips(twitchLogin);
   }
 
   /* ---------- CASINOS ---------- */
