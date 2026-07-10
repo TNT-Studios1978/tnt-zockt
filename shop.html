@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="kick-config.js"></script>
+<script src="i18n.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -98,6 +99,14 @@
     font-size:13px; font-weight:800; padding:10px 18px; border-radius:7px;
     background:var(--gold); color:#1a1400;
   }
+
+  .lang-switcher{ display:flex; gap:3px; background:var(--bg-1); border:1px solid var(--line); border-radius:7px; padding:3px; }
+  .lang-btn{
+    font-family:var(--mono); font-size:11px; font-weight:700; padding:6px 9px; border-radius:5px;
+    border:none; background:transparent; color:var(--text-low); cursor:pointer;
+  }
+  .lang-btn:hover{ color:var(--text-hi); }
+  .lang-btn.active{ background:var(--bg-2); color:var(--gold); }
 
   /* ---------- Mobile Hamburger Menu ---------- */
   .hamburger-btn{
@@ -320,14 +329,15 @@
     <nav class="nav">
       <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></a>
       <div class="nav-links" id="main-nav-links">
-        <a href="index.html#casinos">Angebote</a>
-        <a href="index.html#streams">Streamer</a>
-        <a href="games.html">Spiele</a>
-        <a href="shop.html" class="active">Shop</a>
-        <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Tournierbaum</a>
-        <a href="index.html#verantwortung">Verantwortung</a>
+        <a href="index.html#casinos" data-i18n="nav.angebote">Angebote</a>
+        <a href="index.html#streams" data-i18n="nav.streamer">Streamer</a>
+        <a href="games.html" data-i18n="nav.spiele">Spiele</a>
+        <a href="shop.html" class="active" data-i18n="nav.shop">Shop</a>
+        <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener" data-i18n="nav.tournierbaum">Tournierbaum</a>
+        <a href="index.html#verantwortung" data-i18n="nav.verantwortung">Verantwortung</a>
       </div>
-      <a class="nav-cta" href="index.html#casinos">Top Bonus sichern</a>
+      <a class="nav-cta" href="index.html#casinos" data-i18n="nav.topbonus">Top Bonus sichern</a>
+      <div id="lang-switcher-slot"></div>
       <div class="nav-auth" id="nav-auth"></div>
       <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menü öffnen"><span></span></button>
     </nav>
@@ -344,16 +354,16 @@
   <!-- LOGIN GATE (sichtbar, solange niemand eingeloggt ist) -->
   <section id="login-gate">
     <div class="notify-box">
-      <h3>🔒 Nur für Mitglieder</h3>
-      <p>Logg dich mit Twitch oder Kick ein, um den Shop zu sehen.</p>
+      <h3 data-i18n="shop.gate.title">🔒 Nur für Mitglieder</h3>
+      <p data-i18n="shop.gate.desc">Logg dich mit Twitch oder Kick ein, um den Shop zu sehen.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
-          Mit Twitch anmelden
+          <span data-i18n="shop.gate.twitch">Mit Twitch anmelden</span>
         </button>
         <button class="btn" style="background:#53fc18; color:#04210a; display:inline-flex; align-items:center; gap:8px;" onclick="loginWithKick()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>
-          Mit Kick anmelden
+          <span data-i18n="shop.gate.kick">Mit Kick anmelden</span>
         </button>
       </div>
       <div id="login-status" style="font-size:12px; color:var(--text-low); margin-top:14px;"></div>
@@ -371,11 +381,11 @@
 
     <section>
       <div class="notify-box">
-        <h3>Als Erste(r) informiert werden</h3>
-        <p>Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
+        <h3 data-i18n="shop.notify.title">Als Erste(r) informiert werden</h3>
+        <p data-i18n="shop.notify.desc">Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
         <form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
-          <input type="email" placeholder="Deine E-Mail-Adresse" required>
-          <button class="btn btn-primary" type="submit">Benachrichtigen</button>
+          <input type="email" data-i18n-placeholder="shop.notify.placeholder" placeholder="Deine E-Mail-Adresse" required>
+          <button class="btn btn-primary" type="submit" data-i18n="shop.notify.btn">Benachrichtigen</button>
         </form>
       </div>
     </section>
@@ -384,11 +394,11 @@
 
   <footer>
     <div class="footer-inner">
-      <p class="footer-legal">
+      <p class="footer-legal" data-i18n="shop.footer.legal">
         © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Der Shop-Bereich befindet sich im Aufbau, alle gezeigten Produkte, Preise und Bilder sind Platzhalter.
       </p>
       <p class="footer-legal" style="margin-top:10px;">
-        <a href="admin.html">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
+        <a href="admin.html" data-i18n="footer.admin">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
       </p>
     </div>
   </footer>
@@ -397,23 +407,23 @@
   <nav class="bottom-nav">
     <a href="index.html#casinos">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5h.01M14.5 14.5h.01M15 9l-6 6"/></svg>
-      Angebote
+      <span data-i18n="bottom.angebote">Angebote</span>
     </a>
     <a href="index.html#streams">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M9.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
-      Streamer
+      <span data-i18n="bottom.streamer">Streamer</span>
     </a>
     <a href="games.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
-      Spiele
+      <span data-i18n="bottom.spiele">Spiele</span>
     </a>
     <a href="shop.html" class="active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
-      Shop
+      <span data-i18n="bottom.shop">Shop</span>
     </a>
     <a href="index.html#verantwortung">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
-      Schutz
+      <span data-i18n="bottom.schutz">Schutz</span>
     </a>
   </nav>
 
@@ -486,10 +496,10 @@
       if(data && typeof data.points !== 'undefined'){
         el.textContent = '⭐ ' + data.points;
       } else {
-        el.textContent = '⭐ Punkte: bald verfügbar';
+        el.textContent = t('nav.points.soon');
       }
     }catch(e){
-      el.textContent = '⭐ Punkte: bald verfügbar';
+      el.textContent = t('nav.points.soon');
       console.error('Punkte-Fehler:', e);
     }
   }
@@ -504,16 +514,16 @@
           ${identity.avatar ? `<img src="${identity.avatar}" alt="">` : ''}
           <div class="info">
             <div class="name">${identity.username || 'Nutzer'} <span style="opacity:.6; font-size:9px;">(${identity.provider === 'twitch' ? 'Twitch' : 'Kick'})</span></div>
-            <div class="points" id="nav-points">Lädt…</div>
+            <div class="points" id="nav-points">${t('nav.points.loading')}</div>
           </div>
         </div>
-        <button class="nav-logout" onclick="logout()">Logout</button>
+        <button class="nav-logout" onclick="logout()">${t('nav.logout')}</button>
       `;
       if(identity.username) loadNavPoints(identity.username, identity.provider);
     } else {
       container.innerHTML = `
-        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Twitch</button>
-        <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} Kick</button>
+        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} ${t('nav.login.twitch')}</button>
+        <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} ${t('nav.login.kick')}</button>
       `;
     }
   }
@@ -536,7 +546,15 @@
     else showLoginGate();
   }
 
+  function onLanguageChanged(){
+    refreshAuthUI();
+    renderFaqOptions();
+  }
+
   (async function initAuth(){
+    document.getElementById('lang-switcher-slot').innerHTML = tntLangSwitcherHTML();
+    tntApplyTranslations();
+    tntUpdateLangSwitcher();
     await refreshAuthUI();
     sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
   })();
@@ -556,11 +574,11 @@
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
     grid.innerHTML = data.map(p => `
       <div class="product-card">
-        <span class="soon-tag">Bald verfügbar</span>
+        <span class="soon-tag" data-i18n="shop.soon.tag">Bald verfügbar</span>
         <div class="product-image">
           <div class="ph-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${ICONS[p.icon] || ICONS.shirt}</svg>
-            [Produktbild]
+            <span data-i18n="shop.product.image">[Produktbild]</span>
           </div>
         </div>
         <div class="product-body">
@@ -568,7 +586,7 @@
           <div class="desc">${p.description || ''}</div>
           <div class="meta">
             <span class="price">${p.price}</span>
-            <span class="notify-btn">Bald da</span>
+            <span class="notify-btn" data-i18n="shop.badge.soon">Bald da</span>
           </div>
         </div>
       </div>
@@ -594,22 +612,17 @@
 </button>
 <div class="support-panel" id="support-panel">
   <div class="support-header">
-    <h4>💬 Support</h4>
+    <h4 data-i18n="support.title">💬 Support</h4>
     <button onclick="toggleSupport()">✕</button>
   </div>
   <div class="support-body" id="support-body">
-    <div class="support-msg bot">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
+    <div class="support-msg bot" data-i18n="support.intro">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
     <div class="faq-options" id="faq-options"></div>
   </div>
 </div>
 
 <script>
-  const FAQ = [
-    { q: 'Wann kommt echter Merch?', a: 'Der Shop ist aktuell im Aufbau — sobald echte Produkte verfügbar sind, ersetzen wir die Platzhalter. Trag dich gerne für Updates ein!' },
-    { q: 'Warum muss ich mich einloggen?', a: 'Der Shop ist aktuell nur für eingeloggte Mitglieder sichtbar (Twitch oder Kick).' },
-    { q: 'Was sind TNT-Chips?', a: 'Eine rein virtuelle Spielwährung für unsere TNT-Spiele-Seite — kein Echtgeld. Jeder neue Spieler startet mit 1\'000 Gratis-Chips.' },
-    { q: 'Ich hab ein Problem/Frage', a: 'Am schnellsten erreichst du uns über unsere Social-Media-Kanäle (Twitch, YouTube, Facebook).' }
-  ];
+  const FAQ_KEYS = ['faq.shop.1', 'faq.shop.2', 'faq.shop.3', 'faq.shop.4'];
 
   function toggleSupport(){
     document.getElementById('support-panel').classList.toggle('open');
@@ -617,12 +630,12 @@
   }
   function renderFaqOptions(){
     const el = document.getElementById('faq-options');
-    el.innerHTML = FAQ.map((item, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${item.q}</button>`).join('');
+    el.innerHTML = FAQ_KEYS.map((key, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${t(key + '.q')}</button>`).join('');
   }
   function answerFaq(i){
     const body = document.getElementById('support-body');
-    const item = FAQ[i];
-    body.innerHTML += `<div class="support-msg user">${item.q}</div><div class="support-msg bot">${item.a}</div>`;
+    const key = FAQ_KEYS[i];
+    body.innerHTML += `<div class="support-msg user">${t(key + '.q')}</div><div class="support-msg bot">${t(key + '.a')}</div>`;
     body.scrollTop = body.scrollHeight;
   }
 </script>

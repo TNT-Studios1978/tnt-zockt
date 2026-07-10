@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="kick-config.js"></script>
+<script src="i18n.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -144,6 +145,14 @@
     font-size:13px; font-weight:800; padding:10px 18px; border-radius:7px;
     background:var(--gold); color:#1a1400;
   }
+
+  .lang-switcher{ display:flex; gap:3px; background:var(--bg-1); border:1px solid var(--line); border-radius:7px; padding:3px; }
+  .lang-btn{
+    font-family:var(--mono); font-size:11px; font-weight:700; padding:6px 9px; border-radius:5px;
+    border:none; background:transparent; color:var(--text-low); cursor:pointer;
+  }
+  .lang-btn:hover{ color:var(--text-hi); }
+  .lang-btn.active{ background:var(--bg-2); color:var(--gold); }
 
   /* ---------- Mobile Hamburger Menu ---------- */
   .hamburger-btn{
@@ -501,14 +510,15 @@
   <!-- AGE GATE -->
   <div id="agegate">
     <div class="gate-card">
+      <div style="display:flex; justify-content:center; margin-bottom:14px;" id="gate-lang-slot"></div>
       <div class="gate-badge">18+</div>
-      <h2>Altersverifikation</h2>
-      <p>Diese Seite enthält Inhalte zu Glücksspiel mit Echtgeld-Einsatz. Der Zutritt ist nur Personen ab 18 Jahren gestattet.</p>
+      <h2 data-i18n="gate.title">Altersverifikation</h2>
+      <p data-i18n="gate.desc">Diese Seite enthält Inhalte zu Glücksspiel mit Echtgeld-Einsatz. Der Zutritt ist nur Personen ab 18 Jahren gestattet.</p>
       <div class="gate-actions">
-        <button class="btn btn-primary" onclick="enterSite()">Ich bin 18 Jahre oder älter</button>
-        <a class="btn btn-ghost" href="https://www.google.com">Seite verlassen</a>
+        <button class="btn btn-primary" onclick="enterSite()" data-i18n="gate.confirm">Ich bin 18 Jahre oder älter</button>
+        <a class="btn btn-ghost" href="https://www.google.com" data-i18n="gate.leave">Seite verlassen</a>
       </div>
-      <div class="gate-legal">Glücksspiel kann süchtig machen. Spielerschutz: BZgA-Hotline 0800&nbsp;1&nbsp;37&nbsp;27&nbsp;00.</div>
+      <div class="gate-legal" data-i18n="gate.legal">Glücksspiel kann süchtig machen. Spielerschutz: BZgA-Hotline 0800&nbsp;1&nbsp;37&nbsp;27&nbsp;00.</div>
     </div>
   </div>
 
@@ -518,14 +528,15 @@
       <nav class="nav">
         <div class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></div>
         <div class="nav-links" id="main-nav-links">
-          <a href="#casinos" data-section="casinos">Angebote</a>
-          <a href="#streams" data-section="streams">Streamer</a>
-          <a href="games.html">Spiele</a>
-          <a href="shop.html">Shop</a>
-          <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Tournierbaum</a>
-          <a href="#verantwortung" data-section="verantwortung">Verantwortung</a>
+          <a href="#casinos" data-section="casinos" data-i18n="nav.angebote">Angebote</a>
+          <a href="#streams" data-section="streams" data-i18n="nav.streamer">Streamer</a>
+          <a href="games.html" data-i18n="nav.spiele">Spiele</a>
+          <a href="shop.html" data-i18n="nav.shop">Shop</a>
+          <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener" data-i18n="nav.tournierbaum">Tournierbaum</a>
+          <a href="#verantwortung" data-section="verantwortung" data-i18n="nav.verantwortung">Verantwortung</a>
         </div>
-        <a class="nav-cta" href="#casinos">Top Bonus sichern</a>
+        <a class="nav-cta" href="#casinos" data-i18n="nav.topbonus">Top Bonus sichern</a>
+        <div id="lang-switcher-slot"></div>
         <div class="nav-auth" id="nav-auth"></div>
         <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menü öffnen"><span></span></button>
       </nav>
@@ -534,17 +545,17 @@
     <!-- HERO -->
     <div class="hero">
       <div>
-        <div class="eyebrow">Live · Casino Bonusse & Streams</div>
-        <h1>Zünde dein <span class="flame">Glück</span> mit TNT-Zockt</h1>
-        <p>Geprüfte Online-Casinos, exklusive Boni und die besten Twitch- & Kick-Streamer an einem Ort. Kurze Zündschnur, große Wirkung.</p>
+        <div class="eyebrow" data-i18n="hero.eyebrow">Live · Casino Bonusse & Streams</div>
+        <h1><span data-i18n="hero.title.pre">Zünde dein</span> <span class="flame" data-i18n="hero.title.flame">Glück</span> <span data-i18n="hero.title.post">mit TNT-Zockt</span></h1>
+        <p data-i18n="hero.desc">Geprüfte Online-Casinos, exklusive Boni und die besten Twitch- & Kick-Streamer an einem Ort. Kurze Zündschnur, große Wirkung.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#casinos">Top Casinos ansehen</a>
-          <a class="btn btn-outline" href="#streams">Live-Streams</a>
+          <a class="btn btn-primary" href="#casinos" data-i18n="hero.btn.casinos">Top Casinos ansehen</a>
+          <a class="btn btn-outline" href="#streams" data-i18n="hero.btn.streams">Live-Streams</a>
         </div>
         <div class="hero-stats">
-          <div><span>7</span><small>Casino-Angebote</small></div>
-          <div><span>3</span><small>Social-Kanäle</small></div>
-          <div><span>18+</span><small>Verantwortung</small></div>
+          <div><span>7</span><small data-i18n="hero.stat.casinos">Casino-Angebote</small></div>
+          <div><span>3</span><small data-i18n="hero.stat.social">Social-Kanäle</small></div>
+          <div><span>18+</span><small data-i18n="hero.stat.responsible">Verantwortung</small></div>
         </div>
       </div>
       <div class="tnt-visual">
@@ -665,9 +676,9 @@
     <!-- CASINOS -->
     <section id="casinos">
       <div class="section-head">
-        <div class="section-tag">Top Auswahl</div>
-        <h2>Unsere Casino-Empfehlungen</h2>
-        <p>Geprüfte Casino-Partner mit exklusiven Boni für unsere Community.</p>
+        <div class="section-tag" data-i18n="casinos.tag">Top Auswahl</div>
+        <h2 data-i18n="casinos.title">Unsere Casino-Empfehlungen</h2>
+        <p data-i18n="casinos.desc">Geprüfte Casino-Partner mit exklusiven Boni für unsere Community.</p>
       </div>
       <div class="casino-grid" id="casino-grid"></div>
     </section>
@@ -677,9 +688,9 @@
     <!-- STREAMERS -->
     <section id="streams">
       <div class="section-head">
-        <div class="section-tag">Community</div>
-        <h2>Unsere Streamer</h2>
-        <p>Unser offizieller Kanal und befreundete Streamer auf Twitch & Kick.</p>
+        <div class="section-tag" data-i18n="streams.tag">Community</div>
+        <h2 data-i18n="streams.title">Unsere Streamer</h2>
+        <p data-i18n="streams.desc">Unser offizieller Kanal und befreundete Streamer auf Twitch & Kick.</p>
       </div>
       <div class="stream-grid" id="stream-grid"></div>
     </section>
@@ -691,8 +702,8 @@
       <div class="responsible">
         <div class="icon">⚠️</div>
         <div>
-          <h3>Verantwortungsvolles Spielen</h3>
-          <p>Glücksspiel ist Unterhaltung, kein Weg zum Geldverdienen und kann süchtig machen. Spiele nur mit Geld, dessen Verlust du dir leisten kannst. Hilfe und Beratung: <a href="tel:080013727700">BZgA-Hotline 0800 1 37 27 00</a> (kostenlos, anonym) oder <a href="https://www.check-dein-spiel.de" target="_blank" rel="noopener">check-dein-spiel.de</a>. Zugang ab 18 Jahren.</p>
+          <h3 data-i18n="responsible.title">Verantwortungsvolles Spielen</h3>
+          <p data-i18n-html="responsible.desc">Glücksspiel ist Unterhaltung, kein Weg zum Geldverdienen und kann süchtig machen. Spiele nur mit Geld, dessen Verlust du dir leisten kannst. Hilfe und Beratung: <a href="tel:080013727700">BZgA-Hotline 0800 1 37 27 00</a> (kostenlos, anonym) oder <a href="https://www.check-dein-spiel.de" target="_blank" rel="noopener">check-dein-spiel.de</a>. Zugang ab 18 Jahren.</p>
         </div>
       </div>
     </section>
@@ -703,11 +714,11 @@
           <div class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:38px; width:auto;"></span></div>
           <div class="footer-badges">
             <span class="badge">18+</span>
-            <span class="badge">Spielerschutz</span>
+            <span class="badge" data-i18n="responsible.title">Spielerschutz</span>
             <span class="badge">Affiliate-Partner</span>
           </div>
         </div>
-        <p class="footer-legal">
+        <p class="footer-legal" data-i18n="footer.legal">
           © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Einige Links sind Affiliate-Links — beim Abschluss können wir eine Provision erhalten, das hat keinen Einfluss auf deine Kosten. Alle Angebote richten sich ausschließlich an volljährige Personen (18+). Glücksspiel kann süchtig machen — spiele verantwortungsvoll.
         </p>
         <p class="footer-legal" style="margin-top:12px;">
@@ -724,7 +735,7 @@
           <a href="https://tnt-zockt-3.jimdosite.com/agb/" target="_blank" rel="noopener">AGB</a>
         </p>
         <p class="footer-legal" style="margin-top:12px;">
-          <a href="admin.html">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
+          <a href="admin.html" data-i18n="footer.admin">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
         </p>
       </div>
     </footer>
@@ -733,23 +744,23 @@
     <nav class="bottom-nav" id="bottom-nav">
       <a href="#casinos" data-section="casinos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5h.01M14.5 14.5h.01M15 9l-6 6"/></svg>
-        Angebote
+        <span data-i18n="bottom.angebote">Angebote</span>
       </a>
       <a href="#streams" data-section="streams">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M9.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
-        Streamer
+        <span data-i18n="bottom.streamer">Streamer</span>
       </a>
       <a href="games.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
-        Spiele
+        <span data-i18n="bottom.spiele">Spiele</span>
       </a>
       <a href="shop.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
-        Shop
+        <span data-i18n="bottom.shop">Shop</span>
       </a>
       <a href="#verantwortung" data-section="verantwortung">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
-        Schutz
+        <span data-i18n="bottom.schutz">Schutz</span>
       </a>
     </nav>
 
@@ -813,10 +824,10 @@
         </div>
         <div class="casino-card-actions">
           <div class="stars">${starString(c.stars)}</div>
-          <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">Jetzt spielen →</a>
+          <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">${t('casinos.play')}</a>
           <details>
-            <summary>Details &amp; Infos ▾</summary>
-            <div class="details-panel">18+ · AGB gelten · verantwortungsvoll spielen</div>
+            <summary>${t('casinos.details')}</summary>
+            <div class="details-panel">${t('casinos.fine')}</div>
           </details>
         </div>
       </div>
@@ -876,7 +887,7 @@
           <div class="platform ${p.cls}" ${p.style ? `style="${p.style}"` : ''}><span class="live-dot"></span> ${p.label}</div>
         </div>
         <div class="stream-card-actions">
-          <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">Kanal ansehen</a>
+          <a class="watch" href="${s.link}" target="_blank" rel="noopener" data-stream="${s.id}">${t('streams.watch')}</a>
         </div>
       </div>`;
     }).join('');
@@ -890,6 +901,10 @@
 
   renderCasinos();
   renderStreamers();
+  document.getElementById('lang-switcher-slot').innerHTML = tntLangSwitcherHTML();
+  document.getElementById('gate-lang-slot').innerHTML = tntLangSwitcherHTML();
+  tntApplyTranslations();
+  tntUpdateLangSwitcher();
 
   /* ---------- Nav Auth Widget ---------- */
   function twitchIconSvg(){
@@ -940,11 +955,11 @@
       if(data && typeof data.points !== 'undefined'){
         el.textContent = '⭐ ' + data.points;
       } else {
-        el.textContent = '⭐ Punkte: bald verfügbar';
+        el.textContent = t('nav.points.soon');
         if(data.raw) console.log('Rohantwort von Streamlabs:', data.raw);
       }
     }catch(e){
-      el.textContent = '⭐ Punkte: bald verfügbar';
+      el.textContent = t('nav.points.soon');
       console.error('Punkte-Fehler:', e);
     }
   }
@@ -959,16 +974,16 @@
           ${identity.avatar ? `<img src="${identity.avatar}" alt="">` : ''}
           <div class="info">
             <div class="name">${identity.username || 'Nutzer'} <span style="opacity:.6; font-size:9px;">(${identity.provider === 'twitch' ? 'Twitch' : 'Kick'})</span></div>
-            <div class="points" id="nav-points">Lädt…</div>
+            <div class="points" id="nav-points">${t('nav.points.loading')}</div>
           </div>
         </div>
-        <button class="nav-logout" onclick="logout()">Logout</button>
+        <button class="nav-logout" onclick="logout()">${t('nav.logout')}</button>
       `;
       if(identity.username) loadNavPoints(identity.username, identity.provider);
     } else {
       container.innerHTML = `
-        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} Twitch</button>
-        <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} Kick</button>
+        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} ${t('nav.login.twitch')}</button>
+        <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} ${t('nav.login.kick')}</button>
       `;
     }
   }
@@ -976,6 +991,13 @@
   async function refreshNavAuth(){
     const identity = await resolveIdentity();
     renderNavAuth(identity);
+  }
+
+  function onLanguageChanged(){
+    refreshNavAuth();
+    renderCasinos();
+    renderStreamers();
+    renderFaqOptions();
   }
 
   (async function initNavAuth(){
@@ -1026,23 +1048,17 @@
 </button>
 <div class="support-panel" id="support-panel">
   <div class="support-header">
-    <h4>💬 Support</h4>
+    <h4 data-i18n="support.title">💬 Support</h4>
     <button onclick="toggleSupport()">✕</button>
   </div>
   <div class="support-body" id="support-body">
-    <div class="support-msg bot">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
+    <div class="support-msg bot" data-i18n="support.intro">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
     <div class="faq-options" id="faq-options"></div>
   </div>
 </div>
 
 <script>
-  const FAQ = [
-    { q: 'Sind die Casino-Angebote seriös?', a: 'Wir listen nur Casinos, die wir selbst geprüft haben. Trotzdem: Bitte prüfe vor der Anmeldung immer selbst die Lizenzierung und Rechtslage in deinem Land.' },
-    { q: 'Was sind TNT-Chips?', a: 'Eine rein virtuelle Spielwährung für unsere TNT-Spiele-Seite — kein Echtgeld, keine Auszahlung. Jeder neue Spieler startet mit 1\'000 Gratis-Chips nach dem Login.' },
-    { q: 'Wie logge ich mich ein?', a: 'Oben rechts kannst du dich mit deinem Twitch- oder Kick-Konto einloggen — das schaltet den Shop und die Spiele-Seite frei.' },
-    { q: 'Wo finde ich eure Streams?', a: 'Unter "Streamer" auf dieser Seite findest du unsere offiziellen Kanäle auf Twitch und YouTube.' },
-    { q: 'Ich hab ein Problem/Frage', a: 'Am schnellsten erreichst du uns über unsere Social-Media-Kanäle (Twitch, YouTube, Facebook) unten im Footer.' }
-  ];
+  const FAQ_KEYS = ['faq.index.1', 'faq.index.2', 'faq.index.3', 'faq.index.4', 'faq.index.5'];
 
   function toggleSupport(){
     document.getElementById('support-panel').classList.toggle('open');
@@ -1050,12 +1066,12 @@
   }
   function renderFaqOptions(){
     const el = document.getElementById('faq-options');
-    el.innerHTML = FAQ.map((item, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${item.q}</button>`).join('');
+    el.innerHTML = FAQ_KEYS.map((key, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${t(key + '.q')}</button>`).join('');
   }
   function answerFaq(i){
     const body = document.getElementById('support-body');
-    const item = FAQ[i];
-    body.innerHTML += `<div class="support-msg user">${item.q}</div><div class="support-msg bot">${item.a}</div>`;
+    const key = FAQ_KEYS[i];
+    body.innerHTML += `<div class="support-msg user">${t(key + '.q')}</div><div class="support-msg bot">${t(key + '.a')}</div>`;
     body.scrollTop = body.scrollHeight;
   }
 </script>
