@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "tnt-zockt-qvj3.vercel.app"
+        }
+      ],
+      "destination": "https://tnt-zockt.ch/:path*",
+      "permanent": true
+    }
+  ]
+}
