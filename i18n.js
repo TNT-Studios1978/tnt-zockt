@@ -77,6 +77,8 @@ const TNT_TRANSLATIONS = {
   'gate.legal':  { de: 'Glücksspiel kann süchtig machen. Spielerschutz: BZgA-Hotline 0800 1 37 27 00.', fr: 'Les jeux d\'argent peuvent créer une dépendance. Protection des joueurs : ligne BZgA 0800 1 37 27 00.', en: 'Gambling can be addictive. Player protection: BZgA hotline 0800 1 37 27 00.' },
 
   /* ---------- Shop ---------- */
+  'shop.hero.eyebrow': { de: 'Merch · Bald verfügbar', fr: 'Merch · Bientôt disponible', en: 'Merch · Coming soon' },
+  'shop.hero.desc': { de: 'Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald.', fr: 'T-shirts, casquettes et plus encore dans le style TNT-Zockt. La boutique est en cours de construction — les premiers drops arrivent bientôt.', en: 'Shirts, caps, and more in TNT-Zockt style. The shop is currently under construction — the first drops are coming soon.' },
   'shop.gate.title': { de: '🔒 Nur für Mitglieder', fr: '🔒 Réservé aux membres', en: '🔒 Members only' },
   'shop.gate.desc':  { de: 'Logg dich mit Twitch oder Kick ein, um den Shop zu sehen.', fr: 'Connecte-toi avec Twitch ou Kick pour voir la boutique.', en: 'Log in with Twitch or Kick to view the shop.' },
   'shop.gate.twitch':{ de: 'Mit Twitch anmelden', fr: 'Se connecter avec Twitch', en: 'Sign in with Twitch' },
