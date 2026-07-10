@@ -101,6 +101,19 @@ const TNT_TRANSLATIONS = {
   'faq.shop.4.q': { de: 'Ich hab ein Problem/Frage', fr: 'J\'ai un problème/une question', en: 'I have a problem/question' },
   'faq.shop.4.a': { de: 'Am schnellsten erreichst du uns über unsere Social-Media-Kanäle (Twitch, YouTube, Facebook).', fr: 'Le plus rapide est de nous contacter via nos réseaux sociaux (Twitch, YouTube, Facebook).', en: 'The fastest way to reach us is via our social media channels (Twitch, YouTube, Facebook).' },
 
+  /* ---------- Tournierbaum ---------- */
+  'bracket.eyebrow': { de: 'Community · Live', fr: 'Communauté · En direct', en: 'Community · Live' },
+  'bracket.desc': { de: 'Der aktuelle Turnierbaum unserer Community-Events — live eingebettet, kein separater Tab nötig.', fr: 'Le tableau de tournoi actuel de nos événements communautaires — intégré en direct, pas besoin d\'onglet séparé.', en: 'The current bracket for our community events — embedded live, no separate tab needed.' },
+  'bracket.fallback': { de: 'Wird der Turnierbaum nicht angezeigt? <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Direkt öffnen →</a>', fr: 'Le tableau ne s\'affiche pas ? <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Ouvrir directement →</a>', en: 'Bracket not showing? <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Open directly →</a>' },
+
+  /* FAQ Tournierbaum */
+  'faq.bracket.1.q': { de: 'Wie nehme ich an einem Turnier teil?', fr: 'Comment participer à un tournoi ?', en: 'How do I join a tournament?' },
+  'faq.bracket.1.a': { de: 'Ankündigungen zu Turnieren findest du auf unseren Social-Media-Kanälen und im Stream-Chat — dort erfährst du, wie du dich anmeldest.', fr: 'Les annonces de tournois se trouvent sur nos réseaux sociaux et dans le chat du stream — tu y trouveras comment t\'inscrire.', en: 'Tournament announcements are posted on our social media channels and in the stream chat — that\'s where you\'ll find out how to sign up.' },
+  'faq.bracket.2.q': { de: 'Der Turnierbaum lädt nicht richtig', fr: 'Le tableau ne se charge pas correctement', en: 'The bracket isn\'t loading properly' },
+  'faq.bracket.2.a': { de: 'Versuch die Seite neu zu laden. Falls es weiterhin nicht klappt, kannst du den Turnierbaum auch direkt über den Link unter der Einbettung öffnen.', fr: 'Essaie de recharger la page. Si le problème persiste, tu peux aussi ouvrir le tableau directement via le lien sous l\'intégration.', en: 'Try reloading the page. If it still doesn\'t work, you can also open the bracket directly via the link below the embed.' },
+  'faq.bracket.3.q': { de: 'Wo finde ich die Ergebnisse?', fr: 'Où puis-je trouver les résultats ?', en: 'Where can I find the results?' },
+  'faq.bracket.3.a': { de: 'Der Turnierbaum aktualisiert sich live während des Events — die Ergebnisse siehst du direkt hier auf dieser Seite.', fr: 'Le tableau se met à jour en direct pendant l\'événement — tu peux voir les résultats directement sur cette page.', en: 'The bracket updates live during the event — you can see the results directly on this page.' },
+
   /* FAQ Spiele */
   'faq.games.1.q': { de: 'Wie bekomme ich TNT-Chips?', fr: 'Comment obtenir des TNT-Chips ?', en: 'How do I get TNT-Chips?' },
   'faq.games.1.a': { de: 'Jeder neue Spieler startet mit 1\'000 Gratis-Chips, sobald du dich mit Twitch oder Kick einloggst. Weitere Chips gibt es aktuell nur durchs Gewinnen in den Spielen.', fr: 'Chaque nouveau joueur commence avec 1 000 jetons gratuits dès que tu te connectes avec Twitch ou Kick. D\'autres jetons ne s\'obtiennent actuellement qu\'en gagnant dans les jeux.', en: 'Every new player starts with 1,000 free chips as soon as you log in with Twitch or Kick. Additional chips are currently only earned by winning in the games.' },

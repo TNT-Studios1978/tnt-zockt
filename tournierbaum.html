@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop | TNT-Zockt</title>
+<title>Tournierbaum | TNT-Zockt</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="kick-config.js"></script>
@@ -189,6 +189,20 @@
     text-align:center; padding:80px 24px 50px;
     max-width:760px; margin:0 auto;
   }
+  .bracket-frame-wrap{
+    max-width:1180px; margin:0 auto; padding:0 24px;
+    border-radius:var(--radius); overflow:hidden;
+    border:1px solid var(--line); background:var(--bg-1);
+  }
+  .bracket-frame-wrap iframe{
+    width:100%; height:78vh; min-height:520px; border:none; display:block; background:#0a0a0f;
+  }
+  .bracket-fallback{
+    text-align:center; font-size:12.5px; color:var(--text-low);
+    max-width:1180px; margin:16px auto 0; padding:0 24px;
+  }
+  .bracket-fallback a{ color:var(--cyan); font-weight:700; }
+  @media(max-width:720px){ .bracket-frame-wrap iframe{ height:70vh; } }
   .eyebrow{
     font-family:var(--mono); font-size:12px; letter-spacing:2px;
     color:var(--cyan); text-transform:uppercase;
@@ -332,8 +346,8 @@
         <a href="index.html#casinos" data-i18n="nav.angebote">Angebote</a>
         <a href="index.html#streams" data-i18n="nav.streamer">Streamer</a>
         <a href="games.html" data-i18n="nav.spiele">Spiele</a>
-        <a href="shop.html" class="active" data-i18n="nav.shop">Shop</a>
-        <a href="tournierbaum.html" data-i18n="nav.tournierbaum">Tournierbaum</a>
+        <a href="shop.html" data-i18n="nav.shop">Shop</a>
+        <a href="tournierbaum.html" class="active" data-i18n="nav.tournierbaum">Tournierbaum</a>
         <a href="index.html#verantwortung" data-i18n="nav.verantwortung">Verantwortung</a>
       </div>
       <a class="nav-cta" href="index.html#casinos" data-i18n="nav.topbonus">Top Bonus sichern</a>
@@ -344,57 +358,30 @@
   </header>
 
   <div class="shop-hero">
-    <div class="eyebrow" data-i18n="shop.hero.eyebrow">Merch · Bald verfügbar</div>
-    <h1>TNT<span>-</span>Zockt Shop</h1>
-    <p data-i18n="shop.hero.desc">Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald.</p>
+    <div class="eyebrow" data-i18n="bracket.eyebrow">Community · Live</div>
+    <h1>Tournier<span>-</span>baum</h1>
+    <p data-i18n="bracket.desc">Der aktuelle Turnierbaum unserer Community-Events — live eingebettet, kein separater Tab nötig.</p>
   </div>
 
   <div class="fuse-divider"></div>
 
-  <!-- LOGIN GATE (sichtbar, solange niemand eingeloggt ist) -->
-  <section id="login-gate">
-    <div class="notify-box">
-      <h3 data-i18n="shop.gate.title">🔒 Nur für Mitglieder</h3>
-      <p data-i18n="shop.gate.desc">Logg dich mit Twitch oder Kick ein, um den Shop zu sehen.</p>
-      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
-          <span data-i18n="shop.gate.twitch">Mit Twitch anmelden</span>
-        </button>
-        <button class="btn" style="background:#53fc18; color:#04210a; display:inline-flex; align-items:center; gap:8px;" onclick="loginWithKick()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>
-          <span data-i18n="shop.gate.kick">Mit Kick anmelden</span>
-        </button>
-      </div>
-      <div id="login-status" style="font-size:12px; color:var(--text-low); margin-top:14px;"></div>
+  <section style="padding-top:30px;">
+    <div class="bracket-frame-wrap">
+      <iframe
+        src="https://tnt-studios1978.github.io/Tournamentbaum/"
+        title="TNT-Zockt Tournierbaum"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
     </div>
+    <p class="bracket-fallback" data-i18n-html="bracket.fallback">
+      Wird der Turnierbaum nicht angezeigt? <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Direkt öffnen →</a>
+    </p>
   </section>
-
-  <!-- SHOP-INHALT (nur sichtbar nach Login) -->
-  <div id="shop-content" style="display:none;">
-
-    <section>
-      <div class="product-grid" id="product-grid"></div>
-    </section>
-
-    <div class="fuse-divider"></div>
-
-    <section>
-      <div class="notify-box">
-        <h3 data-i18n="shop.notify.title">Als Erste(r) informiert werden</h3>
-        <p data-i18n="shop.notify.desc">Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
-        <form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
-          <input type="email" data-i18n-placeholder="shop.notify.placeholder" placeholder="Deine E-Mail-Adresse" required>
-          <button class="btn btn-primary" type="submit" data-i18n="shop.notify.btn">Benachrichtigen</button>
-        </form>
-      </div>
-    </section>
-
-  </div>
 
   <footer>
     <div class="footer-inner">
-      <p class="footer-legal" data-i18n="shop.footer.legal">
+      <p class="footer-legal" data-i18n="footer.legal">
         © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Der Shop-Bereich befindet sich im Aufbau, alle gezeigten Produkte, Preise und Bilder sind Platzhalter.
       </p>
       <p class="footer-legal" style="margin-top:10px;">
@@ -417,7 +404,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
       <span data-i18n="bottom.spiele">Spiele</span>
     </a>
-    <a href="shop.html" class="active">
+    <a href="shop.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
       <span data-i18n="bottom.shop">Shop</span>
     </a>
@@ -528,22 +515,9 @@
     }
   }
 
-  function showLoggedIn(identity){
-    document.getElementById('login-gate').style.display = 'none';
-    document.getElementById('shop-content').style.display = 'block';
-    renderProducts();
-  }
-
-  function showLoginGate(){
-    document.getElementById('login-gate').style.display = 'block';
-    document.getElementById('shop-content').style.display = 'none';
-  }
-
   async function refreshAuthUI(){
     const identity = await resolveIdentity();
     renderNavAuth(identity);
-    if(identity) showLoggedIn(identity);
-    else showLoginGate();
   }
 
   function onLanguageChanged(){
@@ -561,45 +535,11 @@
 </script>
 
 <script>
-  const ICONS = {
-    shirt:  '<path d="M8 4 L4 8 L7 11 L8 10 V20 H16 V10 L17 11 L20 8 L16 4 L14 6 A2 2 0 0 1 10 6 Z"/>',
-    cap:    '<circle cx="12" cy="13" r="7"/><path d="M6 8 C6 4 9 2 12 2 C15 2 18 4 18 8"/>',
-    hoodie: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
-    mug:    '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'
-  };
-
-  async function renderProducts(){
-    const grid = document.getElementById('product-grid');
-    const { data, error } = await sb.from('products').select('*').order('sort_order', { ascending: true });
-    if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
-    grid.innerHTML = data.map(p => `
-      <div class="product-card">
-        <span class="soon-tag" data-i18n="shop.soon.tag">Bald verfügbar</span>
-        <div class="product-image">
-          <div class="ph-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${ICONS[p.icon] || ICONS.shirt}</svg>
-            <span data-i18n="shop.product.image">[Produktbild]</span>
-          </div>
-        </div>
-        <div class="product-body">
-          <h3>${p.name}</h3>
-          <div class="desc">${p.description || ''}</div>
-          <div class="meta">
-            <span class="price">${p.price}</span>
-            <span class="notify-btn" data-i18n="shop.badge.soon">Bald da</span>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // renderProducts() wird jetzt erst nach erfolgreichem Login aufgerufen (siehe initAuth)
-
   /* ---------- Besucher-Tracking (datenschutzfreundlich: nur Seite, Zeit, Referrer) ---------- */
   (function trackVisit(){
     try{
       sb.from('visits').insert({
-        page: location.pathname || '/shop.html',
+        page: location.pathname || '/tournierbaum.html',
         referrer: document.referrer || null
       }).then(()=>{});
     }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
@@ -622,7 +562,7 @@
 </div>
 
 <script>
-  const FAQ_KEYS = ['faq.shop.1', 'faq.shop.2', 'faq.shop.3', 'faq.shop.4'];
+  const FAQ_KEYS = ['faq.bracket.1', 'faq.bracket.2', 'faq.bracket.3'];
 
   function toggleSupport(){
     document.getElementById('support-panel').classList.toggle('open');
