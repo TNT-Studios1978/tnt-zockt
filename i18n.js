@@ -234,7 +234,27 @@ function tntLangSwitcherHTML(){
   `;
 }
 
+/* ============================================================
+   Geo-Sichtbarkeit: Elemente mit der Klasse "geo-hide-ch"
+   werden für Besucher aus der Schweiz automatisch ausgeblendet
+   (z. B. die deutschen Casino-Angebote). Läuft über Vercels
+   eigene IP-Standorterkennung, keine Cookies nötig.
+   ============================================================ */
+async function tntCheckGeoRestriction(){
+  try{
+    const res = await fetch('/api/geo');
+    const data = await res.json();
+    if(data && data.country === 'CH'){
+      document.querySelectorAll('.geo-hide-ch').forEach(el => el.style.display = 'none');
+    }
+  }catch(e){
+    // Bei Fehler: sicherheitshalber alles wie gewohnt anzeigen
+    console.error('Geo-Check fehlgeschlagen:', e);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   tntApplyTranslations();
   tntUpdateLangSwitcher();
+  tntCheckGeoRestriction();
 });
