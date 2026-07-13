@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tournierbaum | TNT-Zockt</title>
+<title>Angebote Schweiz | TNT-Zockt</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="kick-config.js"></script>
@@ -184,20 +184,63 @@
     text-align:center; padding:80px 24px 50px;
     max-width:760px; margin:0 auto;
   }
-  .bracket-frame-wrap{
-    max-width:1180px; margin:0 auto; padding:0 24px;
-    border-radius:var(--radius); overflow:hidden;
-    border:1px solid var(--line); background:var(--bg-1);
+  .casino-grid{
+    display:flex; flex-direction:column; gap:22px;
+    padding-left:22px; max-width:1180px; margin:0 auto; padding-right:24px; padding-left:46px;
   }
-  .bracket-frame-wrap iframe{
-    width:100%; height:78vh; min-height:520px; border:none; display:block; background:#0a0a0f;
+  .casino-card{
+    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+    position:relative;
+    display:flex; align-items:center; gap:20px;
+    padding:18px 24px 18px 34px;
+    transition:transform .2s, border-color .2s;
   }
-  .bracket-fallback{
-    text-align:center; font-size:12.5px; color:var(--text-low);
-    max-width:1180px; margin:16px auto 0; padding:0 24px;
+  .casino-card:hover{transform:translateY(-3px); border-color:var(--fuse-red);}
+  .casino-card .rank{
+    position:absolute; left:-22px; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(145deg, var(--fuse-red), #b8281c);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:18px; color:#fff;
+    box-shadow:0 0 20px var(--fuse-red-glow);
+    z-index:2;
   }
-  .bracket-fallback a{ color:var(--cyan); font-weight:700; }
-  @media(max-width:720px){ .bracket-frame-wrap iframe{ height:70vh; } }
+  .casino-banner{
+    width:110px; height:110px; flex-shrink:0; border-radius:12px;
+    background:linear-gradient(145deg, var(--bg-2), #0d0d13);
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .casino-banner img{ width:100%; height:100%; object-fit:cover; }
+  .casino-banner .badge-fallback{ font-family:var(--display); font-size:26px; color:var(--gold); letter-spacing:1px; }
+  .casino-card-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .casino-card h3{
+    font-family:var(--display); font-size:clamp(18px,2.4vw,26px);
+    font-weight:400; letter-spacing:.3px; text-transform:uppercase; color:var(--gold);
+  }
+  .casino-card .bonus{ font-family:var(--mono); font-size:12.5px; color:var(--text-mid); letter-spacing:.3px; }
+  .stars{ color:var(--gold); font-size:13px; letter-spacing:2px; white-space:nowrap; }
+  .casino-card-actions{ display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0; }
+  .casino-card .go{
+    text-align:center; font-weight:800; font-size:14px;
+    padding:13px 26px; border-radius:8px; white-space:nowrap;
+    background:var(--fuse-red); color:#fff;
+    box-shadow:0 4px 16px var(--fuse-red-glow);
+  }
+  .casino-card .go:hover{filter:brightness(1.1);}
+  .casino-card details{ width:100%; text-align:center; }
+  .casino-card summary{ font-family:var(--mono); font-size:10.5px; color:var(--text-low); cursor:pointer; list-style:none; letter-spacing:.5px; }
+  .casino-card summary::-webkit-details-marker{ display:none; }
+  .casino-card details[open] summary{ color:var(--cyan); }
+  .casino-card .details-panel{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:11px; color:var(--text-low); text-align:left; }
+  .fine{font-size:10px; color:var(--text-low);}
+  @media(max-width:720px){
+    .casino-card{ flex-wrap:wrap; padding:16px 18px 16px 30px; }
+    .casino-banner{ width:70px; height:70px; }
+    .casino-card-actions{ width:100%; flex-direction:row; justify-content:space-between; }
+    .casino-grid{ padding-left:30px; padding-right:16px; }
+  }
   .eyebrow{
     font-family:var(--mono); font-size:12px; letter-spacing:2px;
     color:var(--cyan); text-transform:uppercase;
@@ -339,11 +382,11 @@
       <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></a>
       <div class="nav-links" id="main-nav-links">
         <a href="index.html#casinos" data-i18n="nav.angebote.de">Angebote DE</a>
-        <a href="angebote-schweiz.html" data-i18n="nav.angebote.ch">Angebote CH</a>
+        <a href="angebote-schweiz.html" class="active" data-i18n="nav.angebote.ch">Angebote CH</a>
         <a href="index.html#streams" data-i18n="nav.streamer">Streamer</a>
         <a href="games.html" data-i18n="nav.spiele">Spiele</a>
         <a href="shop.html" data-i18n="nav.shop">Shop</a>
-        <a href="tournierbaum.html" class="active" data-i18n="nav.tournierbaum">Tournierbaum</a>
+        <a href="tournierbaum.html" data-i18n="nav.tournierbaum">Tournierbaum</a>
         <a href="index.html#verantwortung" data-i18n="nav.verantwortung">Verantwortung</a>
       </div>
       <div id="lang-switcher-slot"></div>
@@ -353,25 +396,15 @@
   </header>
 
   <div class="shop-hero">
-    <div class="eyebrow" data-i18n="bracket.eyebrow">Community · Live</div>
-    <h1>Tournier<span>-</span>baum</h1>
-    <p data-i18n="bracket.desc">Der aktuelle Turnierbaum unserer Community-Events — live eingebettet, kein separater Tab nötig.</p>
+    <div class="eyebrow" data-i18n="ch.eyebrow">🇨🇭 Für Schweizer Zuschauer</div>
+    <h1>Angebote<span>-</span>Schweiz</h1>
+    <p data-i18n="ch.desc">Casino-Partner, die speziell für Zuschauer aus der Schweiz geeignet sind.</p>
   </div>
 
   <div class="fuse-divider"></div>
 
   <section style="padding-top:30px;">
-    <div class="bracket-frame-wrap">
-      <iframe
-        src="https://tnt-studios1978.github.io/Tournamentbaum/"
-        title="TNT-Zockt Tournierbaum"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-    </div>
-    <p class="bracket-fallback" data-i18n-html="bracket.fallback">
-      Wird der Turnierbaum nicht angezeigt? <a href="https://tnt-studios1978.github.io/Tournamentbaum/" target="_blank" rel="noopener">Direkt öffnen →</a>
-    </p>
+    <div class="casino-grid" id="casino-grid-ch"></div>
   </section>
 
   <footer>
@@ -510,6 +543,37 @@
     }
   }
 
+  function starString(n){
+    return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
+  }
+
+  async function renderCasinosCh(){
+    const grid = document.getElementById('casino-grid-ch');
+    const { data, error } = await sb.from('casinos_ch').select('*').order('sort_order', { ascending: true });
+    if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Angebote konnten nicht geladen werden.</p>'; console.error(error); return; }
+    grid.innerHTML = data.map((c, i) => `
+      <div class="casino-card">
+        <div class="rank">${i+1}</div>
+        <div class="casino-banner">
+          ${c.logo_url ? `<img src="${c.logo_url}" alt="${c.name} Logo">` : `<span class="badge-fallback">${c.badge || c.name.slice(0,2).toUpperCase()}</span>`}
+        </div>
+        <div class="casino-card-body">
+          <h3>${c.name}</h3>
+          <div class="bonus"><b>${c.bonus || ''}</b></div>
+        </div>
+        <div class="casino-card-actions">
+          <div class="stars">${starString(c.stars)}</div>
+          <a class="go" href="${c.link}" target="_blank" rel="noopener sponsored" data-affiliate="${c.id}">${t('casinos.play')}</a>
+          <details>
+            <summary>${t('casinos.details')}</summary>
+            <div class="details-panel">${t('casinos.fine')}</div>
+          </details>
+        </div>
+      </div>
+    `).join('');
+  }
+  renderCasinosCh();
+
   async function refreshAuthUI(){
     const identity = await resolveIdentity();
     renderNavAuth(identity);
@@ -518,6 +582,7 @@
   function onLanguageChanged(){
     refreshAuthUI();
     renderFaqOptions();
+    renderCasinosCh();
   }
 
   (async function initAuth(){
@@ -534,7 +599,7 @@
   (function trackVisit(){
     try{
       sb.from('visits').insert({
-        page: location.pathname || '/tournierbaum.html',
+        page: location.pathname || '/angebote-schweiz.html',
         referrer: document.referrer || null
       }).then(()=>{});
     }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
@@ -557,7 +622,7 @@
 </div>
 
 <script>
-  const FAQ_KEYS = ['faq.bracket.1', 'faq.bracket.2', 'faq.bracket.3'];
+  const FAQ_KEYS = ['faq.ch.1', 'faq.ch.2', 'faq.ch.3'];
 
   function toggleSupport(){
     document.getElementById('support-panel').classList.toggle('open');

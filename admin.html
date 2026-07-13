@@ -120,7 +120,8 @@
       <div class="nav">
         <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="Logo" style="height:40px; width:auto;"></span> ADMIN</a>
         <div class="tabs">
-          <button class="tab-btn active" data-tab="casinos" onclick="switchTab('casinos')">Casinos</button>
+          <button class="tab-btn active" data-tab="casinos" onclick="switchTab('casinos')">Casinos DE</button>
+          <button class="tab-btn" data-tab="casinos_ch" onclick="switchTab('casinos_ch')">Casinos CH</button>
           <button class="tab-btn" data-tab="streamers" onclick="switchTab('streamers')">Streamer</button>
           <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
           <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
@@ -138,9 +139,16 @@
 
       <!-- CASINOS TAB -->
       <div class="tab-panel active" id="tab-casinos">
-        <div class="toolbar"><h2>Casinos</h2></div>
+        <div class="toolbar"><h2>Casinos DE</h2></div>
         <div id="casino-list"></div>
         <div class="add-row"><button class="btn-ghost" onclick="addCasino()">+ Casino hinzufügen</button></div>
+      </div>
+
+      <!-- CASINOS CH TAB -->
+      <div class="tab-panel" id="tab-casinos_ch">
+        <div class="toolbar"><h2>Casinos Schweiz</h2></div>
+        <div id="casino-ch-list"></div>
+        <div class="add-row"><button class="btn-ghost" onclick="addCasinoCh()">+ Casino hinzufügen</button></div>
       </div>
 
       <!-- STREAMERS TAB -->
@@ -197,7 +205,7 @@
 
 <script>
   const ADMIN_EMAIL = "tnt-studios@gmx.ch"; // Nur dieses Konto darf ins Admin-Panel
-  let CASINOS = [], STREAMERS = [], PRODUCTS = [];
+  let CASINOS = [], CASINOS_CH = [], STREAMERS = [], PRODUCTS = [];
 
   async function doLogin(){
     const email = document.getElementById('admin-email').value.trim();
@@ -267,18 +275,19 @@
 
   async function loadAll(){
     setStatus('Lade Daten…');
-    const [c, s, p] = await Promise.all([
+    const [c, cch, s, p] = await Promise.all([
       sb.from('casinos').select('*').order('sort_order', { ascending: true }),
+      sb.from('casinos_ch').select('*').order('sort_order', { ascending: true }),
       sb.from('streamers').select('*').order('sort_order', { ascending: true }),
       sb.from('products').select('*').order('sort_order', { ascending: true })
     ]);
-    if(c.error || s.error || p.error){
+    if(c.error || cch.error || s.error || p.error){
       setStatus('Fehler beim Laden — siehe Konsole.', true);
-      console.error(c.error, s.error, p.error);
+      console.error(c.error, cch.error, s.error, p.error);
       return;
     }
-    CASINOS = c.data; STREAMERS = s.data; PRODUCTS = p.data;
-    renderCasinoList(); renderStreamerList(); renderProductList();
+    CASINOS = c.data; CASINOS_CH = cch.data; STREAMERS = s.data; PRODUCTS = p.data;
+    renderCasinoList(); renderCasinoChList(); renderStreamerList(); renderProductList();
     loadVisits();
     setStatus('✓ Geladen (' + new Date().toLocaleTimeString() + ')');
   }
@@ -520,6 +529,78 @@
     setStatus('✓ Logo aktualisiert (' + new Date().toLocaleTimeString() + ')');
   }
 
+  /* ---------- CASINOS CH ---------- */
+  function renderCasinoChList(){
+    const list = document.getElementById('casino-ch-list');
+    list.innerHTML = CASINOS_CH.map((c, i) => `
+      <div class="entry-card">
+        <div class="entry-grid">
+          <div><label>Name</label><input value="${c.name || ''}" onchange="updateField('casinos_ch',${i},'name',this.value)"></div>
+          <div><label>Badge (Kürzel)</label><input value="${c.badge || ''}" maxlength="3" onchange="updateField('casinos_ch',${i},'badge',this.value)"></div>
+          <div><label>Sterne (1-5)</label>
+            <select onchange="updateField('casinos_ch',${i},'stars',parseInt(this.value))">
+              ${[1,2,3,4,5].map(n => `<option value="${n}" ${c.stars==n?'selected':''}>${n}</option>`).join('')}
+            </select>
+          </div>
+          <div style="grid-column:span 2;"><label>Bonustext</label><input value="${c.bonus || ''}" onchange="updateField('casinos_ch',${i},'bonus',this.value)"></div>
+          <div style="grid-column:span 2;"><label>Affiliate-Link</label><input value="${c.link || ''}" onchange="updateField('casinos_ch',${i},'link',this.value)"></div>
+          <div style="grid-column:span 2;">
+            <label>Logo</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              ${c.logo_url ? `<img src="${c.logo_url}" alt="" style="width:36px; height:36px; object-fit:contain; border-radius:6px; border:1px solid var(--line); background:var(--bg-2);">` : ''}
+              <input type="file" accept="image/*" onchange="uploadLogoCh(event, ${i})" style="flex:1;">
+            </div>
+            <div id="upload-status-ch-${i}" style="font-size:11px; color:var(--text-low); margin-top:4px;"></div>
+          </div>
+        </div>
+        <div class="entry-footer">
+          <span class="id-tag">ID: ${c.id}</span>
+          <button class="btn-danger" onclick="removeEntry('casinos_ch',${i})">Entfernen</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  async function addCasinoCh(){
+    const entry = { id: uid('casino-ch'), name: '[Neues Casino]', badge: 'NC', logo_url: '', stars: 3, bonus: '[Bonustext]', link: '#', sort_order: CASINOS_CH.length + 1 };
+    setStatus('Speichere…');
+    const { error } = await sb.from('casinos_ch').insert(entry);
+    if(error){ setStatus('Fehler beim Hinzufügen.', true); console.error(error); return; }
+    CASINOS_CH.push(entry); renderCasinoChList(); setStatus('✓ Hinzugefügt');
+  }
+
+  async function uploadLogoCh(event, index){
+    const file = event.target.files[0];
+    if(!file) return;
+    const entry = CASINOS_CH[index];
+    const statusEl = document.getElementById('upload-status-ch-' + index);
+    statusEl.textContent = 'Lade hoch…';
+
+    const ext = file.name.split('.').pop();
+    const path = `casinos_ch/${entry.id}-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await sb.storage.from('logos').upload(path, file, { upsert: true });
+    if(uploadError){
+      statusEl.textContent = 'Fehler beim Hochladen.';
+      console.error(uploadError);
+      return;
+    }
+
+    const { data: urlData } = sb.storage.from('logos').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+
+    entry.logo_url = publicUrl;
+    setStatus('Speichere…');
+    const { error: dbError } = await sb.from('casinos_ch').update({ logo_url: publicUrl }).eq('id', entry.id);
+    if(dbError){
+      statusEl.textContent = 'Bild hochgeladen, aber Speichern fehlgeschlagen.';
+      console.error(dbError);
+      return;
+    }
+    statusEl.textContent = '✓ Logo gespeichert';
+    renderCasinoChList();
+    setStatus('✓ Logo aktualisiert (' + new Date().toLocaleTimeString() + ')');
+  }
+
   /* ---------- STREAMERS ---------- */
   function renderStreamerList(){
     const list = document.getElementById('streamer-list');
@@ -580,7 +661,7 @@
   }
 
   /* ---------- SHARED ---------- */
-  const TABLE_MAP = { casinos: () => CASINOS, streamers: () => STREAMERS, products: () => PRODUCTS };
+  const TABLE_MAP = { casinos: () => CASINOS, casinos_ch: () => CASINOS_CH, streamers: () => STREAMERS, products: () => PRODUCTS };
 
   async function updateField(section, index, field, value){
     const arr = TABLE_MAP[section]();
@@ -601,6 +682,7 @@
     if(error){ setStatus('Fehler beim Löschen.', true); console.error(error); return; }
     arr.splice(index, 1);
     if(section === 'casinos') renderCasinoList();
+    if(section === 'casinos_ch') renderCasinoChList();
     if(section === 'streamers') renderStreamerList();
     if(section === 'products') renderProductList();
     setStatus('✓ Entfernt');

@@ -127,4 +127,29 @@ drop policy if exists "Public write chips" on user_chips;
 create policy "Public read chips" on user_chips for select using (true);
 create policy "Public write chips" on user_chips for all using (true) with check (true);
 
+-- ============================================================
+-- Migration: Casinos Schweiz (unabhängige Liste von den DE-Angeboten)
+-- ============================================================
+create table if not exists casinos_ch (
+  id text primary key,
+  name text not null,
+  badge text,
+  logo_url text,
+  stars int default 3,
+  bonus text,
+  link text,
+  sort_order int default 0
+);
+
+alter table casinos_ch enable row level security;
+
+drop policy if exists "Public read casinos_ch" on casinos_ch;
+drop policy if exists "Public write casinos_ch" on casinos_ch;
+
+create policy "Public read casinos_ch" on casinos_ch for select using (true);
+create policy "Public write casinos_ch" on casinos_ch for all using (true) with check (true);
+
+insert into casinos_ch (id, name, badge, stars, bonus, link, sort_order) values
+('ch1', '[Casino Name CH]', '?', 5, '[Bonus-Text eintragen]', '#', 1)
+on conflict (id) do nothing;
 

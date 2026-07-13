@@ -9,6 +9,8 @@ const TNT_TRANSLATIONS = {
 
   /* ---------- Navigation (gemeinsam) ---------- */
   'nav.angebote':      { de: 'Angebote',        fr: 'Offres',            en: 'Offers' },
+  'nav.angebote.de':   { de: 'Angebote DE',      fr: 'Offres DE',         en: 'Offers DE' },
+  'nav.angebote.ch':   { de: 'Angebote CH',      fr: 'Offres CH',         en: 'Offers CH' },
   'nav.streamer':       { de: 'Streamer',        fr: 'Streamers',         en: 'Streamers' },
   'nav.spiele':          { de: 'Spiele',           fr: 'Jeux',              en: 'Games' },
   'nav.shop':             { de: 'Shop',              fr: 'Boutique',          en: 'Shop' },
@@ -41,8 +43,8 @@ const TNT_TRANSLATIONS = {
 
   /* ---------- Startseite: Casinos ---------- */
   'casinos.tag':   { de: 'Top Auswahl', fr: 'Meilleure sélection', en: 'Top selection' },
-  'casinos.title': { de: 'Unsere Casino-Empfehlungen', fr: 'Nos recommandations de casinos', en: 'Our casino recommendations' },
-  'casinos.desc':  { de: 'Geprüfte Casino-Partner mit exklusiven Boni für unsere Community.', fr: 'Partenaires de casino vérifiés avec des bonus exclusifs pour notre communauté.', en: 'Verified casino partners with exclusive bonuses for our community.' },
+  'casinos.title': { de: 'Unsere Casino-Empfehlungen (Deutschland)', fr: 'Nos recommandations de casinos (Allemagne)', en: 'Our casino recommendations (Germany)' },
+  'casinos.desc':  { de: 'Geprüfte Casino-Partner mit exklusiven Boni für unsere Community. 🇨🇭 Schweizer Zuschauer finden passende Angebote unter "Angebote CH".', fr: 'Partenaires de casino vérifiés avec des bonus exclusifs pour notre communauté. 🇨🇭 Les spectateurs suisses trouveront des offres adaptées sous "Offres CH".', en: 'Verified casino partners with exclusive bonuses for our community. 🇨🇭 Swiss viewers can find suitable offers under "Offers CH".' },
   'casinos.play':  { de: 'Jetzt spielen →', fr: 'Jouer maintenant →', en: 'Play now →' },
   'casinos.fine':  { de: '18+ · AGB gelten · verantwortungsvoll spielen', fr: '18+ · CGU applicables · jouez de manière responsable', en: '18+ · T&Cs apply · play responsibly' },
 
@@ -113,6 +115,18 @@ const TNT_TRANSLATIONS = {
   'faq.bracket.2.a': { de: 'Versuch die Seite neu zu laden. Falls es weiterhin nicht klappt, kannst du den Turnierbaum auch direkt über den Link unter der Einbettung öffnen.', fr: 'Essaie de recharger la page. Si le problème persiste, tu peux aussi ouvrir le tableau directement via le lien sous l\'intégration.', en: 'Try reloading the page. If it still doesn\'t work, you can also open the bracket directly via the link below the embed.' },
   'faq.bracket.3.q': { de: 'Wo finde ich die Ergebnisse?', fr: 'Où puis-je trouver les résultats ?', en: 'Where can I find the results?' },
   'faq.bracket.3.a': { de: 'Der Turnierbaum aktualisiert sich live während des Events — die Ergebnisse siehst du direkt hier auf dieser Seite.', fr: 'Le tableau se met à jour en direct pendant l\'événement — tu peux voir les résultats directement sur cette page.', en: 'The bracket updates live during the event — you can see the results directly on this page.' },
+
+  /* ---------- Angebote Schweiz ---------- */
+  'ch.eyebrow': { de: '🇨🇭 Für Schweizer Zuschauer', fr: '🇨🇭 Pour les spectateurs suisses', en: '🇨🇭 For Swiss viewers' },
+  'ch.desc': { de: 'Casino-Partner, die speziell für Zuschauer aus der Schweiz geeignet sind.', fr: 'Partenaires de casino spécialement adaptés aux spectateurs suisses.', en: 'Casino partners specifically suited for viewers from Switzerland.' },
+
+  /* FAQ Angebote Schweiz */
+  'faq.ch.1.q': { de: 'Sind diese Angebote für die Schweiz legal?', fr: 'Ces offres sont-elles légales en Suisse ?', en: 'Are these offers legal in Switzerland?' },
+  'faq.ch.1.a': { de: 'Wir listen nur Casino-Partner, die wir selbst geprüft haben. Bitte informiere dich vor der Anmeldung trotzdem immer selbst über die aktuelle Rechtslage in der Schweiz.', fr: 'Nous ne listons que des partenaires de casino que nous avons vérifiés nous-mêmes. Renseigne-toi néanmoins toujours toi-même sur la situation légale actuelle en Suisse avant de t\'inscrire.', en: 'We only list casino partners we\'ve personally vetted. Still, always check the current legal situation in Switzerland yourself before signing up.' },
+  'faq.ch.2.q': { de: 'Warum eine eigene Seite für die Schweiz?', fr: 'Pourquoi une page dédiée à la Suisse ?', en: 'Why a dedicated page for Switzerland?' },
+  'faq.ch.2.a': { de: 'Die Rechtslage und die passenden Anbieter unterscheiden sich zwischen Deutschland und der Schweiz — deshalb pflegen wir zwei getrennte Listen.', fr: 'La situation légale et les prestataires adaptés diffèrent entre l\'Allemagne et la Suisse — c\'est pourquoi nous tenons deux listes séparées.', en: 'The legal situation and suitable providers differ between Germany and Switzerland — that\'s why we maintain two separate lists.' },
+  'faq.ch.3.q': { de: 'Ich hab ein Problem/Frage', fr: 'J\'ai un problème/une question', en: 'I have a problem/question' },
+  'faq.ch.3.a': { de: 'Am schnellsten erreichst du uns über unsere Social-Media-Kanäle (Twitch, YouTube, Facebook).', fr: 'Le plus rapide est de nous contacter via nos réseaux sociaux (Twitch, YouTube, Facebook).', en: 'The fastest way to reach us is via our social media channels (Twitch, YouTube, Facebook).' },
 
   /* FAQ Spiele */
   'faq.games.1.q': { de: 'Wie bekomme ich TNT-Chips?', fr: 'Comment obtenir des TNT-Chips ?', en: 'How do I get TNT-Chips?' },
