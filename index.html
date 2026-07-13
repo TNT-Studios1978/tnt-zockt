@@ -282,6 +282,11 @@
     text-transform:uppercase; letter-spacing:.3px;
   }
   .section-head p{color:var(--text-mid); margin-top:10px; font-size:15px;}
+  .region-notice{
+    display:inline-flex; align-items:center; gap:8px; margin-top:14px;
+    background:rgba(255,61,46,.08); border:1px solid rgba(255,61,46,.3);
+    color:#ff9d8f; font-size:12.5px; font-weight:700; padding:9px 16px; border-radius:20px;
+  }
 
   /* fuse divider */
   .fuse-divider{
@@ -673,7 +678,8 @@
       <div class="section-head">
         <div class="section-tag" data-i18n="casinos.tag">Top Auswahl</div>
         <h2 data-i18n="casinos.title">Unsere Casino-Empfehlungen (Deutschland)</h2>
-        <p data-i18n="casinos.desc">Geprüfte Casino-Partner mit exklusiven Boni für unsere Community. 🇨🇭 Schweizer Zuschauer finden passende Angebote unter "Angebote CH".</p>
+        <p data-i18n="casinos.desc">Geprüfte Casino-Partner mit exklusiven Boni für unsere Community.</p>
+        <div class="region-notice" data-i18n="casinos.region.notice">🇨🇭 Diese Angebote sind ausschließlich für Besucher außerhalb der Schweiz verfügbar.</div>
       </div>
       <div class="casino-grid" id="casino-grid"></div>
     </section>

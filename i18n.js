@@ -44,7 +44,8 @@ const TNT_TRANSLATIONS = {
   /* ---------- Startseite: Casinos ---------- */
   'casinos.tag':   { de: 'Top Auswahl', fr: 'Meilleure sélection', en: 'Top selection' },
   'casinos.title': { de: 'Unsere Casino-Empfehlungen (Deutschland)', fr: 'Nos recommandations de casinos (Allemagne)', en: 'Our casino recommendations (Germany)' },
-  'casinos.desc':  { de: 'Geprüfte Casino-Partner mit exklusiven Boni für unsere Community. 🇨🇭 Schweizer Zuschauer finden passende Angebote unter "Angebote CH".', fr: 'Partenaires de casino vérifiés avec des bonus exclusifs pour notre communauté. 🇨🇭 Les spectateurs suisses trouveront des offres adaptées sous "Offres CH".', en: 'Verified casino partners with exclusive bonuses for our community. 🇨🇭 Swiss viewers can find suitable offers under "Offers CH".' },
+  'casinos.desc':  { de: 'Geprüfte Casino-Partner mit exklusiven Boni für unsere Community.', fr: 'Partenaires de casino vérifiés avec des bonus exclusifs pour notre communauté.', en: 'Verified casino partners with exclusive bonuses for our community.' },
+  'casinos.region.notice': { de: '🇨🇭 Diese Angebote sind ausschließlich für Besucher außerhalb der Schweiz verfügbar.', fr: '🇨🇭 Ces offres sont exclusivement disponibles pour les visiteurs en dehors de la Suisse.', en: '🇨🇭 These offers are exclusively available to visitors outside of Switzerland.' },
   'casinos.play':  { de: 'Jetzt spielen →', fr: 'Jouer maintenant →', en: 'Play now →' },
   'casinos.fine':  { de: '18+ · AGB gelten · verantwortungsvoll spielen', fr: '18+ · CGU applicables · jouez de manière responsable', en: '18+ · T&Cs apply · play responsibly' },
 
