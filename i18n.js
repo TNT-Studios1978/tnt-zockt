@@ -120,6 +120,7 @@ const TNT_TRANSLATIONS = {
   /* ---------- Angebote Schweiz ---------- */
   'ch.eyebrow': { de: '🇨🇭 Für Schweizer Zuschauer', fr: '🇨🇭 Pour les spectateurs suisses', en: '🇨🇭 For Swiss viewers' },
   'ch.desc': { de: 'Casino-Partner, die speziell für Zuschauer aus der Schweiz geeignet sind.', fr: 'Partenaires de casino spécialement adaptés aux spectateurs suisses.', en: 'Casino partners specifically suited for viewers from Switzerland.' },
+  'ch.region.notice': { de: '🇨🇭 Diese Angebote sind ausschließlich für Besucher aus der Schweiz verfügbar.', fr: '🇨🇭 Ces offres sont exclusivement disponibles pour les visiteurs de Suisse.', en: '🇨🇭 These offers are exclusively available to visitors from Switzerland.' },
 
   /* FAQ Angebote Schweiz */
   'faq.ch.1.q': { de: 'Sind diese Angebote für die Schweiz legal?', fr: 'Ces offres sont-elles légales en Suisse ?', en: 'Are these offers legal in Switzerland?' },
