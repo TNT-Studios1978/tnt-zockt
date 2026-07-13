@@ -120,8 +120,8 @@
       <div class="nav">
         <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="Logo" style="height:40px; width:auto;"></span> ADMIN</a>
         <div class="tabs">
-          <button class="tab-btn active" data-tab="casinos" onclick="switchTab('casinos')">Casinos DE</button>
-          <button class="tab-btn" data-tab="casinos_ch" onclick="switchTab('casinos_ch')">Casinos CH</button>
+          <button class="tab-btn" data-tab="casinos" onclick="switchTab('casinos')">Casinos DE</button>
+          <button class="tab-btn active" data-tab="casinos_ch" onclick="switchTab('casinos_ch')">Casinos CH</button>
           <button class="tab-btn" data-tab="streamers" onclick="switchTab('streamers')">Streamer</button>
           <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
           <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
@@ -138,14 +138,17 @@
       </div>
 
       <!-- CASINOS TAB -->
-      <div class="tab-panel active" id="tab-casinos">
+      <div class="tab-panel" id="tab-casinos">
         <div class="toolbar"><h2>Casinos DE</h2></div>
+        <div class="info-box" style="margin-bottom:16px; border-color:var(--fuse-red); color:#ff9d8f;">
+          🇨🇭 <strong>Nur außerhalb der Schweiz sichtbar:</strong> Diese Angebote werden Besuchern aus der Schweiz automatisch ausgeblendet (Geo-Sperre aktiv). Schweizer Angebote pflegst du im Tab "Casinos CH".
+        </div>
         <div id="casino-list"></div>
         <div class="add-row"><button class="btn-ghost" onclick="addCasino()">+ Casino hinzufügen</button></div>
       </div>
 
       <!-- CASINOS CH TAB -->
-      <div class="tab-panel" id="tab-casinos_ch">
+      <div class="tab-panel active" id="tab-casinos_ch">
         <div class="toolbar"><h2>Casinos Schweiz</h2></div>
         <div id="casino-ch-list"></div>
         <div class="add-row"><button class="btn-ghost" onclick="addCasinoCh()">+ Casino hinzufügen</button></div>
