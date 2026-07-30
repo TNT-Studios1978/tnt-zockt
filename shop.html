@@ -9,630 +9,609 @@
 <script src="kick-config.js"></script>
 <script src="i18n.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-
-  :root{
-    --bg-0:#08080c;
-    --bg-1:#111118;
-    --bg-2:#181822;
-    --fuse-red:#ff3d2e;
-    --fuse-red-glow: rgba(255,61,46,.55);
-    --gold:#ffcf3f;
-    --gold-glow: rgba(255,207,63,.4);
-    --cyan:#28f0e0;
-    --cyan-glow: rgba(40,240,224,.4);
-    --text-hi:#f6f4ef;
-    --text-mid:#b9b6c4;
-    --text-low:#716e7d;
-    --line:#26232e;
-    --radius:14px;
-    --display: 'Anton', sans-serif;
-    --body: 'Manrope', sans-serif;
-    --mono: 'JetBrains Mono', monospace;
-  }
-
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:var(--bg-0);
-    color:var(--text-hi);
-    font-family:var(--body);
-    line-height:1.5;
-    overflow-x:hidden;
-  }
-  @media (prefers-reduced-motion: reduce){
-    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
-  }
-
-  a{color:inherit; text-decoration:none;}
-  ul{list-style:none;}
-  img,svg{display:block; max-width:100%;}
-
-  .btn{
-    font-family:var(--body); font-weight:800; font-size:14px;
-    padding:13px 26px; border-radius:8px; border:none; cursor:pointer;
-    letter-spacing:.3px;
-  }
-
-  /* ---------- Nav ---------- */
-  header{
-    position:sticky; top:0; z-index:100;
-    background:rgba(8,8,12,.85);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-  }
-  .nav{
-    max-width:none; padding:16px 32px;
-    display:flex; align-items:center; justify-content:space-between;
-    position:relative;
-  }
-  .logo{
-    font-family:var(--display); font-size:22px; letter-spacing:.5px;
-    display:flex; align-items:center; gap:8px;
-  }
-  .logo .dot{color:var(--fuse-red);}
-  .logo-badge{
-    display:inline-flex; align-items:center; justify-content:center;
-    padding:4px; border-radius:10px;
-    background:linear-gradient(145deg, var(--bg-2), #0d0d13);
-    border:1px solid rgba(255,207,63,.35);
-    box-shadow:0 0 16px rgba(255,207,63,.25), 0 0 4px rgba(255,61,46,.3);
-    transition:transform .2s, box-shadow .2s;
-  }
-  .logo-badge:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 22px rgba(255,207,63,.4), 0 0 8px rgba(255,61,46,.4);
-  }
-  .logo-badge img{ display:block; border-radius:7px; }
-  .nav-links{display:flex; gap:6px; font-size:14px; font-weight:600; color:var(--text-mid); flex:1; justify-content:center;}
-  .nav-links a{
-    padding:8px 14px; border-radius:8px;
-    transition:background .2s, color .2s;
-  }
-  .nav-links a:hover{color:var(--text-hi); background:rgba(255,255,255,.05);}
-  .nav-links a.active{
-    color:var(--gold);
-    background:rgba(255,207,63,.12);
-    box-shadow:inset 0 0 0 1px rgba(255,207,63,.3);
-  }
-
-  .lang-switcher{ display:flex; gap:3px; background:var(--bg-1); border:1px solid var(--line); border-radius:7px; padding:3px; }
-  .lang-btn{
-    font-family:var(--mono); font-size:11px; font-weight:700; padding:6px 9px; border-radius:5px;
-    border:none; background:transparent; color:var(--text-low); cursor:pointer;
-  }
-  .lang-btn:hover{ color:var(--text-hi); }
-  .lang-btn.active{ background:var(--bg-2); color:var(--gold); }
-
-  /* ---------- Mobile Hamburger Menu ---------- */
-  .hamburger-btn{
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  --bg-0:#08080c;
+  --bg-1:#111118;
+  --bg-2:#181822;
+  --fuse-red:#ff3d2e;
+  --fuse-red-glow: rgba(255,61,46,.55);
+  --gold:#ffcf3f;
+  --gold-glow: rgba(255,207,63,.4);
+  --cyan:#28f0e0;
+  --cyan-glow: rgba(40,240,224,.4);
+  --text-hi:#f6f4ef;
+  --text-mid:#b9b6c4;
+  --text-low:#716e7d;
+  --line:#26232e;
+  --radius:14px;
+  --display: 'Anton', sans-serif;
+  --body: 'Manrope', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg-0);
+  color:var(--text-hi);
+  font-family:var(--body);
+  line-height:1.5;
+  overflow-x:hidden;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
+a{color:inherit; text-decoration:none;}
+ul{list-style:none;}
+img,svg{display:block; max-width:100%;}
+.btn{
+  font-family:var(--body); font-weight:800; font-size:14px;
+  padding:13px 26px; border-radius:8px; border:none; cursor:pointer;
+  letter-spacing:.3px;
+}
+/* ---------- Nav ---------- */
+header{
+  position:sticky; top:0; z-index:100;
+  background:rgba(8,8,12,.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav{
+  max-width:none; padding:16px 32px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:relative;
+}
+.logo{
+  font-family:var(--display); font-size:22px; letter-spacing:.5px;
+  display:flex; align-items:center; gap:8px;
+}
+.logo .dot{color:var(--fuse-red);}
+.logo-badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:4px; border-radius:10px;
+  background:linear-gradient(145deg, var(--bg-2), #0d0d13);
+  border:1px solid rgba(255,207,63,.35);
+  box-shadow:0 0 16px rgba(255,207,63,.25), 0 0 4px rgba(255,61,46,.3);
+  transition:transform .2s, box-shadow .2s;
+}
+.logo-badge:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 22px rgba(255,207,63,.4), 0 0 8px rgba(255,61,46,.4);
+}
+.logo-badge img{ display:block; border-radius:7px; }
+.nav-links{display:flex; gap:6px; font-size:14px; font-weight:600; color:var(--text-mid); flex:1; justify-content:center;}
+.nav-links a{
+  padding:8px 14px; border-radius:8px;
+  transition:background .2s, color .2s;
+}
+.nav-links a:hover{color:var(--text-hi); background:rgba(255,255,255,.05);}
+.nav-links a.active{
+  color:var(--gold);
+  background:rgba(255,207,63,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,207,63,.3);
+}
+.lang-switcher{ display:flex; gap:3px; background:var(--bg-1); border:1px solid var(--line); border-radius:7px; padding:3px; }
+.lang-btn{
+  font-family:var(--mono); font-size:11px; font-weight:700; padding:6px 9px; border-radius:5px;
+  border:none; background:transparent; color:var(--text-low); cursor:pointer;
+}
+.lang-btn:hover{ color:var(--text-hi); }
+.lang-btn.active{ background:var(--bg-2); color:var(--gold); }
+/* ---------- Mobile Hamburger Menu ---------- */
+.hamburger-btn{
+  display:none;
+  background:var(--bg-1); border:1px solid var(--line); border-radius:8px;
+  width:42px; height:42px; align-items:center; justify-content:center;
+  cursor:pointer; flex-shrink:0;
+}
+.hamburger-btn span, .hamburger-btn span::before, .hamburger-btn span::after{
+  content:''; display:block; width:20px; height:2px; background:var(--text-hi);
+  position:relative; transition:transform .2s, opacity .2s;
+}
+.hamburger-btn span::before{ position:absolute; top:-6px; }
+.hamburger-btn span::after{ position:absolute; top:6px; }
+.hamburger-btn.open span{ background:transparent; }
+.hamburger-btn.open span::before{ transform:translateY(6px) rotate(45deg); }
+.hamburger-btn.open span::after{ transform:translateY(-6px) rotate(-45deg); }
+@media(max-width:720px){
+  .nav-links{
     display:none;
-    background:var(--bg-1); border:1px solid var(--line); border-radius:8px;
-    width:42px; height:42px; align-items:center; justify-content:center;
-    cursor:pointer; flex-shrink:0;
+    position:absolute; top:100%; left:0; right:0;
+    flex-direction:column; gap:2px;
+    background:var(--bg-1); border-bottom:1px solid var(--line);
+    padding:12px; box-shadow:0 12px 24px rgba(0,0,0,.4);
   }
-  .hamburger-btn span, .hamburger-btn span::before, .hamburger-btn span::after{
-    content:''; display:block; width:20px; height:2px; background:var(--text-hi);
-    position:relative; transition:transform .2s, opacity .2s;
-  }
-  .hamburger-btn span::before{ position:absolute; top:-6px; }
-  .hamburger-btn span::after{ position:absolute; top:6px; }
-  .hamburger-btn.open span{ background:transparent; }
-  .hamburger-btn.open span::before{ transform:translateY(6px) rotate(45deg); }
-  .hamburger-btn.open span::after{ transform:translateY(-6px) rotate(-45deg); }
-
-  @media(max-width:720px){
-    .nav-links{
-      display:none;
-      position:absolute; top:100%; left:0; right:0;
-      flex-direction:column; gap:2px;
-      background:var(--bg-1); border-bottom:1px solid var(--line);
-      padding:12px; box-shadow:0 12px 24px rgba(0,0,0,.4);
-    }
-    .nav-links.mobile-open{ display:flex; }
-    .nav-links a{ padding:12px 14px; }
-    .hamburger-btn{ display:flex; }
-  }
-
-  /* ---------- Mobile Bottom Navigation (fixed) ---------- */
-  .bottom-nav{
-    display:none;
-    position:fixed; left:0; right:0; bottom:0; z-index:150;
-    background:rgba(8,8,12,.94); backdrop-filter:blur(12px);
-    border-top:1px solid var(--line);
-    padding:8px 4px calc(8px + env(safe-area-inset-bottom));
-    box-shadow:0 -8px 24px rgba(0,0,0,.4);
-  }
-  .bottom-nav a{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
-    padding:6px 2px; border-radius:10px;
-    font-family:var(--body); font-size:10.5px; font-weight:700;
-    color:var(--text-low); text-align:center;
-  }
-  .bottom-nav a svg{ width:20px; height:20px; }
-  .bottom-nav a.active{ color:var(--gold); }
-  .bottom-nav a.active svg{ filter:drop-shadow(0 0 6px rgba(255,207,63,.6)); }
-  @media(max-width:720px){
-    .bottom-nav{ display:flex; }
-    body{ padding-bottom:64px; }
-  }
-
-  /* ---------- Nav Auth Widget ---------- */
-  .nav-auth{ display:flex; align-items:center; gap:10px; }
-  .nav-auth-btn{
-    display:inline-flex; align-items:center; gap:7px;
-    font-family:var(--body); font-weight:800; font-size:12.5px;
-    padding:9px 14px; border-radius:7px; border:none; cursor:pointer;
-    background:#9146FF; color:#fff;
-  }
-  .nav-auth-btn:hover{ filter:brightness(1.1); }
-  .nav-user{ display:flex; align-items:center; gap:8px; }
-  .nav-user img{ width:28px; height:28px; border-radius:50%; }
-  .nav-user .info{ line-height:1.2; }
-  .nav-user .name{ font-size:12.5px; font-weight:800; }
-  .nav-user .points{ font-family:var(--mono); font-size:10.5px; color:var(--gold); }
-  .nav-logout{
-    font-size:11px; color:var(--text-low); border:1px solid var(--line);
-    background:var(--bg-1); padding:6px 10px; border-radius:6px; cursor:pointer;
-  }
-  .nav-logout:hover{ color:var(--fuse-red); border-color:var(--fuse-red); }
-
-  section{max-width:1180px; margin:0 auto; padding:70px 24px;}
-
-  /* ---------- Shop hero ---------- */
-  .shop-hero{
-    text-align:center; padding:80px 24px 50px;
-    max-width:760px; margin:0 auto;
-  }
-  .eyebrow{
-    font-family:var(--mono); font-size:12px; letter-spacing:2px;
-    color:var(--cyan); text-transform:uppercase;
-    display:inline-flex; align-items:center; gap:8px; margin-bottom:18px;
-  }
-  .eyebrow::before{
-    content:''; width:8px; height:8px; border-radius:50%;
-    background:var(--cyan); box-shadow:0 0 10px var(--cyan-glow);
-    animation:pulse 1.6s infinite;
-  }
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-  .shop-hero h1{
-    font-family:var(--display);
-    font-size:clamp(34px, 5vw, 54px);
-    text-transform:uppercase;
-    letter-spacing:.5px;
-    margin-bottom:16px;
-  }
-  .shop-hero h1 span{ color:var(--fuse-red); text-shadow:0 0 30px var(--fuse-red-glow); }
-  .shop-hero p{color:var(--text-mid); font-size:16px;}
-
-  /* ---------- Product grid ---------- */
-  .product-grid{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
-    gap:22px;
-  }
-  .product-card{
-    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    overflow:hidden; display:flex; flex-direction:column;
-    transition:transform .2s, border-color .2s;
-    position:relative;
-  }
-  .product-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
-  .product-card .soon-tag{
-    position:absolute; top:14px; right:14px; z-index:2;
-    font-family:var(--mono); font-size:10.5px; letter-spacing:1px;
-    background:rgba(255,61,46,.15); color:var(--fuse-red);
-    border:1px solid rgba(255,61,46,.4);
-    padding:4px 9px; border-radius:20px; text-transform:uppercase;
-  }
-  .product-image{
-    aspect-ratio:1/1;
-    background:
-      linear-gradient(135deg, var(--bg-2) 0%, #0d0d13 100%);
-    display:flex; align-items:center; justify-content:center;
-    position:relative; overflow:hidden;
-    border-bottom:1px solid var(--line);
-  }
-  .product-image .ph-icon{
-    font-family:var(--display); font-size:15px; color:var(--text-low);
-    letter-spacing:2px; text-transform:uppercase;
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-  }
-  .product-image .ph-icon svg{ width:44px; height:44px; opacity:.5; }
-  .product-body{padding:18px 20px 20px; display:flex; flex-direction:column; gap:8px; flex:1;}
-  .product-body h3{font-size:16px; font-weight:800;}
-  .product-body .desc{font-size:13px; color:var(--text-mid);}
-  .product-body .meta{
-    display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:10px;
-  }
-  .price{font-family:var(--mono); font-weight:600; font-size:16px; color:var(--gold);}
-  .notify-btn{
-    font-size:12px; font-weight:800; padding:9px 14px; border-radius:7px;
-    background:var(--bg-2); border:1px solid var(--line); color:var(--text-mid);
-    cursor:not-allowed;
-  }
-
-  .fuse-divider{
-    position:relative; height:2px; margin:0 24px;
-    background-image:repeating-linear-gradient(90deg, var(--line) 0 8px, transparent 8px 14px);
-    max-width:1132px; margin-left:auto; margin-right:auto;
-  }
-  .fuse-divider::after{
-    content:'💥'; position:absolute; right:-6px; top:50%; transform:translateY(-50%);
-    font-size:18px;
-  }
-
-  /* ---------- Notify signup ---------- */
-  .notify-box{
-    background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-    padding:40px; text-align:center; max-width:620px; margin:0 auto;
-  }
-  .notify-box h3{font-family:var(--display); font-size:24px; text-transform:uppercase; margin-bottom:10px;}
-  .notify-box p{color:var(--text-mid); font-size:14px; margin-bottom:20px;}
-  .notify-form{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
-  .notify-form input{
-    flex:1; min-width:200px; padding:12px 14px; border-radius:8px;
-    border:1px solid var(--line); background:var(--bg-2); color:var(--text-hi);
-    font-family:var(--body); font-size:14px;
-  }
-  .notify-form input::placeholder{color:var(--text-low);}
-  .btn-primary{
-    background:linear-gradient(135deg, var(--fuse-red), #c2281c);
-    color:#fff; box-shadow:0 4px 20px var(--fuse-red-glow);
-  }
-  .btn-primary:hover{filter:brightness(1.1);}
-
-  footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
-  .footer-inner{max-width:1180px; margin:0 auto;}
-  .footer-legal{font-size:11.5px; color:var(--text-low); line-height:1.7; max-width:760px;}
-
-  /* ---------- Support Chat Widget ---------- */
-  .support-btn{
-    position:fixed; bottom:24px; right:24px; z-index:300;
-    width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
-    background:linear-gradient(135deg, var(--cyan), #0d8f85);
-    box-shadow:0 6px 20px var(--cyan-glow);
-    display:flex; align-items:center; justify-content:center;
-  }
-  @media(max-width:720px){ .support-btn{ bottom:80px; right:16px; } }
-  .support-btn svg{ width:26px; height:26px; color:#04211f; }
-  .support-panel{
-    position:fixed; bottom:92px; right:24px; z-index:300;
-    width:320px; max-width:calc(100vw - 32px); max-height:70vh;
-    background:var(--bg-1); border:1px solid var(--line); border-radius:16px;
-    box-shadow:0 20px 50px rgba(0,0,0,.5); display:none; flex-direction:column; overflow:hidden;
-  }
-  @media(max-width:720px){ .support-panel{ bottom:148px; right:16px; } }
-  .support-panel.open{ display:flex; }
-  .support-header{ padding:16px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
-  .support-header h4{ font-family:var(--display); font-size:16px; text-transform:uppercase; }
-  .support-header button{ background:none; border:none; color:var(--text-low); cursor:pointer; font-size:18px; }
-  .support-body{ padding:14px 18px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; flex:1; }
-  .support-msg{ font-size:13px; line-height:1.5; }
-  .support-msg.bot{ background:var(--bg-2); padding:10px 12px; border-radius:10px; color:var(--text-mid); }
-  .support-msg.user{ background:rgba(255,207,63,.1); padding:10px 12px; border-radius:10px; color:var(--gold); align-self:flex-end; }
-  .faq-options{ display:flex; flex-direction:column; gap:6px; }
-  .faq-btn{
-    text-align:left; padding:9px 12px; border-radius:8px; border:1px solid var(--line);
-    background:var(--bg-2); color:var(--text-mid); font-size:12.5px; cursor:pointer;
-  }
-  .faq-btn:hover{ border-color:var(--cyan); color:var(--cyan); }
+  .nav-links.mobile-open{ display:flex; }
+  .nav-links a{ padding:12px 14px; }
+  .hamburger-btn{ display:flex; }
+}
+/* ---------- Mobile Bottom Navigation (fixed) ---------- */
+.bottom-nav{
+  display:none;
+  position:fixed; left:0; right:0; bottom:0; z-index:150;
+  background:rgba(8,8,12,.94); backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+  box-shadow:0 -8px 24px rgba(0,0,0,.4);
+}
+.bottom-nav a{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:6px 2px; border-radius:10px;
+  font-family:var(--body); font-size:10.5px; font-weight:700;
+  color:var(--text-low); text-align:center;
+}
+.bottom-nav a svg{ width:20px; height:20px; }
+.bottom-nav a.active{ color:var(--gold); }
+.bottom-nav a.active svg{ filter:drop-shadow(0 0 6px rgba(255,207,63,.6)); }
+@media(max-width:720px){
+  .bottom-nav{ display:flex; }
+  body{ padding-bottom:64px; }
+}
+/* ---------- Nav Auth Widget ---------- */
+.nav-auth{ display:flex; align-items:center; gap:10px; }
+.nav-auth-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--body); font-weight:800; font-size:12.5px;
+  padding:9px 14px; border-radius:7px; border:none; cursor:pointer;
+  background:#9146FF; color:#fff;
+}
+.nav-auth-btn:hover{ filter:brightness(1.1); }
+.nav-user{ display:flex; align-items:center; gap:8px; }
+.nav-user img{ width:28px; height:28px; border-radius:50%; }
+.nav-user .info{ line-height:1.2; }
+.nav-user .name{ font-size:12.5px; font-weight:800; }
+.nav-user .points{ font-family:var(--mono); font-size:10.5px; color:var(--gold); }
+.nav-logout{
+  font-size:11px; color:var(--text-low); border:1px solid var(--line);
+  background:var(--bg-1); padding:6px 10px; border-radius:6px; cursor:pointer;
+}
+.nav-logout:hover{ color:var(--fuse-red); border-color:var(--fuse-red); }
+section{max-width:1180px; margin:0 auto; padding:70px 24px;}
+/* ---------- Shop hero ---------- */
+.shop-hero{
+  text-align:center; padding:80px 24px 50px;
+  max-width:760px; margin:0 auto;
+}
+.eyebrow{
+  font-family:var(--mono); font-size:12px; letter-spacing:2px;
+  color:var(--cyan); text-transform:uppercase;
+  display:inline-flex; align-items:center; gap:8px; margin-bottom:18px;
+}
+.eyebrow::before{
+  content:''; width:8px; height:8px; border-radius:50%;
+  background:var(--cyan); box-shadow:0 0 10px var(--cyan-glow);
+  animation:pulse 1.6s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.shop-hero h1{
+  font-family:var(--display);
+  font-size:clamp(34px, 5vw, 54px);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-bottom:16px;
+}
+.shop-hero h1 span{ color:var(--fuse-red); text-shadow:0 0 30px var(--fuse-red-glow); }
+.shop-hero p{color:var(--text-mid); font-size:16px;}
+/* ---------- Product grid ---------- */
+.product-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+  gap:22px;
+}
+.product-card{
+  background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+  overflow:hidden; display:flex; flex-direction:column;
+  transition:transform .2s, border-color .2s;
+  position:relative;
+}
+.product-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
+.product-card .soon-tag{
+  position:absolute; top:14px; right:14px; z-index:2;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:1px;
+  background:rgba(255,61,46,.15); color:var(--fuse-red);
+  border:1px solid rgba(255,61,46,.4);
+  padding:4px 9px; border-radius:20px; text-transform:uppercase;
+}
+.product-image{
+  aspect-ratio:1/1;
+  background:
+    linear-gradient(135deg, var(--bg-2) 0%, #0d0d13 100%);
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+  border-bottom:1px solid var(--line);
+}
+.product-image .ph-icon{
+  font-family:var(--display); font-size:15px; color:var(--text-low);
+  letter-spacing:2px; text-transform:uppercase;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.product-image .ph-icon svg{ width:44px; height:44px; opacity:.5; }
+.product-body{padding:18px 20px 20px; display:flex; flex-direction:column; gap:8px; flex:1;}
+.product-body h3{font-size:16px; font-weight:800;}
+.product-body .desc{font-size:13px; color:var(--text-mid);}
+.product-body .meta{
+  display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:10px;
+}
+.price{font-family:var(--mono); font-weight:600; font-size:16px; color:var(--gold);}
+.notify-btn{
+  font-size:12px; font-weight:800; padding:9px 14px; border-radius:7px;
+  background:var(--bg-2); border:1px solid var(--line); color:var(--text-mid);
+  cursor:not-allowed;
+}
+.fuse-divider{
+  position:relative; height:2px; margin:0 24px;
+  background-image:repeating-linear-gradient(90deg, var(--line) 0 8px, transparent 8px 14px);
+  max-width:1132px; margin-left:auto; margin-right:auto;
+}
+.fuse-divider::after{
+  content:'💥'; position:absolute; right:-6px; top:50%; transform:translateY(-50%);
+  font-size:18px;
+}
+/* ---------- Notify signup ---------- */
+.notify-box{
+  background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
+  padding:40px; text-align:center; max-width:620px; margin:0 auto;
+}
+.notify-box h3{font-family:var(--display); font-size:24px; text-transform:uppercase; margin-bottom:10px;}
+.notify-box p{color:var(--text-mid); font-size:14px; margin-bottom:20px;}
+.notify-form{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+.notify-form input{
+  flex:1; min-width:200px; padding:12px 14px; border-radius:8px;
+  border:1px solid var(--line); background:var(--bg-2); color:var(--text-hi);
+  font-family:var(--body); font-size:14px;
+}
+.notify-form input::placeholder{color:var(--text-low);}
+.btn-primary{
+  background:linear-gradient(135deg, var(--fuse-red), #c2281c);
+  color:#fff; box-shadow:0 4px 20px var(--fuse-red-glow);
+}
+.btn-primary:hover{filter:brightness(1.1);}
+footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
+.footer-inner{max-width:1180px; margin:0 auto;}
+.footer-legal{font-size:11.5px; color:var(--text-low); line-height:1.7; max-width:760px;}
+/* ---------- Support Chat Widget ---------- */
+.support-btn{
+  position:fixed; bottom:24px; right:24px; z-index:300;
+  width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+  background:linear-gradient(135deg, var(--cyan), #0d8f85);
+  box-shadow:0 6px 20px var(--cyan-glow);
+  display:flex; align-items:center; justify-content:center;
+}
+@media(max-width:720px){ .support-btn{ bottom:80px; right:16px; } }
+.support-btn svg{ width:26px; height:26px; color:#04211f; }
+.support-panel{
+  position:fixed; bottom:92px; right:24px; z-index:300;
+  width:320px; max-width:calc(100vw - 32px); max-height:70vh;
+  background:var(--bg-1); border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5); display:none; flex-direction:column; overflow:hidden;
+}
+@media(max-width:720px){ .support-panel{ bottom:148px; right:16px; } }
+.support-panel.open{ display:flex; }
+.support-header{ padding:16px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+.support-header h4{ font-family:var(--display); font-size:16px; text-transform:uppercase; }
+.support-header button{ background:none; border:none; color:var(--text-low); cursor:pointer; font-size:18px; }
+.support-body{ padding:14px 18px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; flex:1; }
+.support-msg{ font-size:13px; line-height:1.5; }
+.support-msg.bot{ background:var(--bg-2); padding:10px 12px; border-radius:10px; color:var(--text-mid); }
+.support-msg.user{ background:rgba(255,207,63,.1); padding:10px 12px; border-radius:10px; color:var(--gold); align-self:flex-end; }
+.faq-options{ display:flex; flex-direction:column; gap:6px; }
+.faq-btn{
+  text-align:left; padding:9px 12px; border-radius:8px; border:1px solid var(--line);
+  background:var(--bg-2); color:var(--text-mid); font-size:12.5px; cursor:pointer;
+}
+.faq-btn:hover{ border-color:var(--cyan); color:var(--cyan); }
 </style>
 </head>
 <body>
+<header>
+<nav class="nav">
+<a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></a>
+<div class="nav-links" id="main-nav-links">
+<a href="index.html#casinos" class="geo-hide-ch" data-i18n="nav.angebote.de">Angebote DE</a>
+<a href="angebote-schweiz.html" data-i18n="nav.angebote.ch">Angebote CH</a>
+<a href="index.html#streams" data-i18n="nav.streamer">Streamer</a>
+<a href="games.html" data-i18n="nav.spiele">Spiele</a>
+<a href="shop.html" class="active" data-i18n="nav.shop">Shop</a>
+<a href="tournierbaum.html" data-i18n="nav.tournierbaum">Tournierbaum</a>
+<a href="index.html#verantwortung" data-i18n="nav.verantwortung">Verantwortung</a>
+</div>
+<div id="lang-switcher-slot"></div>
+<div class="nav-auth" id="nav-auth"></div>
+<button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menü öffnen"><span></span></button>
+</nav>
+</header>
 
-  <header>
-    <nav class="nav">
-      <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="TNT-Zockt Logo" style="height:52px; width:auto;"></span></a>
-      <div class="nav-links" id="main-nav-links">
-        <a href="index.html#casinos" class="geo-hide-ch" data-i18n="nav.angebote.de">Angebote DE</a>
-        <a href="angebote-schweiz.html" data-i18n="nav.angebote.ch">Angebote CH</a>
-        <a href="index.html#streams" data-i18n="nav.streamer">Streamer</a>
-        <a href="games.html" data-i18n="nav.spiele">Spiele</a>
-        <a href="shop.html" class="active" data-i18n="nav.shop">Shop</a>
-        <a href="tournierbaum.html" data-i18n="nav.tournierbaum">Tournierbaum</a>
-        <a href="index.html#verantwortung" data-i18n="nav.verantwortung">Verantwortung</a>
-      </div>
-      <div id="lang-switcher-slot"></div>
-      <div class="nav-auth" id="nav-auth"></div>
-      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menü öffnen"><span></span></button>
-    </nav>
-  </header>
+<div class="shop-hero">
+<div class="eyebrow" data-i18n="shop.hero.eyebrow">Merch · Bald verfügbar</div>
+<h1>TNT<span>-</span>Zockt Shop</h1>
+<p data-i18n="shop.hero.desc">Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald.</p>
+</div>
 
-  <div class="shop-hero">
-    <div class="eyebrow" data-i18n="shop.hero.eyebrow">Merch · Bald verfügbar</div>
-    <h1>TNT<span>-</span>Zockt Shop</h1>
-    <p data-i18n="shop.hero.desc">Shirts, Caps und mehr im TNT-Zockt Look. Der Shop ist gerade im Aufbau — die ersten Drops kommen bald.</p>
-  </div>
+<div class="fuse-divider"></div>
 
-  <div class="fuse-divider"></div>
+<!-- LOGIN GATE (sichtbar, solange niemand eingeloggt ist) -->
+<section id="login-gate">
+<div class="notify-box">
+<h3 data-i18n="shop.gate.title">🔒 Nur für Mitglieder</h3>
+<p data-i18n="shop.gate.desc">Logg dich mit Twitch oder Kick ein, um den Shop zu sehen.</p>
+<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+<button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
+<span data-i18n="shop.gate.twitch">Mit Twitch anmelden</span>
+</button>
+<button class="btn" style="background:#53fc18; color:#04210a; display:inline-flex; align-items:center; gap:8px;" onclick="loginWithKick()">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>
+<span data-i18n="shop.gate.kick">Mit Kick anmelden</span>
+</button>
+</div>
+<div id="login-status" style="font-size:12px; color:var(--text-low); margin-top:14px;"></div>
+</div>
+</section>
 
-  <!-- LOGIN GATE (sichtbar, solange niemand eingeloggt ist) -->
-  <section id="login-gate">
-    <div class="notify-box">
-      <h3 data-i18n="shop.gate.title">🔒 Nur für Mitglieder</h3>
-      <p data-i18n="shop.gate.desc">Logg dich mit Twitch oder Kick ein, um den Shop zu sehen.</p>
-      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="loginWithTwitch()" style="display:inline-flex; align-items:center; gap:8px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>
-          <span data-i18n="shop.gate.twitch">Mit Twitch anmelden</span>
-        </button>
-        <button class="btn" style="background:#53fc18; color:#04210a; display:inline-flex; align-items:center; gap:8px;" onclick="loginWithKick()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>
-          <span data-i18n="shop.gate.kick">Mit Kick anmelden</span>
-        </button>
-      </div>
-      <div id="login-status" style="font-size:12px; color:var(--text-low); margin-top:14px;"></div>
-    </div>
-  </section>
+<!-- SHOP-INHALT (nur sichtbar nach Login) -->
+<div id="shop-content" style="display:none;">
+<section>
+<div class="product-grid" id="product-grid"></div>
+</section>
 
-  <!-- SHOP-INHALT (nur sichtbar nach Login) -->
-  <div id="shop-content" style="display:none;">
+<div class="fuse-divider"></div>
 
-    <section>
-      <div class="product-grid" id="product-grid"></div>
-    </section>
+<section>
+<div class="notify-box">
+<h3 data-i18n="shop.notify.title">Als Erste(r) informiert werden</h3>
+<p data-i18n="shop.notify.desc">Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
+<form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
+<input type="email" data-i18n-placeholder="shop.notify.placeholder" placeholder="Deine E-Mail-Adresse" required>
+<button class="btn btn-primary" type="submit" data-i18n="shop.notify.btn">Benachrichtigen</button>
+</form>
+</div>
+</section>
+</div>
 
-    <div class="fuse-divider"></div>
+<footer>
+<div class="footer-inner">
+<p class="footer-legal" data-i18n="shop.footer.legal">
+© 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Der Shop-Bereich befindet sich im Aufbau, alle gezeigten Produkte, Preise und Bilder sind Platzhalter.
+</p>
+<p class="footer-legal" style="margin-top:10px;">
+<a href="admin.html" data-i18n="footer.admin">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
+</p>
+</div>
+</footer>
 
-    <section>
-      <div class="notify-box">
-        <h3 data-i18n="shop.notify.title">Als Erste(r) informiert werden</h3>
-        <p data-i18n="shop.notify.desc">Trag dich ein und erfahre sofort, wenn der TNT-Zockt Merch-Drop live geht.</p>
-        <form class="notify-form" onsubmit="event.preventDefault(); alert('Danke! (Platzhalter — hier später echte Anmeldung einbinden)');">
-          <input type="email" data-i18n-placeholder="shop.notify.placeholder" placeholder="Deine E-Mail-Adresse" required>
-          <button class="btn btn-primary" type="submit" data-i18n="shop.notify.btn">Benachrichtigen</button>
-        </form>
-      </div>
-    </section>
-
-  </div>
-
-  <footer>
-    <div class="footer-inner">
-      <p class="footer-legal" data-i18n="shop.footer.legal">
-        © 2026 TNT-Zockt | Ein Projekt von TNT-Studios.ch. Der Shop-Bereich befindet sich im Aufbau, alle gezeigten Produkte, Preise und Bilder sind Platzhalter.
-      </p>
-      <p class="footer-legal" style="margin-top:10px;">
-        <a href="admin.html" data-i18n="footer.admin">🔧 Admin-Bereich (Inhalte bearbeiten)</a>
-      </p>
-    </div>
-  </footer>
-
-  <!-- Mobile Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="index.html#casinos" class="geo-hide-ch">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5h.01M14.5 14.5h.01M15 9l-6 6"/></svg>
-      <span data-i18n="nav.angebote.de">Angebote DE</span>
-    </a>
-    <a href="index.html#streams">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M9.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
-      <span data-i18n="bottom.streamer">Streamer</span>
-    </a>
-    <a href="games.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
-      <span data-i18n="bottom.spiele">Spiele</span>
-    </a>
-    <a href="shop.html" class="active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
-      <span data-i18n="bottom.shop">Shop</span>
-    </a>
-    <a href="index.html#verantwortung">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
-      <span data-i18n="bottom.schutz">Schutz</span>
-    </a>
-  </nav>
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav">
+<a href="index.html#casinos" class="geo-hide-ch">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5h.01M14.5 14.5h.01M15 9l-6 6"/></svg>
+<span data-i18n="nav.angebote.de">Angebote DE</span>
+</a>
+<a href="index.html#streams">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M9.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
+<span data-i18n="bottom.streamer">Streamer</span>
+</a>
+<a href="games.html">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
+<span data-i18n="bottom.spiele">Spiele</span>
+</a>
+<a href="shop.html" class="active">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V6a6 6 0 0 1 12 0v2"/><rect x="3" y="8" width="18" height="13" rx="2"/></svg>
+<span data-i18n="bottom.shop">Shop</span>
+</a>
+<a href="index.html#verantwortung">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
+<span data-i18n="bottom.schutz">Schutz</span>
+</a>
+</nav>
 
 <script>
-  function toggleMobileMenu(){
-    const nav = document.getElementById('main-nav-links');
-    const btn = document.getElementById('hamburger-btn');
-    nav.classList.toggle('mobile-open');
-    btn.classList.toggle('open');
-  }
-  document.addEventListener('click', function(e){
-    const nav = document.getElementById('main-nav-links');
-    const btn = document.getElementById('hamburger-btn');
-    if(nav && nav.classList.contains('mobile-open')){
-      if(e.target.closest('#main-nav-links a')){
-        nav.classList.remove('mobile-open');
-        btn.classList.remove('open');
-      } else if(!e.target.closest('#main-nav-links') && !e.target.closest('#hamburger-btn')){
-        nav.classList.remove('mobile-open');
-        btn.classList.remove('open');
-      }
+function toggleMobileMenu(){
+  const nav = document.getElementById('main-nav-links');
+  const btn = document.getElementById('hamburger-btn');
+  nav.classList.toggle('mobile-open');
+  btn.classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  const nav = document.getElementById('main-nav-links');
+  const btn = document.getElementById('hamburger-btn');
+  if(nav && nav.classList.contains('mobile-open')){
+    if(e.target.closest('#main-nav-links a')){
+      nav.classList.remove('mobile-open');
+      btn.classList.remove('open');
+    } else if(!e.target.closest('#main-nav-links') && !e.target.closest('#hamburger-btn')){
+      nav.classList.remove('mobile-open');
+      btn.classList.remove('open');
     }
+  }
+});
+
+function loginWithTwitch(){
+  sb.auth.signInWithOAuth({
+    provider: 'twitch',
+    options: { redirectTo: window.location.origin + '/shop.html' }
   });
+}
 
-  function loginWithTwitch(){
-    sb.auth.signInWithOAuth({
-      provider: 'twitch',
-      options: { redirectTo: window.location.origin + '/shop.html' }
-    });
+async function logout(){
+  await sb.auth.signOut();
+  logoutKick();
+}
+
+function getTwitchUsername(user){
+  const meta = user.user_metadata || {};
+  return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || '';
+}
+
+function twitchIconSvg(){
+  return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>';
+}
+function kickIconSvg(){
+  return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>';
+}
+
+async function resolveIdentity(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session && session.user){
+    const username = getTwitchUsername(session.user);
+    const avatar = session.user.user_metadata && (session.user.user_metadata.avatar_url || session.user.user_metadata.picture);
+    return { provider:'twitch', username, avatar, key: username };
   }
-
-  async function logout(){
-    await sb.auth.signOut();
-    logoutKick();
+  const kick = getKickSession();
+  if(kick){
+    return { provider:'kick', username: kick.username, avatar: kick.avatar, key: 'kick:' + kick.username };
   }
+  return null;
+}
 
-  function getTwitchUsername(user){
-    const meta = user.user_metadata || {};
-    return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || '';
-  }
-
-  function twitchIconSvg(){
-    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2 6v14h6v2h4l2-2h5l4-4V2H4zm17 12-3 3h-5l-2 2v-2H6V4h15v10z"/><path d="M14 7h2v5h-2zM9 7h2v5H9z"/></svg>';
-  }
-  function kickIconSvg(){
-    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v6h2V6h2V4h2V2h6v6h-2v2h-2v2h-2v4h2v2h2v2h2v6h-6v-2h-2v-2h-2v-2H8v6H2z"/></svg>';
-  }
-
-  async function resolveIdentity(){
-    const { data: { session } } = await sb.auth.getSession();
-    if(session && session.user){
-      const username = getTwitchUsername(session.user);
-      const avatar = session.user.user_metadata && (session.user.user_metadata.avatar_url || session.user.user_metadata.picture);
-      return { provider:'twitch', username, avatar, key: username };
-    }
-    const kick = getKickSession();
-    if(kick){
-      return { provider:'kick', username: kick.username, avatar: kick.avatar, key: 'kick:' + kick.username };
-    }
-    return null;
-  }
-
-  async function loadNavPoints(username, platform){
-    const el = document.getElementById('nav-points');
-    if(!el) return;
-    try{
-      const res = await fetch('/api/points?username=' + encodeURIComponent(username) + '&platform=' + encodeURIComponent(platform));
-      const data = await res.json();
-      console.log('Punkte-API-Antwort:', res.status, data);
-      if(data && typeof data.points !== 'undefined'){
-        el.textContent = '⭐ ' + data.points;
-      } else {
-        el.textContent = t('nav.points.soon');
-      }
-    }catch(e){
-      el.textContent = t('nav.points.soon');
-      console.error('Punkte-Fehler:', e);
-    }
-  }
-
-  function renderNavAuth(identity){
-    const container = document.getElementById('nav-auth');
-    if(!container) return;
-
-    if(identity){
-      container.innerHTML = `
-        <div class="nav-user">
-          ${identity.avatar ? `<img src="${identity.avatar}" alt="">` : ''}
-          <div class="info">
-            <div class="name">${identity.username || 'Nutzer'} <span style="opacity:.6; font-size:9px;">(${identity.provider === 'twitch' ? 'Twitch' : 'Kick'})</span></div>
-            <div class="points" id="nav-points">${t('nav.points.loading')}</div>
-          </div>
-        </div>
-        <button class="nav-logout" onclick="logout()">${t('nav.logout')}</button>
-      `;
-      if(identity.username) loadNavPoints(identity.username, identity.provider);
+async function loadNavPoints(username, platform){
+  const el = document.getElementById('nav-points');
+  if(!el) return;
+  try{
+    const res = await fetch('/api/points?username=' + encodeURIComponent(username) + '&platform=' + encodeURIComponent(platform));
+    const data = await res.json();
+    console.log('Punkte-API-Antwort:', res.status, data);
+    if(data && typeof data.points !== 'undefined'){
+      el.textContent = '⭐ ' + data.points;
     } else {
-      container.innerHTML = `
-        <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} ${t('nav.login.twitch')}</button>
-        <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} ${t('nav.login.kick')}</button>
-      `;
+      el.textContent = t('nav.points.soon');
     }
+  }catch(e){
+    el.textContent = t('nav.points.soon');
+    console.error('Punkte-Fehler:', e);
   }
+}
 
-  function showLoggedIn(identity){
-    document.getElementById('login-gate').style.display = 'none';
-    document.getElementById('shop-content').style.display = 'block';
-    renderProducts();
+function renderNavAuth(identity){
+  const container = document.getElementById('nav-auth');
+  if(!container) return;
+  if(identity){
+    container.innerHTML = `
+      <div class="nav-user">
+        ${identity.avatar ? `<img src="${identity.avatar}" alt="">` : ''}
+        <div class="info">
+          <div class="name">${identity.username || 'Nutzer'} <span style="opacity:.6; font-size:9px;">(${identity.provider === 'twitch' ? 'Twitch' : 'Kick'})</span></div>
+          <div class="points" id="nav-points">${t('nav.points.loading')}</div>
+        </div>
+      </div>
+      <button class="nav-logout" onclick="logout()">${t('nav.logout')}</button>
+    `;
+    if(identity.username) loadNavPoints(identity.username, identity.provider);
+  } else {
+    container.innerHTML = `
+      <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} ${t('nav.login.twitch')}</button>
+      <button class="nav-auth-btn" style="background:#53fc18; color:#04210a;" onclick="loginWithKick()">${kickIconSvg()} ${t('nav.login.kick')}</button>
+    `;
   }
+}
 
-  function showLoginGate(){
-    document.getElementById('login-gate').style.display = 'block';
-    document.getElementById('shop-content').style.display = 'none';
-  }
+function showLoggedIn(identity){
+  document.getElementById('login-gate').style.display = 'none';
+  document.getElementById('shop-content').style.display = 'block';
+  renderProducts();
+}
+function showLoginGate(){
+  document.getElementById('login-gate').style.display = 'block';
+  document.getElementById('shop-content').style.display = 'none';
+}
 
-  async function refreshAuthUI(){
-    const identity = await resolveIdentity();
-    renderNavAuth(identity);
-    if(identity) showLoggedIn(identity);
-    else showLoginGate();
-  }
+async function refreshAuthUI(){
+  const identity = await resolveIdentity();
+  renderNavAuth(identity);
+  if(identity) showLoggedIn(identity);
+  else showLoginGate();
+}
 
-  function onLanguageChanged(){
-    refreshAuthUI();
-    renderFaqOptions();
-  }
+function onLanguageChanged(){
+  refreshAuthUI();
+  renderFaqOptions();
+}
 
-  (async function initAuth(){
-    document.getElementById('lang-switcher-slot').innerHTML = tntLangSwitcherHTML();
-    tntApplyTranslations();
-    tntUpdateLangSwitcher();
-    await refreshAuthUI();
-    sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
-  })();
+(async function initAuth(){
+  document.getElementById('lang-switcher-slot').innerHTML = tntLangSwitcherHTML();
+  tntApplyTranslations();
+  tntUpdateLangSwitcher();
+  await refreshAuthUI();
+  sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
+})();
 </script>
 
 <script>
-  const ICONS = {
-    shirt:  '<path d="M8 4 L4 8 L7 11 L8 10 V20 H16 V10 L17 11 L20 8 L16 4 L14 6 A2 2 0 0 1 10 6 Z"/>',
-    cap:    '<circle cx="12" cy="13" r="7"/><path d="M6 8 C6 4 9 2 12 2 C15 2 18 4 18 8"/>',
-    hoodie: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
-    mug:    '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'
-  };
+const ICONS = {
+  shirt: '<path d="M8 4 L4 8 L7 11 L8 10 V20 H16 V10 L17 11 L20 8 L16 4 L14 6 A2 2 0 0 1 10 6 Z"/>',
+  cap:   '<circle cx="12" cy="13" r="7"/><path d="M6 8 C6 4 9 2 12 2 C15 2 18 4 18 8"/>',
+  hoodie:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+  mug:   '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'
+};
 
-  async function renderProducts(){
-    const grid = document.getElementById('product-grid');
-    const { data, error } = await sb.from('products').select('*').order('sort_order', { ascending: true });
-    if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
-    grid.innerHTML = data.map(p => `
-      <div class="product-card">
-        <span class="soon-tag" data-i18n="shop.soon.tag">Bald verfügbar</span>
-        <div class="product-image">
-          <div class="ph-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${ICONS[p.icon] || ICONS.shirt}</svg>
-            <span data-i18n="shop.product.image">[Produktbild]</span>
-          </div>
-        </div>
-        <div class="product-body">
-          <h3>${p.name}</h3>
-          <div class="desc">${p.description || ''}</div>
-          <div class="meta">
-            <span class="price">${p.price}</span>
-            <span class="notify-btn" data-i18n="shop.badge.soon">Bald da</span>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
+async function renderProducts(){
+  const grid = document.getElementById('product-grid');
+  const { data, error } = await sb.from('products').select('*').order('sort_order', { ascending: true });
+  if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
+  grid.innerHTML = data.map(p => {
+    const hasLink = p.link && String(p.link).trim().length > 0;
+    const tag = hasLink ? 'a' : 'div';
+    const linkAttrs = hasLink ? ' href="' + p.link + '" target="_blank" rel="noopener" style="cursor:pointer;"' : '';
+    const badge = hasLink
+      ? '<span class="soon-tag" style="background:rgba(40,240,224,.15); color:var(--cyan); border-color:rgba(40,240,224,.4);">Live</span>'
+      : '<span class="soon-tag" data-i18n="shop.soon.tag">Bald verfügbar</span>';
+    const cta = hasLink
+      ? '<span class="notify-btn" style="cursor:pointer; background:linear-gradient(135deg, var(--fuse-red), #c2281c); color:#fff; border:none;">Jetzt ansehen →</span>'
+      : '<span class="notify-btn" data-i18n="shop.badge.soon">Bald da</span>';
+    return '<' + tag + ' class="product-card"' + linkAttrs + '>'
+      + badge
+      + '<div class="product-image"><div class="ph-icon">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + (ICONS[p.icon] || ICONS.shirt) + '</svg>'
+      + '<span data-i18n="shop.product.image">[Produktbild]</span>'
+      + '</div></div>'
+      + '<div class="product-body"><h3>' + p.name + '</h3>'
+      + '<div class="desc">' + (p.description || '') + '</div>'
+      + '<div class="meta"><span class="price">' + p.price + '</span>' + cta + '</div>'
+      + '</div>'
+      + '</' + tag + '>';
+  }).join('');
+}
+// renderProducts() wird jetzt erst nach erfolgreichem Login aufgerufen (siehe initAuth)
 
-  // renderProducts() wird jetzt erst nach erfolgreichem Login aufgerufen (siehe initAuth)
-
-  /* ---------- Besucher-Tracking (datenschutzfreundlich: nur Seite, Zeit, Referrer) ---------- */
-  (function trackVisit(){
-    try{
-      sb.from('visits').insert({
-        page: location.pathname || '/shop.html',
-        referrer: document.referrer || null
-      }).then(()=>{});
-    }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
-  })();
+/* ---------- Besucher-Tracking (datenschutzfreundlich: nur Seite, Zeit, Referrer) ---------- */
+(function trackVisit(){
+  try{
+    sb.from('visits').insert({
+      page: location.pathname || '/shop.html',
+      referrer: document.referrer || null
+    }).then(()=>{});
+  }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
+})();
 </script>
 
 <!-- SUPPORT CHAT WIDGET -->
 <button class="support-btn" onclick="toggleSupport()" aria-label="Support öffnen">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
 </button>
 <div class="support-panel" id="support-panel">
-  <div class="support-header">
-    <h4 data-i18n="support.title">💬 Support</h4>
-    <button onclick="toggleSupport()">✕</button>
-  </div>
-  <div class="support-body" id="support-body">
-    <div class="support-msg bot" data-i18n="support.intro">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
-    <div class="faq-options" id="faq-options"></div>
-  </div>
+<div class="support-header">
+<h4 data-i18n="support.title">💬 Support</h4>
+<button onclick="toggleSupport()">✕</button>
+</div>
+<div class="support-body" id="support-body">
+<div class="support-msg bot" data-i18n="support.intro">Hey! Ich bin der TNT-Zockt Support-Bot. Wähl unten eine Frage aus:</div>
+<div class="faq-options" id="faq-options"></div>
+</div>
 </div>
 
 <script>
-  const FAQ_KEYS = ['faq.shop.1', 'faq.shop.2', 'faq.shop.3', 'faq.shop.4'];
-
-  function toggleSupport(){
-    document.getElementById('support-panel').classList.toggle('open');
-    renderFaqOptions();
-  }
-  function renderFaqOptions(){
-    const el = document.getElementById('faq-options');
-    el.innerHTML = FAQ_KEYS.map((key, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${t(key + '.q')}</button>`).join('');
-  }
-  function answerFaq(i){
-    const body = document.getElementById('support-body');
-    const key = FAQ_KEYS[i];
-    body.innerHTML += `<div class="support-msg user">${t(key + '.q')}</div><div class="support-msg bot">${t(key + '.a')}</div>`;
-    body.scrollTop = body.scrollHeight;
-  }
+const FAQ_KEYS = ['faq.shop.1', 'faq.shop.2', 'faq.shop.3', 'faq.shop.4'];
+function toggleSupport(){
+  document.getElementById('support-panel').classList.toggle('open');
+  renderFaqOptions();
+}
+function renderFaqOptions(){
+  const el = document.getElementById('faq-options');
+  el.innerHTML = FAQ_KEYS.map((key, i) => `<button class="faq-btn" onclick="answerFaq(${i})">${t(key + '.q')}</button>`).join('');
+}
+function answerFaq(i){
+  const body = document.getElementById('support-body');
+  const key = FAQ_KEYS[i];
+  body.innerHTML += `<div class="support-msg user">${t(key + '.q')}</div><div class="support-msg bot">${t(key + '.a')}</div>`;
+  body.scrollTop = body.scrollHeight;
+}
 </script>
 </body>
 </html>
