@@ -558,10 +558,10 @@ async function renderProducts(){
       ? '<span class="notify-btn" style="cursor:pointer; background:linear-gradient(135deg, var(--fuse-red), #c2281c); color:#fff; border:none;">Jetzt ansehen →</span>'
       : '<span class="notify-btn" data-i18n="shop.badge.soon">Bald da</span>';
     return '<' + tag + ' class="product-card"' + linkAttrs + '>'
-      + badge
-      + '<div class="product-image"><div class="ph-icon">'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + (ICONS[p.icon] || ICONS.shirt) + '</svg>'
-      + '<span data-i18n="shop.product.image">[Produktbild]</span>'
+      + '<div class="product-image">' + (p.image_url
+? '<img src="' + p.image_url + '" alt="" style="width:100%; height:100%; object-fit:cover;">'
+: '<div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + (ICONS[p.icon] || ICONS.shirt) + '</svg><span data-i18n="shop.product.image">[Produktbild]</span></div>'
+) + '</div>'
       + '</div></div>'
       + '<div class="product-body"><h3>' + p.name + '</h3>'
       + '<div class="desc">' + (p.description || '') + '</div>'
