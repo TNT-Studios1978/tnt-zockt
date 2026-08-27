@@ -613,6 +613,14 @@ function renderProductList(){
         </div>
         <div style="grid-column:span 3;"><label>Beschreibung</label><input value="${p.description || ''}" onchange="updateField('products',${i},'description',this.value)"></div>
         <div style="grid-column:span 3;"><label>Link (optional -- macht die Karte klickbar &amp; zeigt "Live" statt "Bald da", z.B. https://tnt-homecloud-shop.vercel.app)</label><input value="${p.link || ''}" placeholder="https://…" onchange="updateField('products',${i},'link',this.value)"></div>
+<div style="grid-column:span 3;">
+<label>Produktbild</label>
+<div style="display:flex; gap:10px; align-items:center;">
+${p.image_url ? `<img src="${p.image_url}" alt="" style="width:50px; height:50px; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:var(--bg-2);">` : ''}
+<input type="file" accept="image/*" onchange="uploadProductImage(event, ${i})" style="flex:1;">
+</div>
+<div id="upload-status-product-${i}" style="font-size:11px; color:var(--text-low); margin-top:4px;"></div>
+</div>
       </div>
       <div class="entry-footer">
         <span class="id-tag">ID: ${p.id}</span>
@@ -628,6 +636,35 @@ async function addProduct(){
   const { error } = await sb.from('products').insert(entry);
   if(error){ setStatus('Fehler beim Hinzufügen.', true); console.error(error); return; }
   PRODUCTS.push(entry); renderProductList(); setStatus('✓ Hinzugefügt');
+}
+
+async function uploadProductImage(event, index){
+const file = event.target.files[0];
+if(!file) return;
+const entry = PRODUCTS[index];
+const statusEl = document.getElementById('upload-status-product-' + index);
+statusEl.textContent = 'Lade hoch…';
+const ext = file.name.split('.').pop();
+const path = `products/${entry.id}-${Date.now()}.${ext}`;
+const { error: uploadError } = await sb.storage.from('logos').upload(path, file, { upsert: true });
+if(uploadError){
+statusEl.textContent = 'Fehler beim Hochladen.';
+console.error(uploadError);
+return;
+}
+const { data: urlData } = sb.storage.from('logos').getPublicUrl(path);
+const publicUrl = urlData.publicUrl;
+entry.image_url = publicUrl;
+setStatus('Speichern…');
+const { error: dbError } = await sb.from('products').update({ image_url: publicUrl }).eq('id', entry.id);
+if(dbError){
+statusEl.textContent = 'Bild hochgeladen, aber Speichern fehlgeschlagen.';
+console.error(dbError);
+return;
+}
+statusEl.textContent = ' ✓ Bild gespeichert';
+renderProductList();
+setStatus(' ✓ Produktbild aktualisiert (' + new Date().toLocaleTimeString() + ')');
 }
 
 /* ---------- SHARED ---------- */
