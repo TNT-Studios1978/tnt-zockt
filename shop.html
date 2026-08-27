@@ -526,13 +526,14 @@ function onLanguageChanged(){
   renderFaqOptions();
 }
 
-(async function initAuth(){
-  document.getElementById('lang-switcher-slot').innerHTML = tntLangSwitcherHTML();
-  tntApplyTranslations();
-  tntUpdateLangSwitcher();
-  await refreshAuthUI();
-  sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
-})();
+function initAuth(){
+document.getElementById('lang-switcher-slot').innerHTML = tntLangSwitcherHTML();
+tntApplyTranslations();
+tntUpdateLangSwitcher();
+refreshAuthUI();
+sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
+}
+if(document.readyState === 'complete'){ initAuth(); } else { window.addEventListener('load', initAuth); } // erst starten, wenn alle Scripts (inkl. renderProducts) geladen sind}
 </script>
 
 <script>
