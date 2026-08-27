@@ -516,10 +516,9 @@ function showLoginGate(){
 
 async function refreshAuthUI(){
   const identity = await resolveIdentity();
-  renderNavAuth(identity);
-  if(identity) showLoggedIn(identity);
-  else showLoginGate();
-}
+renderNavAuth(identity);
+showLoggedIn(identity); // Login-Sperre entfernt — Shop ist immer für alle sichtbar
+
 
 function onLanguageChanged(){
   refreshAuthUI();
