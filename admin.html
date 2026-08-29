@@ -608,7 +608,7 @@ function renderProductList(){
         <div><label>Preis</label><input value="${p.price || ''}" onchange="updateField('products',${i},'price',this.value)"></div>
         <div><label>Icon</label>
           <select onchange="updateField('products',${i},'icon',this.value)">
-            ${['shirt','cap','hoodie','mug'].map(ic => `<option value="${ic}" ${p.icon===ic?'selected':''}>${ic}</option>`).join('')}
+            ${['shirt','cap','hoodie','mug','bag','beanie','totebag','sticker','pin','poster','bottle','keychain','socks','tanktop','box'].map(ic => `<option value="${ic}" ${p.icon===ic?'selected':''}>${ic}</option>`).join('')}
           </select>
         </div>
         <div style="grid-column:span 3;"><label>Beschreibung</label><input value="${p.description || ''}" onchange="updateField('products',${i},'description',this.value)"></div>
