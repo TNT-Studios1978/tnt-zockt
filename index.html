@@ -948,24 +948,41 @@
     return null;
   }
 
-  async function loadNavPoints(username, platform){
-    const el = document.getElementById('nav-points');
-    if(!el) return;
-    try{
-      const res = await fetch('/api/points?username=' + encodeURIComponent(username) + '&platform=' + encodeURIComponent(platform));
-      const data = await res.json();
-      console.log('Punkte-API-Antwort:', res.status, data);
-      if(data && typeof data.points !== 'undefined'){
-        el.textContent = '⭐ ' + data.points;
-      } else {
-        el.textContent = t('nav.points.soon');
-        if(data.raw) console.log('Rohantwort von Streamlabs:', data.raw);
-      }
-    }catch(e){
-      el.textContent = t('nav.points.soon');
-      console.error('Punkte-Fehler:', e);
-    }
-  }
+async function recordLogin(identity, points, pointsAlltime){
+try{
+await sb.from('user_logins').upsert({
+login: identity.key,
+platform: identity.provider,
+display_name: identity.username || null,
+avatar_url: identity.avatar || null,
+points: (typeof points === 'number') ? points : null,
+points_alltime: (typeof pointsAlltime === 'number') ? pointsAlltime : null,
+last_seen: new Date().toISOString()
+}, { onConflict: 'login' });
+}catch(e){ console.error('Login konnte nicht gespeichert werden:', e); }
+}
+
+async function loadNavPoints(identity){
+const el = document.getElementById('nav-points');
+if(!el) return;
+try{
+const res = await fetch('/api/points?username=' + encodeURIComponent(identity.username) + '&platform=' + encodeURIComponent(identity.provider));
+const data = await res.json();
+console.log('Punkte-API-Antwort:', res.status, data);
+if(data && typeof data.points !== 'undefined'){
+el.textContent = '⭐ ' + data.points;
+recordLogin(identity, data.points, data.pointsAlltime);
+} else {
+el.textContent = t('nav.points.soon');
+recordLogin(identity, null, null);
+if(data.raw) console.log('Rohantwort von Streamlabs:', data.raw);
+}
+}catch(e){
+el.textContent = t('nav.points.soon');
+console.error('Punkte-Fehler:', e);
+recordLogin(identity, null, null);
+}
+}
 
   function renderNavAuth(identity){
     const container = document.getElementById('nav-auth');
@@ -982,7 +999,7 @@
         </div>
         <button class="nav-logout" onclick="logout()">${t('nav.logout')}</button>
       `;
-      if(identity.username) loadNavPoints(identity.username, identity.provider);
+      if(identity.username) loadNavPoints(identity);
     } else {
       container.innerHTML = `
         <button class="nav-auth-btn" onclick="loginWithTwitch()">${twitchIconSvg()} ${t('nav.login.twitch')}</button>
