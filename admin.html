@@ -186,6 +186,16 @@ Es werden nur <strong>Seite, Zeitpunkt und Herkunft (Referrer)</strong> gespeich
 </div>
 <div id="users-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px;"></div>
 <div id="users-list"></div>
+
+<div class="toolbar" style="margin-top:36px;">
+<h2>Alle Zuschauer mit Punkten</h2>
+<button class="btn-ghost" onclick="loadLeaderboard()">📊 Bestenliste laden</button>
+</div>
+<div class="info-box" style="margin-bottom:20px;">
+Zeigt <strong>alle</strong> Zuschauer mit StreamElements-Punkten — auch die, die sich noch nie auf tnt-zockt.ch angemeldet haben. So siehst du, wie viele treue Zuschauer die Seite noch nicht kennen.
+</div>
+<div id="leaderboard-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px;"></div>
+<div id="leaderboard-list"></div>
 </div>
 </main>
 
@@ -437,6 +447,58 @@ const input = document.getElementById('user-chips-' + login);
 const current = parseInt(input.value) || 0;
 input.value = Math.max(0, current + delta);
 await saveUserChips(login);
+}
+
+async function loadLeaderboard(){
+const statsEl = document.getElementById('leaderboard-stats');
+const listEl = document.getElementById('leaderboard-list');
+statsEl.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
+listEl.innerHTML = '';
+try{
+const res = await fetch('/api/leaderboard?limit=100');
+const data = await res.json();
+if(!data || !Array.isArray(data.users)){
+statsEl.innerHTML = '';
+listEl.innerHTML = '<p style="color:#ff6b6b">Bestenliste konnte nicht geladen werden.</p>';
+console.error('Bestenliste-Antwort:', data);
+return;
+}
+if(!USERS_LOADED) await loadUsers();
+const knownLogins = new Set(USERS.map(u => (u.login || '').toLowerCase()));
+const total = data.users.length;
+const registered = data.users.filter(u => knownLogins.has((u.username || '').toLowerCase())).length;
+const notRegistered = total - registered;
+statsEl.innerHTML = `
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:26px; color:var(--gold);">${total}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Zuschauer mit Punkten</div>
+</div>
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:22px; color:var(--cyan);">${registered}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Bereits angemeldet</div>
+</div>
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:22px; color:#ff6b6b;">${notRegistered}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Noch nicht angemeldet</div>
+</div>
+`;
+listEl.innerHTML = data.users.map((u, i) => {
+const isRegistered = knownLogins.has((u.username || '').toLowerCase());
+return `
+<div class="entry-card" style="display:flex; align-items:center; gap:14px; padding:12px 16px; flex-wrap:wrap;">
+<div style="font-family:var(--mono); color:var(--text-low); min-width:34px;">#${i+1}</div>
+<div style="font-weight:800; font-size:14px; min-width:160px;">${u.username}</div>
+<div style="font-family:var(--mono); color:var(--gold); min-width:100px;">⭐ ${u.points}</div>
+<div style="margin-left:auto; font-size:11px; font-weight:800; padding:5px 10px; border-radius:6px; ${isRegistered ? 'background:rgba(40,240,224,.15); color:var(--cyan);' : 'background:rgba(255,107,107,.12); color:#ff6b6b;'}">
+${isRegistered ? '✓ Angemeldet auf tnt-zockt.ch' : '✕ Noch nicht angemeldet'}
+</div>
+</div>`;
+}).join('');
+}catch(e){
+statsEl.innerHTML = '';
+listEl.innerHTML = '<p style="color:#ff6b6b">Fehler beim Laden der Bestenliste.</p>';
+console.error(e);
+}
 }
 
 /* ---------- CASINOS ---------- */
