@@ -1052,14 +1052,21 @@ recordLogin(identity, null, null);
   })();
 
   /* ---------- Besucher-Tracking (datenschutzfreundlich: nur Seite, Zeit, Referrer) ---------- */
-  (function trackVisit(){
-    try{
-      sb.from('visits').insert({
-        page: location.pathname || '/',
-        referrer: document.referrer || null
-      }).then(()=>{});
-    }catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
-  })();
+  (async function trackVisit(){
+try{
+let country = null;
+try{
+const geoRes = await fetch('/api/geo');
+const geoData = await geoRes.json();
+country = geoData && geoData.country ? geoData.country : null;
+}catch(geoErr){ /* Land konnte nicht ermittelt werden — Tracking läuft trotzdem weiter */ }
+sb.from('visits').insert({
+page: location.pathname || '/',
+referrer: document.referrer || null,
+country: country
+}).then(()=>{});
+}catch(e){ /* Tracking-Fehler nie sichtbar machen */ }
+})();
 </script>
 
 <!-- SUPPORT CHAT WIDGET -->
