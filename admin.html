@@ -324,110 +324,119 @@ async function loadVisits(){
   `).join('') || '<p style="color:var(--text-low)">Noch keine Besucher aufgezeichnet.</p>';
 }
 
-/* ---------- USERS (Chips-Verwaltung) ---------- */
+/* ---------- USERS (Logins, Punkte & Chips) ---------- */
 let USERS = [];
 let USERS_LOADED = false;
 
-function parseUserIdentity(twitchLogin){
-  if(twitchLogin.startsWith('kick:')){
-    return { provider: 'Kick', username: twitchLogin.slice(5), color: '#53fc18' };
-  }
-  return { provider: 'Twitch', username: twitchLogin, color: '#9146FF' };
+function platformInfo(platform){
+if(platform === 'kick') return { label: 'Kick', color: '#53fc18' };
+return { label: 'Twitch', color: '#9146FF' };
 }
 
 async function loadUsers(){
-  const statsEl = document.getElementById('users-stats');
-  const listEl = document.getElementById('users-list');
-  statsEl.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
-  listEl.innerHTML = '';
-  const { data, error } = await sb.from('user_chips').select('*').order('chips', { ascending: false });
-  if(error){
-    statsEl.innerHTML = '';
-    listEl.innerHTML = '<p style="color:#ff6b6b">Nutzerdaten konnten nicht geladen werden.</p>';
-    console.error(error);
-    return;
-  }
-  USERS = data;
-  USERS_LOADED = true;
-  const totalUsers = data.length;
-  const twitchCount = data.filter(u => !u.twitch_login.startsWith('kick:')).length;
-  const kickCount = data.filter(u => u.twitch_login.startsWith('kick:')).length;
-  const totalChips = data.reduce((sum, u) => sum + u.chips, 0);
-  statsEl.innerHTML = `
-    <div class="entry-card" style="text-align:center;">
-      <div style="font-family:var(--display); font-size:26px; color:var(--gold);">${totalUsers}</div>
-      <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Nutzer gesamt</div>
-    </div>
-    <div class="entry-card" style="text-align:center;">
-      <div style="font-family:var(--display); font-size:22px; color:#9146FF;">${twitchCount}</div>
-      <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">via Twitch</div>
-    </div>
-    <div class="entry-card" style="text-align:center;">
-      <div style="font-family:var(--display); font-size:22px; color:#53fc18;">${kickCount}</div>
-      <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">via Kick</div>
-    </div>
-    <div class="entry-card" style="text-align:center;">
-      <div style="font-family:var(--display); font-size:22px; color:var(--cyan);">${totalChips.toLocaleString('de-CH')}</div>
-      <div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Chips im Umlauf</div>
-    </div>
-  `;
-  renderUserList();
+const statsEl = document.getElementById('users-stats');
+const listEl = document.getElementById('users-list');
+statsEl.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
+listEl.innerHTML = '';
+const [loginsRes, chipsRes] = await Promise.all([
+sb.from('user_logins').select('*').order('last_seen', { ascending: false }),
+sb.from('user_chips').select('*')
+]);
+if(loginsRes.error){
+statsEl.innerHTML = '';
+listEl.innerHTML = '<p style="color:#ff6b6b">Nutzerdaten konnten nicht geladen werden.</p>';
+console.error(loginsRes.error);
+return;
+}
+const chipsMap = {};
+(chipsRes.data || []).forEach(c => { chipsMap[c.twitch_login] = c.chips; });
+USERS = loginsRes.data.map(u => ({ ...u, chips: (u.login in chipsMap) ? chipsMap[u.login] : 1000 }));
+USERS_LOADED = true;
+const totalUsers = USERS.length;
+const twitchCount = USERS.filter(u => u.platform === 'twitch').length;
+const kickCount = USERS.filter(u => u.platform === 'kick').length;
+const withPoints = USERS.filter(u => typeof u.points === 'number' && u.points > 0).length;
+statsEl.innerHTML = `
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:26px; color:var(--gold);">${totalUsers}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">Nutzer gesamt</div>
+</div>
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:22px; color:#9146FF;">${twitchCount}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">via Twitch</div>
+</div>
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:22px; color:#53fc18;">${kickCount}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">via Kick</div>
+</div>
+<div class="entry-card" style="text-align:center;">
+<div style="font-family:var(--display); font-size:22px; color:var(--cyan);">${withPoints}</div>
+<div style="font-size:11px; color:var(--text-low); text-transform:uppercase;">mit Punkten</div>
+</div>
+`;
+renderUserList();
 }
 
 function renderUserList(){
-  const listEl = document.getElementById('users-list');
-  const query = (document.getElementById('user-search').value || '').toLowerCase();
-  const filtered = USERS.filter(u => u.twitch_login.toLowerCase().includes(query));
-  if(!filtered.length){
-    listEl.innerHTML = '<p style="color:var(--text-low)">Keine Nutzer gefunden.</p>';
-    return;
-  }
-  listEl.innerHTML = filtered.map(u => {
-    const identity = parseUserIdentity(u.twitch_login);
-    return `
-    <div class="entry-card" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:14px 16px;">
-      <div style="min-width:160px;">
-        <div style="font-weight:800; font-size:14px;">${identity.username}</div>
-        <div style="font-family:var(--mono); font-size:10px; color:${identity.color};">● ${identity.provider}</div>
-      </div>
-      <div style="font-family:var(--mono); font-size:11px; color:var(--text-low); min-width:140px;">
-        Zuletzt aktiv: ${u.updated_at ? new Date(u.updated_at).toLocaleString('de-CH') : '–'}
-      </div>
-      <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
-        <label style="font-size:11px; color:var(--text-low);">Chips:</label>
-        <input type="number" value="${u.chips}" id="user-chips-${u.twitch_login}"
-          style="width:100px; padding:8px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-hi); font-family:var(--mono); font-size:13px;">
-        <button class="btn-ghost" style="padding:8px 12px; font-size:12px;" onclick="saveUserChips('${u.twitch_login}')">💾 Speichern</button>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.twitch_login}', 100)">+100</button>
-        <button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.twitch_login}', 1000)">+1'000</button>
-        <button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.twitch_login}', -100)">−100</button>
-      </div>
-    </div>`;
-  }).join('');
+const listEl = document.getElementById('users-list');
+const query = (document.getElementById('user-search').value || '').toLowerCase();
+const filtered = USERS.filter(u => (u.display_name || u.login || '').toLowerCase().includes(query));
+if(!filtered.length){
+listEl.innerHTML = '<p style="color:var(--text-low)">Keine Nutzer gefunden.</p>';
+return;
+}
+listEl.innerHTML = filtered.map(u => {
+const p = platformInfo(u.platform);
+const name = u.display_name || u.login;
+return `
+<div class="entry-card" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:14px 16px;">
+${u.avatar_url ? `<img src="${u.avatar_url}" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">` : ''}
+<div style="min-width:150px;">
+<div style="font-weight:800; font-size:14px;">${name}</div>
+<div style="font-family:var(--mono); font-size:10px; color:${p.color};">● ${p.label}</div>
+</div>
+<div style="font-family:var(--mono); font-size:11px; color:var(--gold); min-width:110px;">
+⭐ ${typeof u.points === 'number' ? u.points : '–'} ${typeof u.points_alltime === 'number' ? '(Alltime: ' + u.points_alltime + ')' : ''}
+</div>
+<div style="font-family:var(--mono); font-size:10.5px; color:var(--text-low); min-width:190px;">
+Erstmals: ${u.first_seen ? new Date(u.first_seen).toLocaleDateString('de-CH') : '–'}<br>
+Zuletzt: ${u.last_seen ? new Date(u.last_seen).toLocaleString('de-CH') : '–'}
+</div>
+<div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+<label style="font-size:11px; color:var(--text-low);">Chips:</label>
+<input type="number" value="${u.chips}" id="user-chips-${u.login}"
+style="width:100px; padding:8px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-hi); font-family:var(--mono); font-size:13px;">
+<button class="btn-ghost" style="padding:8px 12px; font-size:12px;" onclick="saveUserChips('${u.login}')">💾 Speichern</button>
+</div>
+<div style="display:flex; gap:6px;">
+<button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.login}', 100)">+100</button>
+<button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.login}', 1000)">+1'000</button>
+<button class="btn-ghost" style="padding:8px 10px; font-size:11px;" onclick="adjustUserChips('${u.login}', -100)">−100</button>
+</div>
+</div>`;
+}).join('');
 }
 
-async function saveUserChips(twitchLogin){
-  const input = document.getElementById('user-chips-' + twitchLogin);
-  const newValue = Math.max(0, parseInt(input.value) || 0);
-  setStatus('Speichere Chips für ' + twitchLogin + '…');
-  const { error } = await sb.from('user_chips').update({ chips: newValue, updated_at: new Date().toISOString() }).eq('twitch_login', twitchLogin);
-  if(error){
-    setStatus('Fehler beim Speichern.', true);
-    console.error(error);
-    return;
-  }
-  const user = USERS.find(u => u.twitch_login === twitchLogin);
-  if(user) user.chips = newValue;
-  setStatus('✓ Chips aktualisiert (' + new Date().toLocaleTimeString() + ')');
+async function saveUserChips(login){
+const input = document.getElementById('user-chips-' + login);
+const newValue = Math.max(0, parseInt(input.value) || 0);
+setStatus('Speichere Chips für ' + login + '…');
+const { error } = await sb.from('user_chips').upsert({ twitch_login: login, chips: newValue, updated_at: new Date().toISOString() }, { onConflict: 'twitch_login' });
+if(error){
+setStatus('Fehler beim Speichern.', true);
+console.error(error);
+return;
+}
+const user = USERS.find(u => u.login === login);
+if(user) user.chips = newValue;
+setStatus('✓ Chips aktualisiert (' + new Date().toLocaleTimeString() + ')');
 }
 
-async function adjustUserChips(twitchLogin, delta){
-  const input = document.getElementById('user-chips-' + twitchLogin);
-  const current = parseInt(input.value) || 0;
-  input.value = Math.max(0, current + delta);
-  await saveUserChips(twitchLogin);
+async function adjustUserChips(login, delta){
+const input = document.getElementById('user-chips-' + login);
+const current = parseInt(input.value) || 0;
+input.value = Math.max(0, current + delta);
+await saveUserChips(login);
 }
 
 /* ---------- CASINOS ---------- */
