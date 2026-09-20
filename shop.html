@@ -194,50 +194,60 @@ section{max-width:1180px; margin:0 auto; padding:70px 24px;}
 }
 .shop-hero h1 span{ color:var(--fuse-red); text-shadow:0 0 30px var(--fuse-red-glow); }
 .shop-hero p{color:var(--text-mid); font-size:16px;}
-/* ---------- Product grid ---------- */
-.product-grid{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
-  gap:22px;
+/* ---------- Kategorie-Filter ---------- */
+.category-filters{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:32px; }
+.category-btn{
+font-family:var(--body); font-weight:700; font-size:12.5px;
+padding:9px 18px; border-radius:24px;
+border:1px solid var(--line); background:var(--bg-1); color:var(--text-mid);
+cursor:pointer; transition:all .2s;
 }
-.product-card{
-  background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius);
-  overflow:hidden; display:flex; flex-direction:column;
-  transition:transform .2s, border-color .2s;
-  position:relative;
+.category-btn:hover{ border-color:var(--cyan); color:var(--text-hi); }
+.category-btn.active{ background:var(--cyan); border-color:var(--cyan); color:var(--bg-0); }
+
+/* ---------- Hits-Vorschau ---------- */
+.hits-heading{
+font-family:var(--display); font-size:20px; text-transform:uppercase;
+letter-spacing:.5px; margin-bottom:18px; display:flex; align-items:center; gap:8px;
 }
-.product-card:hover{transform:translateY(-4px); border-color:var(--fuse-red);}
-.product-card .soon-tag{
-  position:absolute; top:14px; right:14px; z-index:2;
-  font-family:var(--mono); font-size:10.5px; letter-spacing:1px;
-  background:rgba(255,61,46,.15); color:var(--fuse-red);
-  border:1px solid rgba(255,61,46,.4);
-  padding:4px 9px; border-radius:20px; text-transform:uppercase;
+.hits-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:16px; margin-bottom:16px; }
+
+/* ---------- Product grid (Bild-Vorschau, Details bei Hover/Klick) ---------- */
+.product-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:16px; }
+.pcard{
+position:relative; aspect-ratio:1/1; border-radius:var(--radius);
+overflow:hidden; border:1px solid var(--line); background:var(--bg-2);
+cursor:pointer; transition:border-color .2s;
 }
-.product-image{
-  aspect-ratio:1/1;
-  background:
-    linear-gradient(135deg, var(--bg-2) 0%, #0d0d13 100%);
-  display:flex; align-items:center; justify-content:center;
-  position:relative; overflow:hidden;
-  border-bottom:1px solid var(--line);
+.pcard:hover{ border-color:var(--fuse-red); }
+.pcard .pimg{ width:100%; height:100%; object-fit:cover; display:block; }
+.pcard .picon{
+width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+color:var(--text-low); background:linear-gradient(135deg, var(--bg-2) 0%, #0d0d13 100%);
 }
-.product-image .ph-icon{
-  font-family:var(--display); font-size:15px; color:var(--text-low);
-  letter-spacing:2px; text-transform:uppercase;
-  display:flex; flex-direction:column; align-items:center; gap:10px;
+.pcard .picon svg{ width:38%; height:38%; opacity:.6; }
+.pcard .hit-badge{
+position:absolute; top:8px; left:8px; z-index:2;
+font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.5px;
+background:var(--fuse-red); color:#fff; padding:3px 8px; border-radius:5px; text-transform:uppercase;
 }
-.product-image .ph-icon svg{ width:44px; height:44px; opacity:.5; }
-.product-body{padding:18px 20px 20px; display:flex; flex-direction:column; gap:8px; flex:1;}
-.product-body h3{font-size:16px; font-weight:800;}
-.product-body .desc{font-size:13px; color:var(--text-mid);}
-.product-body .meta{
-  display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:10px;
+.pcard .live-badge{
+position:absolute; top:8px; right:8px; z-index:2;
+font-family:var(--mono); font-size:9.5px; font-weight:800;
+background:rgba(40,240,224,.9); color:var(--bg-0); padding:3px 8px; border-radius:5px;
 }
-.price{font-family:var(--mono); font-weight:600; font-size:16px; color:var(--gold);}
-.notify-btn{
-  font-size:12px; font-weight:800; padding:9px 14px; border-radius:7px;
-  background:var(--bg-2); border:1px solid var(--line); color:var(--text-mid);
-  cursor:not-allowed;
+.pcard .poverlay{
+position:absolute; inset:0; background:rgba(8,8,12,.95);
+display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+padding:14px; gap:6px; opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.pcard:hover .poverlay, .pcard.active .poverlay{ opacity:1; pointer-events:auto; }
+.pcard .poverlay h3{ font-size:13.5px; font-weight:800; }
+.pcard .poverlay .pdesc{ font-size:10.5px; color:var(--text-mid); max-height:56px; overflow:hidden; line-height:1.4; }
+.pcard .poverlay .pprice{ font-family:var(--mono); font-weight:700; color:var(--gold); font-size:13px; }
+.pcard .poverlay .pcta{ font-size:11px; font-weight:800; padding:7px 14px; border-radius:6px; margin-top:2px; }
+.pcard .poverlay .pcta.live{ background:linear-gradient(135deg, var(--fuse-red), #c2281c); color:#fff; }
+.pcard .poverlay .pcta.soon{ background:var(--bg-2); border:1px solid var(--line); color:var(--text-low); cursor:not-allowed; }
 }
 .fuse-divider{
   position:relative; height:2px; margin:0 24px;
@@ -352,6 +362,11 @@ footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
 <!-- SHOP-INHALT (nur sichtbar nach Login) -->
 <div id="shop-content" style="display:none;">
 <section>
+<div id="hits-section" style="display:none; margin-bottom:44px;">
+<h2 class="hits-heading">🔥 Hits</h2>
+<div class="hits-grid" id="hits-grid"></div>
+</div>
+<div class="category-filters" id="category-filters"></div>
 <div class="product-grid" id="product-grid"></div>
 </section>
 
@@ -554,32 +569,76 @@ socks: '<path d="M9 2v9l-5 7a3 3 0 0 0 3 4h6a3 3 0 0 0 3-3v-8h2V2z"/><path d="M9
 tanktop: '<path d="M8 4l2 2h4l2-2 2 3-2 2v11H8V9L6 7z"/><path d="M9 4v2M15 4v2"/>',
 box: '<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/>'
 };
+
+let PRODUCTS_ALL = [];
+let ACTIVE_CATEGORY = 'Alle';
+
+function productImageHtml(p){
+return p.image_url
+? '<img class="pimg" src="' + p.image_url + '" alt="">'
+: '<div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + (ICONS[p.icon] || ICONS.shirt) + '</svg></div>';
+}
+
+function productCardHtml(p){
+const hasLink = p.link && String(p.link).trim().length > 0;
+const ctaHtml = hasLink
+? '<a class="pcta live" href="' + p.link + '" target="_blank" rel="noopener">Jetzt ansehen →</a>'
+: '<span class="pcta soon">Bald da</span>';
+return '<div class="pcard" onclick="toggleProductCard(this, event)">'
++ (p.is_hit ? '<span class="hit-badge">⭐ Hit</span>' : '')
++ (hasLink ? '<span class="live-badge">Live</span>' : '')
++ productImageHtml(p)
++ '<div class="poverlay"><h3>' + p.name + '</h3>'
++ '<div class="pdesc">' + (p.description || '') + '</div>'
++ '<div class="pprice">' + p.price + '</div>'
++ ctaHtml
++ '</div></div>';
+}
+
+function toggleProductCard(el, event){
+if(event) event.stopPropagation();
+document.querySelectorAll('.pcard.active').forEach(c => { if(c !== el) c.classList.remove('active'); });
+el.classList.toggle('active');
+}
+
+function renderCategoryFilters(){
+const el = document.getElementById('category-filters');
+if(!el) return;
+const present = [...new Set(PRODUCTS_ALL.map(p => p.category).filter(Boolean))];
+const categories = ['Alle', ...present];
+if(categories.length <= 1){ el.innerHTML = ''; return; }
+el.innerHTML = categories.map(cat => '<button class="category-btn' + (cat===ACTIVE_CATEGORY?' active':'') + '" onclick="filterCategory(\'' + cat.replace(/'/g, "\\'") + '\')">' + cat + '</button>').join('');
+}
+
+function filterCategory(cat){
+ACTIVE_CATEGORY = cat;
+renderCategoryFilters();
+renderProductGrid();
+}
+
+function renderProductGrid(){
+const grid = document.getElementById('product-grid');
+const filtered = ACTIVE_CATEGORY === 'Alle' ? PRODUCTS_ALL : PRODUCTS_ALL.filter(p => p.category === ACTIVE_CATEGORY);
+grid.innerHTML = filtered.map(productCardHtml).join('') || '<p style="color:var(--text-low)">Keine Produkte in dieser Kategorie.</p>';
+}
+
+function renderHits(){
+const section = document.getElementById('hits-section');
+const grid = document.getElementById('hits-grid');
+const hits = PRODUCTS_ALL.filter(p => p.is_hit).slice(0, 6);
+if(!hits.length){ section.style.display = 'none'; return; }
+section.style.display = 'block';
+grid.innerHTML = hits.map(productCardHtml).join('');
+}
+
 async function renderProducts(){
-  const grid = document.getElementById('product-grid');
-  const { data, error } = await sb.from('products').select('*').order('sort_order', { ascending: true });
-  if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
-  grid.innerHTML = data.map(p => {
-    const hasLink = p.link && String(p.link).trim().length > 0;
-    const tag = hasLink ? 'a' : 'div';
-    const linkAttrs = hasLink ? ' href="' + p.link + '" target="_blank" rel="noopener" style="cursor:pointer;"' : '';
-    const badge = hasLink
-      ? '<span class="soon-tag" style="background:rgba(40,240,224,.15); color:var(--cyan); border-color:rgba(40,240,224,.4);">Live</span>'
-      : '<span class="soon-tag" data-i18n="shop.soon.tag">Bald verfügbar</span>';
-    const cta = hasLink
-      ? '<span class="notify-btn" style="cursor:pointer; background:linear-gradient(135deg, var(--fuse-red), #c2281c); color:#fff; border:none;">Jetzt ansehen →</span>'
-      : '<span class="notify-btn" data-i18n="shop.badge.soon">Bald da</span>';
-    return '<' + tag + ' class="product-card"' + linkAttrs + '>'
-      + '<div class="product-image">' + (p.image_url
-? '<img src="' + p.image_url + '" alt="" style="width:100%; height:100%; object-fit:cover;">'
-: '<div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + (ICONS[p.icon] || ICONS.shirt) + '</svg><span data-i18n="shop.product.image">[Produktbild]</span></div>'
-) + '</div>'
-      + '</div></div>'
-      + '<div class="product-body"><h3>' + p.name + '</h3>'
-      + '<div class="desc">' + (p.description || '') + '</div>'
-      + '<div class="meta"><span class="price">' + p.price + '</span>' + cta + '</div>'
-      + '</div>'
-      + '</' + tag + '>';
-  }).join('');
+const grid = document.getElementById('product-grid');
+const { data, error } = await sb.from('products').select('*').order('sort_order', { ascending: true });
+if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Produkte konnten nicht geladen werden.</p>'; console.error(error); return; }
+PRODUCTS_ALL = data;
+renderHits();
+renderCategoryFilters();
+renderProductGrid();
 }
 // renderProducts() wird jetzt erst nach erfolgreichem Login aufgerufen (siehe initAuth)
 
