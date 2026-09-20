@@ -703,6 +703,16 @@ function renderProductList(){
             ${['shirt','cap','hoodie','mug','bag','beanie','totebag','sticker','pin','poster','bottle','keychain','socks','tanktop','box'].map(ic => `<option value="${ic}" ${p.icon===ic?'selected':''}>${ic}</option>`).join('')}
           </select>
         </div>
+<div><label>Kategorie</label>
+<select onchange="updateField('products',${i},'category',this.value)">
+<option value="">– keine –</option>
+${['T-Shirt','Hemden','Hoodie','Kopfbedeckung','Taschen','Accessoire','Spielsachen','Trinkgefässe','Sonstiges'].map(cat => `<option value="${cat}" ${p.category===cat?'selected':''}>${cat}</option>`).join('')}
+</select>
+</div>
+<div style="display:flex; align-items:center; gap:8px; padding-top:20px;">
+<input type="checkbox" id="hit-${i}" ${p.is_hit?'checked':''} onchange="updateField('products',${i},'is_hit',this.checked)" style="width:auto;">
+<label for="hit-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">⭐ Hit-Produkt (Vorschau)</label>
+</div>
         <div style="grid-column:span 3;"><label>Beschreibung</label><input value="${p.description || ''}" onchange="updateField('products',${i},'description',this.value)"></div>
         <div style="grid-column:span 3;"><label>Link (optional -- macht die Karte klickbar &amp; zeigt "Live" statt "Bald da", z.B. https://tnt-homecloud-shop.vercel.app)</label><input value="${p.link || ''}" placeholder="https://…" onchange="updateField('products',${i},'link',this.value)"></div>
 <div style="grid-column:span 3;">
