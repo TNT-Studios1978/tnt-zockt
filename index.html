@@ -815,6 +815,7 @@
     const grid = document.getElementById('casino-grid');
     const { data, error } = await sb.from('casinos').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Casinos konnten nicht geladen werden.</p>'; console.error(error); return; }
+    data.sort((a, b) => (b.stars || 0) - (a.stars || 0) || (a.sort_order || 0) - (b.sort_order || 0));
     grid.innerHTML = data.map((c, i) => `
       <div class="casino-card">
         <div class="rank">${i+1}</div>
