@@ -258,7 +258,7 @@ begin
 
   -- 6. Offene Anträge
   if exists (select 1 from payout_requests where twitch_login = p_login and status = 'pending') then
-    v_reasons := v_reasons || 'Es gibt bereits einen offenen Antrag';
+    v_reasons := v_reasons || 'Es gibt bereits einen offenen Antrag'::text;
   end if;
 
   return v_reasons;
