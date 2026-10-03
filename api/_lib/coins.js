@@ -3,7 +3,15 @@
 
 export const SUPABASE_URL = process.env.SUPABASE_URL || "https://wlvgjdzuvfbnberejthz.supabase.co";
 export const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "sb_publishable_2enioy5duKB9ZHMVjimTUw_cTLlcgYO";
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+
+// Neue Supabase-Schlüssel (sb_secret_...) sind keine JWTs und gehören nur in den
+// apikey-Header. Alte service_role-JWTs werden zusätzlich als Bearer mitgeschickt.
+function serviceHeaders(extra) {
+  const h = { apikey: SERVICE_KEY, "Content-Type": "application/json", ...(extra || {}) };
+  if (!SERVICE_KEY.startsWith("sb_")) h.Authorization = `Bearer ${SERVICE_KEY}`;
+  return h;
+}
 
 // Höchstmultiplikator je Spiel (Gewinn pro Runde <= Einsatz × Wert).
 export const MAX_MULT = {
@@ -49,11 +57,7 @@ export async function rpc(fn, args) {
   if (!SERVICE_KEY) throw new HttpError(500, "Server nicht konfiguriert (SUPABASE_SERVICE_ROLE_KEY fehlt)");
   const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
-    headers: {
-      apikey: SERVICE_KEY,
-      Authorization: `Bearer ${SERVICE_KEY}`,
-      "Content-Type": "application/json"
-    },
+    headers: serviceHeaders(),
     body: JSON.stringify(args || {})
   });
   const text = await r.text();
@@ -81,12 +85,7 @@ export async function rpc(fn, args) {
 // Tabellen lesen/schreiben (nur Server).
 export async function rest(path, { method = "GET", body, prefer } = {}) {
   if (!SERVICE_KEY) throw new HttpError(500, "Server nicht konfiguriert (SUPABASE_SERVICE_ROLE_KEY fehlt)");
-  const headers = {
-    apikey: SERVICE_KEY,
-    Authorization: `Bearer ${SERVICE_KEY}`,
-    "Content-Type": "application/json"
-  };
-  if (prefer) headers.Prefer = prefer;
+  const headers = serviceHeaders(prefer ? { Prefer: prefer } : null);
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     method, headers, body: body ? JSON.stringify(body) : undefined
   });
