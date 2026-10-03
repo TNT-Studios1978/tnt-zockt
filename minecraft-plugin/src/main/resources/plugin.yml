@@ -1,0 +1,32 @@
+name: TNT-Shop
+version: '${project.version}'
+main: ch.tntzockt.shop.TntShopPlugin
+api-version: '26.3'
+description: Minecraft-Konto mit Twitch verknüpfen und Pakete mit Kanalpunkten kaufen (tnt-zockt.ch)
+author: TNT-Studios
+website: https://www.tnt-zockt.ch/minecraft.html
+commands:
+  link:
+    description: Minecraft-Konto mit Twitch verknüpfen
+    usage: /link
+    permission: tntshop.use
+  punkte:
+    description: Zeigt deine Kanalpunkte
+    usage: /punkte
+    aliases: [points]
+    permission: tntshop.use
+  shop:
+    description: Öffnet den TNT-Shop
+    usage: /shop
+    permission: tntshop.use
+  tntshop:
+    description: Admin-Befehle des TNT-Shops
+    usage: /tntshop reload
+    permission: tntshop.admin
+permissions:
+  tntshop.use:
+    description: Shop benutzen
+    default: true
+  tntshop.admin:
+    description: Konfiguration neu laden
+    default: op

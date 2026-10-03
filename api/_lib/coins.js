@@ -72,8 +72,19 @@ export async function rpc(fn, args) {
       win_exceeds_limit: [400, "Gewinn unplausibel hoch"],
       not_pending: [409, "Antrag ist nicht mehr offen"],
       already_finished: [409, "Antrag ist bereits abgeschlossen"],
-      not_found: [404, "Nicht gefunden"]
+      not_found: [404, "Nicht gefunden"],
+      not_linked: [400, "Minecraft-Konto ist nicht verknüpft"],
+      kit_not_found: [404, "Paket nicht gefunden"],
+      already_bought: [409, "Dieses Paket kann nur einmal gekauft werden"],
+      invalid_code: [400, "Code ungültig oder abgelaufen"],
+      not_reserved: [409, "Kauf ist bereits abgeschlossen"]
     };
+    const cd = /cooldown:(\d+)/.exec(msg);
+    if (cd) {
+      const min = Number(cd[1]);
+      const text = min >= 60 ? `${Math.ceil(min / 60)} Stunden` : `${min} Minuten`;
+      throw new HttpError(429, `Noch nicht wieder verfügbar (in ${text})`);
+    }
     for (const [code, [status, text2]] of Object.entries(known)) {
       if (msg.includes(code)) throw new HttpError(status, text2);
     }

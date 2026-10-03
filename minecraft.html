@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minecraft-Server | TNT-Zockt</title>
+<meta name="description" content="Der TNT-Zockt Minecraft-Server: Konto verknüpfen und Pakete mit Kanalpunkten holen.">
+<link rel="canonical" href="https://www.tnt-zockt.ch/minecraft.html">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  --bg-0:#08080c; --bg-1:#111118; --bg-2:#181822;
+  --fuse-red:#ff3d2e; --gold:#ffcf3f; --cyan:#28f0e0; --green:#53fc18;
+  --text-hi:#f6f4ef; --text-mid:#b9b6c4; --text-low:#716e7d; --line:#26232e;
+  --display:'Anton',sans-serif; --body:'Manrope',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:var(--bg-0); color:var(--text-hi); font-family:var(--body); line-height:1.55;}
+a{color:var(--gold);}
+header{border-bottom:1px solid var(--line); background:rgba(8,8,12,.9);}
+.nav{max-width:1000px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--display); font-size:22px; letter-spacing:.5px; color:var(--text-hi); text-decoration:none;}
+.brand img{height:38px; border-radius:8px;}
+main{max-width:1000px; margin:0 auto; padding:36px 20px 60px;}
+h1{font-family:var(--display); font-size:44px; line-height:1.05; letter-spacing:.5px;}
+h1 .hl{color:var(--fuse-red);}
+.lead{color:var(--text-mid); margin:12px 0 28px; max-width:640px;}
+.card{background:var(--bg-1); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:22px;}
+.card h2{font-size:18px; margin-bottom:10px;}
+.steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
+.step{background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:16px;}
+.step b{display:block; font-family:var(--mono); color:var(--gold); font-size:12px; margin-bottom:6px;}
+code{font-family:var(--mono); background:var(--bg-2); border:1px solid var(--line); border-radius:6px; padding:2px 7px; color:var(--cyan);}
+.btn{display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; padding:11px 18px; font-weight:700; cursor:pointer; font-family:var(--body); font-size:14px;}
+.btn-twitch{background:#9146ff; color:#fff;}
+.btn-primary{background:var(--fuse-red); color:#fff;}
+.btn-ghost{background:transparent; color:var(--text-mid); border:1px solid var(--line);}
+input{font-family:var(--mono); font-size:22px; letter-spacing:6px; text-transform:uppercase; width:200px; padding:10px 14px; border-radius:9px; border:1px solid var(--line); background:var(--bg-0); color:var(--text-hi);}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.msg{margin-top:12px; font-size:14px; min-height:20px;}
+.msg.ok{color:var(--green);} .msg.err{color:#ff6b6b;}
+.kits{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
+.kit{background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:16px;}
+.kit .price{font-family:var(--mono); color:var(--gold); font-weight:600; margin:6px 0;}
+.kit .meta{font-size:12px; color:var(--text-low);}
+.kit ul{margin:10px 0 0 16px; font-size:13px; color:var(--text-mid);}
+.server{font-family:var(--mono); font-size:20px; color:var(--cyan);}
+table{width:100%; font-size:13px; border-collapse:collapse;}
+td,th{padding:6px 4px; border-bottom:1px solid var(--line); text-align:left;}
+footer{border-top:1px solid var(--line); color:var(--text-low); font-size:12px; text-align:center; padding:24px 20px;}
+footer a{color:var(--text-mid);}
+@media (max-width:600px){ h1{font-size:34px;} input{width:100%;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="brand" href="minecraft.html"><img src="assets/logo.jpg" alt="TNT-Zockt">TNT-Zockt Minecraft</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main>
+  <h1>TNT-ZOCKT <span class="hl">MINECRAFT</span></h1>
+  <p class="lead">Spiel mit der Community auf unserem Survival-Server. Verknüpfe dein Minecraft-Konto mit Twitch und hol dir mit deinen Kanalpunkten Pakete direkt ins Spiel.</p>
+
+  <div class="card">
+    <h2>🌍 Server-Adresse</h2>
+    <p class="server">stamina-elk.tun.ply.gg</p>
+    <p style="color:var(--text-low); font-size:13px; margin-top:6px;">Minecraft Java Edition, Version 26.3 · Multiplayer → Server hinzufügen</p>
+  </div>
+
+  <div class="card">
+    <h2>🔗 Konto verknüpfen</h2>
+    <div class="steps" style="margin-bottom:18px;">
+      <div class="step"><b>SCHRITT 1</b>Auf dem Server <code>/link</code> eingeben. Du bekommst einen 6-stelligen Code (10 Minuten gültig).</div>
+      <div class="step"><b>SCHRITT 2</b>Hier mit Twitch anmelden.</div>
+      <div class="step"><b>SCHRITT 3</b>Code unten eingeben. Fertig, im Spiel <code>/shop</code> öffnen.</div>
+    </div>
+    <div id="link-area"><p style="color:var(--text-mid)">Lade…</p></div>
+    <div class="msg" id="link-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎁 Pakete</h2>
+    <p style="color:var(--text-mid); font-size:14px; margin-bottom:14px;">Im Spiel mit <code>/shop</code> kaufen. Bezahlt wird mit deinen Kanalpunkten aus dem Stream. Neue Spieler bekommen beim ersten Join ein gratis Starterpaket.</p>
+    <div class="kits" id="kits"><p style="color:var(--text-low)">Lade…</p></div>
+  </div>
+
+  <div class="card" id="history-card" style="display:none;">
+    <h2>🧾 Deine Käufe</h2>
+    <table id="history"></table>
+  </div>
+</main>
+
+<footer>
+  NOT AN OFFICIAL MINECRAFT SERVICE. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.<br>
+  Betreiber und verantwortlich für den Server: TNT-Studios · Kontakt siehe <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a><br>
+  Kanalpunkte haben keinen Geldwert und können nicht gekauft werden.
+</footer>
+
+<script>
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n){ return Number(n || 0).toLocaleString('de-CH'); }
+function niceMaterial(m){ return m.toLowerCase().split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
+
+function loginWithTwitch(){
+  sb.auth.signInWithOAuth({ provider: 'twitch', options: { redirectTo: window.location.origin + '/minecraft.html' } });
+}
+async function logout(){ await sb.auth.signOut(); render(); }
+
+async function token(){
+  const { data: { session } } = await sb.auth.getSession();
+  return session ? session.access_token : null;
+}
+
+function setMsg(text, ok){
+  const el = document.getElementById('link-msg');
+  el.textContent = text; el.className = 'msg ' + (ok ? 'ok' : 'err');
+}
+
+async function loadKits(){
+  const el = document.getElementById('kits');
+  try{
+    const r = await fetch('/api/mc?view=kits'); const d = await r.json();
+    if(!r.ok) throw new Error(d.error || 'Fehler');
+    el.innerHTML = d.kits.map(k => `
+      <div class="kit">
+        <strong>${esc(k.name)}</strong>
+        <div class="price">${k.price_points > 0 ? '⭐ ' + fmt(k.price_points) + ' Punkte' : 'Gratis'}</div>
+        <div class="meta">${esc(k.description || '')}</div>
+        <div class="meta">${k.once_only ? 'Nur einmal pro Spieler' : (k.cooldown_hours ? 'Wieder verfügbar nach ' + k.cooldown_hours + ' h' : '')}</div>
+        <ul>${(k.items || []).map(i => `<li>${i.amount}× ${esc(niceMaterial(i.material))}</li>`).join('')}</ul>
+      </div>`).join('') || '<p style="color:var(--text-low)">Noch keine Pakete.</p>';
+  }catch(e){ el.innerHTML = '<p style="color:#ff6b6b">' + esc(e.message) + '</p>'; }
+}
+
+async function render(){
+  const slot = document.getElementById('auth-slot');
+  const area = document.getElementById('link-area');
+  const t = await token();
+  if(!t){
+    slot.innerHTML = '';
+    area.innerHTML = '<button class="btn btn-twitch" onclick="loginWithTwitch()">Mit Twitch anmelden</button>';
+    document.getElementById('history-card').style.display = 'none';
+    return;
+  }
+  slot.innerHTML = '<button class="btn btn-ghost" onclick="logout()">Abmelden</button>';
+  try{
+    const r = await fetch('/api/mc?view=me', { headers: { Authorization: 'Bearer ' + t } });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || 'Fehler');
+    const linked = d.link
+      ? `<p style="margin-bottom:12px;">✅ Verknüpft: <strong>${esc(d.link.mc_name)}</strong> ↔ Twitch <strong>${esc(d.twitch_login)}</strong></p>`
+      : `<p style="margin-bottom:12px;">Angemeldet als Twitch <strong>${esc(d.twitch_login)}</strong>. Noch kein Minecraft-Konto verknüpft.</p>`;
+    area.innerHTML = linked + `
+      <div class="row">
+        <input id="code" maxlength="6" placeholder="CODE" autocomplete="off">
+        <button class="btn btn-primary" onclick="confirmLink()">${d.link ? 'Anderes Konto verknüpfen' : 'Verknüpfen'}</button>
+        ${d.link ? '<button class="btn btn-ghost" onclick="unlink()">Verknüpfung lösen</button>' : ''}
+      </div>`;
+    const hist = d.purchases || [];
+    document.getElementById('history-card').style.display = hist.length ? 'block' : 'none';
+    document.getElementById('history').innerHTML = '<tr><th>Zeit</th><th>Paket</th><th>Punkte</th><th>Status</th></tr>' +
+      hist.map(p => `<tr><td>${new Date(p.created_at).toLocaleString('de-CH')}</td><td>${esc(p.kit_id)}</td><td>${fmt(p.points)}</td><td>${p.status === 'delivered' ? '✓ geliefert' : p.status === 'refunded' ? '↩ zurückerstattet' : '…'}</td></tr>`).join('');
+  }catch(e){
+    area.innerHTML = '<p style="color:#ff6b6b">' + esc(e.message) + '</p>';
+  }
+}
+
+async function confirmLink(){
+  const code = (document.getElementById('code').value || '').trim().toUpperCase();
+  if(code.length !== 6) return setMsg('Bitte den 6-stelligen Code aus dem Spiel eingeben.', false);
+  try{
+    const r = await fetch('/api/mc', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ action: 'confirm_link', code }) });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || 'Fehler');
+    setMsg('✓ Verknüpft mit ' + d.mc_name + '. Im Spiel /shop öffnen!', true);
+    render();
+  }catch(e){ setMsg(e.message, false); }
+}
+
+async function unlink(){
+  if(!confirm('Verknüpfung wirklich lösen?')) return;
+  try{
+    const r = await fetch('/api/mc', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ action: 'unlink' }) });
+    if(!r.ok) throw new Error((await r.json()).error || 'Fehler');
+    setMsg('Verknüpfung gelöst.', true);
+    render();
+  }catch(e){ setMsg(e.message, false); }
+}
+
+loadKits();
+render();
+sb.auth.onAuthStateChange(() => render());
+</script>
+</body>
+</html>

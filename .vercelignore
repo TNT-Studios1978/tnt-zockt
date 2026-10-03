@@ -1,0 +1,4 @@
+# Nicht öffentlich ausliefern
+minecraft-plugin/
+supabase-*.sql
+README.md

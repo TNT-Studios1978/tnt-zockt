@@ -1,0 +1,27 @@
+# ============================================================
+# TNT-Shop – Verbindung zu tnt-zockt.ch
+# ============================================================
+
+# Adresse der Shop-Schnittstelle (nicht ändern)
+api-url: "https://www.tnt-zockt.ch/api/mc"
+
+# Gemeinsames Geheimnis mit der Website.
+# Muss GENAU gleich sein wie die Vercel-Umgebungsvariable MC_SERVER_SECRET
+# (mindestens 24 Zeichen). Niemals öffentlich zeigen.
+server-secret: ""
+
+# Seite, auf der Spieler den /link-Code eingeben
+link-page: "https://www.tnt-zockt.ch/minecraft.html"
+
+# Gratis-Starterpaket beim allerersten Join (ohne Verknüpfung)
+starter-kit:
+  enabled: true
+  items:
+    - "WOODEN_PICKAXE:1"
+    - "WOODEN_AXE:1"
+    - "WOODEN_SWORD:1"
+    - "BREAD:16"
+    - "TORCH:16"
+
+# Wartezeit zwischen zwei Käufen pro Spieler (Schutz vor Doppelklicks), in Sekunden
+click-cooldown-seconds: 3

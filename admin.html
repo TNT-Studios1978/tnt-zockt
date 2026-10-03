@@ -117,6 +117,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
 <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Nutzer</button>
 <button class="tab-btn" data-tab="payouts" onclick="switchTab('payouts')">Auszahlungen</button>
+<button class="tab-btn" data-tab="minecraft" onclick="switchTab('minecraft')">Minecraft</button>
 </div>
 <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
 <button class="btn-ghost" style="padding:9px 16px;" onclick="doLogout()">🚪 Logout</button>
@@ -231,6 +232,22 @@ Spieler tauschen Kanalpunkte in TNT-Chips und spielen damit. Wollen sie Chips zu
 </div>
 <div id="player-view"></div>
 </div>
+<!-- MINECRAFT TAB -->
+<div class="tab-panel" id="tab-minecraft">
+<div class="toolbar">
+<h2>Minecraft-Shop</h2>
+<button class="btn-ghost" onclick="loadMc()">🔄 Aktualisieren</button>
+</div>
+<div class="info-box" style="margin-bottom:20px;">
+Pakete, die Spieler im Spiel mit <code>/shop</code> für Kanalpunkte kaufen. Items als Liste im Format <code>[{"material":"IRON_PICKAXE","amount":1}]</code> – Materialnamen wie im Spiel (z. B. <code>COOKED_BEEF</code>, <code>OAK_LOG</code>). Das gratis Starterpaket beim ersten Join wird im Plugin eingestellt. Öffentliche Seite: <a href="minecraft.html" target="_blank">minecraft.html</a>
+</div>
+<div class="toolbar"><h2 style="font-size:16px;">Pakete</h2><button class="btn-ghost" onclick="addMcKit()">+ Neues Paket</button></div>
+<div id="mc-kits" style="margin-bottom:30px;"></div>
+<div class="toolbar"><h2 style="font-size:16px;">Letzte Käufe</h2></div>
+<div id="mc-purchases" style="margin-bottom:30px;"></div>
+<div class="toolbar"><h2 style="font-size:16px;">Verknüpfte Konten</h2></div>
+<div id="mc-links"></div>
+</div>
 </main>
 
 <div class="save-bar">
@@ -294,6 +311,7 @@ function switchTab(name){
   document.getElementById('tab-' + name).classList.add('active');
   if(name === 'users' && !USERS_LOADED) loadUsers();
   if(name === 'payouts') loadPayouts();
+  if(name === 'minecraft') loadMc();
 }
 
 function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
@@ -635,6 +653,81 @@ ${d.checks && d.checks.length
 }catch(e){
   el.innerHTML = '<p style="color:#ff6b6b">' + esc(e.message) + '</p>';
 }
+}
+
+/* ---------- MINECRAFT ---------- */
+let MC_KITS = [];
+async function mcApi(method, body){
+const { data: { session } } = await sb.auth.getSession();
+if(!session) throw new Error('Nicht angemeldet');
+const res = await fetch(method === 'GET' ? '/api/mc?view=admin' : '/api/mc', {
+  method, headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+  body: method === 'GET' ? undefined : JSON.stringify(body)
+});
+const data = await res.json().catch(() => ({}));
+if(!res.ok) throw new Error(data.error || ('Fehler ' + res.status));
+return data;
+}
+
+const MC_INPUT = 'padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg-1); color:var(--text-hi); width:100%;';
+
+function renderMcKits(){
+document.getElementById('mc-kits').innerHTML = MC_KITS.map((k, i) => `
+<div style="border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; background:var(--bg-1);">
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; font-size:12px; color:var(--text-low);">
+<label>ID<br><input id="mk-id-${i}" value="${esc(k.id)}" ${k._new ? '' : 'disabled'} style="${MC_INPUT}"></label>
+<label>Name<br><input id="mk-name-${i}" value="${esc(k.name)}" style="${MC_INPUT}"></label>
+<label>Preis (Kanalpunkte)<br><input id="mk-price-${i}" type="number" min="0" value="${esc(k.price_points)}" style="${MC_INPUT}"></label>
+<label>Abklingzeit (Stunden)<br><input id="mk-cd-${i}" type="number" min="0" value="${esc(k.cooldown_hours)}" style="${MC_INPUT}"></label>
+<label>Symbol (Material)<br><input id="mk-icon-${i}" value="${esc(k.icon)}" style="${MC_INPUT}"></label>
+<label>Reihenfolge<br><input id="mk-sort-${i}" type="number" value="${esc(k.sort_order)}" style="${MC_INPUT}"></label>
+</div>
+<label style="display:block; font-size:12px; color:var(--text-low); margin-top:10px;">Beschreibung<br><input id="mk-desc-${i}" value="${esc(k.description || '')}" style="${MC_INPUT}"></label>
+<label style="display:block; font-size:12px; color:var(--text-low); margin-top:10px;">Items (JSON)<br><textarea id="mk-items-${i}" rows="3" style="${MC_INPUT} font-family:var(--mono); font-size:12px;">${esc(JSON.stringify(k.items))}</textarea></label>
+<div style="display:flex; gap:16px; align-items:center; margin-top:10px; flex-wrap:wrap; font-size:13px;">
+<label><input type="checkbox" id="mk-once-${i}" ${k.once_only ? 'checked' : ''}> Nur einmal pro Spieler</label>
+<label><input type="checkbox" id="mk-enabled-${i}" ${k.enabled !== false ? 'checked' : ''}> Aktiv</label>
+<button class="btn-primary" style="padding:8px 14px;" onclick="saveMcKit(${i})">💾 Speichern</button>
+${k._new ? '' : `<button class="btn-ghost" style="padding:8px 14px;" onclick="deleteMcKit(${i})">🗑 Löschen</button>`}
+</div>
+</div>`).join('') || '<p style="color:var(--text-low)">Keine Pakete.</p>';
+}
+
+async function loadMc(){
+try{
+  const d = await mcApi('GET');
+  MC_KITS = d.kits;
+  renderMcKits();
+  document.getElementById('mc-purchases').innerHTML = d.purchases.length ? `<table style="width:100%; font-size:12px;"><tr style="text-align:left; color:var(--text-low)"><th>Zeit</th><th>Spieler</th><th>Twitch</th><th>Paket</th><th>Punkte</th><th>Status</th></tr>${d.purchases.map(p => `<tr><td>${new Date(p.created_at).toLocaleString('de-CH')}</td><td>${esc(p.mc_name)}</td><td>${esc(p.twitch_login)}</td><td>${esc(p.kit_id)}</td><td>${fmt(p.points)}</td><td>${esc(p.status)}${p.note ? ' – ' + esc(p.note) : ''}</td></tr>`).join('')}</table>` : '<p style="color:var(--text-low)">Noch keine Käufe.</p>';
+  document.getElementById('mc-links').innerHTML = d.links.length ? `<table style="width:100%; font-size:12px;"><tr style="text-align:left; color:var(--text-low)"><th>Minecraft</th><th>Twitch</th><th>Seit</th></tr>${d.links.map(l => `<tr><td>${esc(l.mc_name)}</td><td>${esc(l.twitch_login)}</td><td>${new Date(l.linked_at).toLocaleString('de-CH')}</td></tr>`).join('')}</table>` : '<p style="color:var(--text-low)">Noch keine Verknüpfungen.</p>';
+}catch(e){
+  document.getElementById('mc-kits').innerHTML = '<p style="color:#ff6b6b">' + esc(e.message) + '</p>';
+}
+}
+
+function addMcKit(){
+MC_KITS.push({ _new: true, id: '', name: '', description: '', icon: 'CHEST', price_points: 0, cooldown_hours: 24, once_only: false, enabled: true, items: [{ material: 'BREAD', amount: 8 }], sort_order: MC_KITS.length + 1 });
+renderMcKits();
+}
+
+async function saveMcKit(i){
+const g = id => document.getElementById(id + '-' + i);
+const kit = {
+  id: g('mk-id').value, name: g('mk-name').value, description: g('mk-desc').value,
+  icon: g('mk-icon').value, price_points: Number(g('mk-price').value), cooldown_hours: Number(g('mk-cd').value),
+  sort_order: Number(g('mk-sort').value), once_only: g('mk-once').checked, enabled: g('mk-enabled').checked,
+  items: g('mk-items').value
+};
+setStatus('Speichere Paket…');
+try{ await mcApi('POST', { action: 'admin_save_kit', kit }); setStatus('✓ Paket gespeichert'); loadMc(); }
+catch(e){ setStatus('Fehler: ' + e.message, true); }
+}
+
+async function deleteMcKit(i){
+const k = MC_KITS[i];
+if(!confirm('Paket "' + k.name + '" löschen?')) return;
+try{ await mcApi('POST', { action: 'admin_delete_kit', id: k.id }); setStatus('✓ Paket gelöscht'); loadMc(); }
+catch(e){ setStatus('Fehler: ' + e.message, true); }
 }
 
 async function loadLeaderboard(){
