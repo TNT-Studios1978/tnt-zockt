@@ -116,6 +116,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
 <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
 <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Nutzer</button>
+<button class="tab-btn" data-tab="payouts" onclick="switchTab('payouts')">Auszahlungen</button>
 </div>
 <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
 <button class="btn-ghost" style="padding:9px 16px;" onclick="doLogout()">🚪 Logout</button>
@@ -199,6 +200,37 @@ Zeigt <strong>alle</strong> Zuschauer mit StreamElements-Punkten — auch die, d
 <div id="leaderboard-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px;"></div>
 <div id="leaderboard-list"></div>
 </div>
+<!-- PAYOUTS TAB -->
+<div class="tab-panel" id="tab-payouts">
+<div class="toolbar">
+<h2>Auszahlungen TNT-Chips → Kanalpunkte</h2>
+<button class="btn-ghost" onclick="loadPayouts()">🔄 Aktualisieren</button>
+</div>
+<div class="info-box" style="margin-bottom:20px;">
+Spieler tauschen Kanalpunkte in TNT-Chips und spielen damit. Wollen sie Chips zurück in Kanalpunkte, prüft der Server automatisch Saldo, Kontoalter, Gewinnquote, Tageslimit und Spieltempo. Ist alles in Ordnung, wird sofort ausbezahlt. Auffällige Anträge landen hier zur Freigabe. Die Chips sind bis zur Entscheidung reserviert; bei Ablehnung gehen sie zurück an den Spieler.
+</div>
+
+<h2 style="font-size:16px; margin-bottom:10px;">Einstellungen</h2>
+<div id="payout-settings" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:12px;"></div>
+<div style="margin-bottom:28px;"><button class="btn-primary" onclick="savePayoutSettings()">💾 Einstellungen speichern</button></div>
+
+<div class="toolbar">
+<h2 style="font-size:16px;">Offene Anträge</h2>
+<select id="payout-filter" onchange="loadPayouts()" style="padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg-1); color:var(--text-hi);">
+<option value="open">Offen / hängend</option>
+<option value="all">Alle (letzte 200)</option>
+</select>
+</div>
+<div id="payout-list" style="margin-bottom:32px;"></div>
+
+<div class="toolbar"><h2 style="font-size:16px;">Spielverlauf eines Spielers</h2></div>
+<div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+<input type="text" id="player-login" placeholder="Twitch-Name"
+  style="padding:10px 14px; border-radius:8px; border:1px solid var(--line); background:var(--bg-1); color:var(--text-hi); min-width:240px;">
+<button class="btn-ghost" onclick="loadPlayer()">🔍 Anzeigen</button>
+</div>
+<div id="player-view"></div>
+</div>
 </main>
 
 <div class="save-bar">
@@ -261,6 +293,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if(name === 'users' && !USERS_LOADED) loadUsers();
+  if(name === 'payouts') loadPayouts();
 }
 
 function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
@@ -451,16 +484,20 @@ style="width:100px; padding:8px 10px; border-radius:6px; border:1px solid var(--
 async function saveUserChips(login){
 const input = document.getElementById('user-chips-' + login);
 const newValue = Math.max(0, parseInt(input.value) || 0);
-setStatus('Speichere Chips für ' + login + '…');
-const { error } = await sb.from('user_chips').upsert({ twitch_login: login, chips: newValue, updated_at: new Date().toISOString() }, { onConflict: 'twitch_login' });
-if(error){
-setStatus('Fehler beim Speichern.', true);
-console.error(error);
-return;
-}
 const user = USERS.find(u => u.login === login);
-if(user) user.chips = newValue;
-setStatus('✓ Chips aktualisiert (' + new Date().toLocaleTimeString() + ')');
+const current = user ? (user.chips || 0) : 0;
+const delta = newValue - current;
+if(delta === 0){ setStatus('Keine Änderung.'); return; }
+setStatus('Speichere Chips für ' + login + '…');
+try{
+  const r = await coinAdmin('POST', { action: 'adjust', login, amount: delta, note: 'Korrektur im Admin-Bereich' });
+  if(user) user.chips = r.balance;
+  input.value = r.balance;
+  setStatus('✓ Chips aktualisiert (' + new Date().toLocaleTimeString() + ')');
+}catch(e){
+  setStatus('Fehler: ' + e.message, true);
+  if(user) input.value = user.chips;
+}
 }
 
 async function adjustUserChips(login, delta){
@@ -468,6 +505,136 @@ const input = document.getElementById('user-chips-' + login);
 const current = parseInt(input.value) || 0;
 input.value = Math.max(0, current + delta);
 await saveUserChips(login);
+}
+
+/* ---------- AUSZAHLUNGEN (TNT-Chips) ---------- */
+async function coinAdmin(method, bodyOrQuery){
+const { data: { session } } = await sb.auth.getSession();
+if(!session) throw new Error('Nicht angemeldet');
+const headers = { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' };
+const url = method === 'GET' ? '/api/coins-admin?' + new URLSearchParams(bodyOrQuery) : '/api/coins-admin';
+const res = await fetch(url, { method, headers, body: method === 'GET' ? undefined : JSON.stringify(bodyOrQuery) });
+const data = await res.json().catch(() => ({}));
+if(!res.ok) throw new Error(data.error || ('Fehler ' + res.status));
+return data;
+}
+
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n){ return Number(n || 0).toLocaleString('de-CH'); }
+
+const PAYOUT_FIELDS = [
+  ['auto_payout_enabled', 'Automatische Auszahlung aktiv (Not-Aus)', 'bool'],
+  ['points_to_coins', '1 Kanalpunkt = x Chips', 'num'],
+  ['coins_to_points', '1 Chip = x Kanalpunkte', 'num'],
+  ['daily_auto_limit_points', 'Tageslimit pro Spieler (Punkte)', 'int'],
+  ['min_account_age_days', 'Mindestalter Konto (Tage)', 'int'],
+  ['max_rtp', 'Max. Gewinnquote (1.25 = 125 %)', 'num'],
+  ['rtp_min_bets', 'Gewinnquote erst ab Einsatz (Chips)', 'int'],
+  ['max_rounds_per_10min', 'Max. Runden pro 10 Minuten', 'int'],
+  ['min_payout_coins', 'Mindestauszahlung (Chips)', 'int']
+];
+
+const STATUS_LABEL = {
+  pending: '⏳ Offen', processing: '⚠️ Hängt (in Bearbeitung)', approved: '✓ Freigegeben',
+  approved_auto: '✓ Automatisch', rejected: '✗ Abgelehnt', failed: '✗ Fehlgeschlagen'
+};
+
+async function loadPayouts(){
+const settingsEl = document.getElementById('payout-settings');
+const listEl = document.getElementById('payout-list');
+listEl.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
+try{
+  const [settings, requests] = await Promise.all([
+    coinAdmin('GET', { view: 'settings' }),
+    coinAdmin('GET', { view: 'requests', status: document.getElementById('payout-filter').value })
+  ]);
+  settingsEl.innerHTML = PAYOUT_FIELDS.map(([key, label, type]) => type === 'bool'
+    ? `<label style="display:flex; gap:8px; align-items:center; font-size:13px;"><input type="checkbox" id="ps-${key}" ${settings[key] ? 'checked' : ''}> ${label}</label>`
+    : `<label style="font-size:12px; color:var(--text-low);">${label}<br><input type="number" step="${type === 'int' ? 1 : 0.01}" id="ps-${key}" value="${esc(settings[key])}" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg-1); color:var(--text-hi);"></label>`
+  ).join('');
+  if(!requests.length){ listEl.innerHTML = '<p style="color:var(--text-low)">Keine Anträge.</p>'; return; }
+  listEl.innerHTML = requests.map(r => `
+<div style="border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; background:var(--bg-1);">
+<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+<div><strong>#${r.id} · <a href="#" onclick="document.getElementById('player-login').value='${esc(r.twitch_login)}'; loadPlayer(); return false;">${esc(r.twitch_login)}</a></strong>
+ · ${fmt(r.coins)} Chips → <strong>${fmt(r.points)} Punkte</strong>
+ · ${STATUS_LABEL[r.status] || esc(r.status)}</div>
+<div style="color:var(--text-low); font-size:12px;">${new Date(r.created_at).toLocaleString('de-CH')}${r.decided_by ? ' · ' + esc(r.decided_by) : ''}</div>
+</div>
+${r.reasons && r.reasons.length ? `<ul style="margin:8px 0 0 18px; color:#ffcf3f; font-size:13px;">${r.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}
+${r.error ? `<div style="color:#ff9d8f; font-size:12px; margin-top:6px;">${esc(r.error)}</div>` : ''}
+<div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+${r.status === 'pending' ? `
+<button class="btn-primary" style="padding:8px 14px;" onclick="payoutAction('approve', ${r.id})">✓ Freigeben</button>
+<button class="btn-ghost" style="padding:8px 14px;" onclick="payoutAction('reject', ${r.id})">✗ Ablehnen (Chips zurück)</button>` : ''}
+${r.status === 'processing' ? `
+<span style="font-size:12px; color:var(--text-low);">Prüfe zuerst bei StreamElements, ob die Punkte angekommen sind:</span>
+<button class="btn-ghost" style="padding:8px 14px;" onclick="payoutAction('mark_done', ${r.id})">Punkte sind angekommen</button>
+<button class="btn-ghost" style="padding:8px 14px;" onclick="payoutAction('refund', ${r.id})">Nicht angekommen → Chips zurück</button>` : ''}
+</div>
+</div>`).join('');
+}catch(e){
+  listEl.innerHTML = '<p style="color:#ff6b6b">' + esc(e.message) + '</p>';
+}
+}
+
+async function savePayoutSettings(){
+const values = {};
+PAYOUT_FIELDS.forEach(([key, , type]) => {
+  const el = document.getElementById('ps-' + key);
+  if(!el) return;
+  values[key] = type === 'bool' ? el.checked : Number(el.value);
+});
+setStatus('Speichere Einstellungen…');
+try{
+  await coinAdmin('POST', { action: 'settings', values });
+  setStatus('✓ Einstellungen gespeichert (' + new Date().toLocaleTimeString() + ')');
+}catch(e){ setStatus('Fehler: ' + e.message, true); }
+}
+
+async function payoutAction(action, id){
+let note = null;
+if(action === 'reject' || action === 'refund'){
+  note = prompt('Grund (optional):', '');
+  if(note === null) return;
+}
+setStatus('Bearbeite Antrag #' + id + '…');
+try{
+  await coinAdmin('POST', { action, id, note });
+  setStatus('✓ Antrag #' + id + ' bearbeitet');
+}catch(e){ setStatus('Fehler: ' + e.message, true); }
+loadPayouts();
+}
+
+const LEDGER_LABEL = {
+  start: 'Startguthaben', opening_balance: 'Übernommenes Guthaben', exchange_in: 'Umtausch',
+  bet: 'Einsatz', win: 'Gewinn', payout_reserved: 'Auszahlung reserviert',
+  payout_refund: 'Rückbuchung', admin_adjust: 'Admin-Korrektur'
+};
+
+async function loadPlayer(){
+const login = document.getElementById('player-login').value.trim();
+const el = document.getElementById('player-view');
+if(!login){ el.innerHTML = ''; return; }
+el.innerHTML = '<p style="color:var(--text-low)">Lade…</p>';
+try{
+  const d = await coinAdmin('GET', { view: 'player', login });
+  const games = Object.entries(d.per_game || {}).map(([g, v]) =>
+    `<tr><td>${esc(g)}</td><td>${fmt(v.rounds)}</td><td>${fmt(v.stake)}</td><td>${fmt(v.won)}</td><td>${v.stake ? Math.round(v.won * 100 / v.stake) + ' %' : '–'}</td></tr>`).join('');
+  const ledger = (d.ledger || []).map(l =>
+    `<tr><td>${new Date(l.created_at).toLocaleString('de-CH')}</td><td>${LEDGER_LABEL[l.kind] || esc(l.kind)}</td><td>${esc(l.game || '')}</td><td style="text-align:right; color:${l.amount < 0 ? '#ff9d8f' : '#53fc18'}">${l.amount > 0 ? '+' : ''}${fmt(l.amount)}</td><td style="text-align:right">${fmt(l.balance_after)}</td><td>${esc(l.note || '')}</td></tr>`).join('');
+  el.innerHTML = `
+<div style="margin-bottom:12px;"><strong>${esc(d.login)}</strong> · Guthaben: <strong>${fmt(d.balance)} Chips</strong></div>
+${d.checks && d.checks.length
+  ? `<div class="info-box" style="border-color:#ffcf3f; color:#ffcf3f; margin-bottom:14px;">Aktuelle Befunde:<ul style="margin:6px 0 0 18px;">${d.checks.map(x => '<li>' + esc(x) + '</li>').join('')}</ul></div>`
+  : '<div class="info-box" style="margin-bottom:14px;">✓ Keine Auffälligkeiten</div>'}
+<h3 style="font-size:14px;">Spiele (letzte 1000 Runden)</h3>
+<table style="width:100%; font-size:13px; margin-bottom:18px;"><tr style="text-align:left; color:var(--text-low)"><th>Spiel</th><th>Runden</th><th>Einsatz</th><th>Gewinn</th><th>Quote</th></tr>${games || '<tr><td colspan="5">Noch keine Runden</td></tr>'}</table>
+<h3 style="font-size:14px;">Buchungen (neueste zuerst)</h3>
+<div style="max-height:420px; overflow:auto;"><table style="width:100%; font-size:12px;"><tr style="text-align:left; color:var(--text-low)"><th>Zeit</th><th>Art</th><th>Spiel</th><th style="text-align:right">Betrag</th><th style="text-align:right">Saldo</th><th>Notiz</th></tr>${ledger}</table></div>`;
+}catch(e){
+  el.innerHTML = '<p style="color:#ff6b6b">' + esc(e.message) + '</p>';
+}
 }
 
 async function loadLeaderboard(){

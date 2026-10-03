@@ -116,6 +116,20 @@
   .chips-display .icon{ font-size:22px; }
   .chips-display .amount{ font-family:var(--display); font-size:26px; color:var(--gold); }
   .chips-display .label{ font-family:var(--mono); font-size:10px; color:var(--text-low); text-transform:uppercase; }
+  .wallet-panel{
+    max-width:760px; margin:0 auto 28px; padding:18px 22px;
+    background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
+  }
+  .wallet-panel h3{ margin:0 0 4px; font-size:15px; }
+  .wallet-panel .wallet-note{ font-size:12px; color:var(--text-low); margin:0 0 14px; }
+  .wallet-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  .wallet-row label{ font-size:12px; min-width:170px; color:var(--text-low); }
+  .wallet-row input{ flex:1; min-width:110px; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg-0, #000); color:inherit; }
+  .wallet-row button{ padding:9px 16px; border-radius:8px; border:0; cursor:pointer; font-weight:600; }
+  .wallet-msg{ font-size:13px; min-height:18px; margin-top:6px; }
+  .wallet-msg.ok{ color:#53fc18; } .wallet-msg.err{ color:#ff6b6b; }
+  .wallet-requests{ margin-top:10px; font-size:12px; color:var(--text-low); }
+  .wallet-requests div{ padding:3px 0; border-top:1px solid var(--line); }
 
   /* ---------- Game grid ---------- */
   .game-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; }
@@ -583,6 +597,23 @@
       </div>
     </div>
 
+    <div class="wallet-panel" id="wallet-panel">
+      <h3>🔁 Kanalpunkte ⇄ TNT-Chips</h3>
+      <p class="wallet-note">Gespielt wird nur mit TNT-Chips. Tausche deine Kanalpunkte ein und lass dir Chips später wieder als Kanalpunkte auszahlen. Auszahlungen werden automatisch geprüft, auffällige Anträge prüft das Team. Kurs: <span id="wallet-rate">–</span>.</p>
+      <div class="wallet-row">
+        <label>Kanalpunkte: <b id="wallet-points">–</b></label>
+        <input id="wallet-exchange-amount" type="number" min="1" step="1" placeholder="Punkte eintauschen">
+        <button class="btn-primary" onclick="exchangePoints()">In Chips tauschen</button>
+      </div>
+      <div class="wallet-row">
+        <label>Auszahlung (min. <span id="wallet-min">–</span> Chips)</label>
+        <input id="wallet-payout-amount" type="number" min="1" step="1" placeholder="Chips auszahlen">
+        <button class="btn-primary" onclick="requestPayout()">Als Kanalpunkte auszahlen</button>
+      </div>
+      <div class="wallet-msg" id="wallet-msg"></div>
+      <div class="wallet-requests" id="wallet-requests"></div>
+    </div>
+
     <!-- GAME SELECTION GRID -->
     <section id="game-selection">
       <div class="game-grid">
@@ -1031,22 +1062,96 @@
   /* ================= CHIPS WALLET ================= */
 let CHIPS_BALANCE = 0;
 
+    // Alle Coin-Buchungen laufen über den Server (/api/coins). Der Server führt
+    // den Spielverlauf und ist die einzige Quelle für den Kontostand.
+    let COIN_CHAIN = Promise.resolve();
+
+    async function coinAuthHeaders(){
+          const { data: { session } } = await sb.auth.getSession();
+          if(!session) throw new Error('Nicht angemeldet');
+          return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token };
+    }
+
+    async function coinPost(body){
+          const res = await fetch('/api/coins', { method: 'POST', headers: await coinAuthHeaders(), body: JSON.stringify(body) });
+          const data = await res.json().catch(() => ({}));
+          if(!res.ok) throw new Error(data.error || 'Fehler');
+          return data;
+    }
+
     async function loadChips(){
           if(!CURRENT_USER || !CURRENT_IDENTITY) return;
           if(CURRENT_IDENTITY.provider !== 'twitch'){
                   CHIPS_BALANCE = 0;
                   updateChipsDisplay();
+                  document.getElementById('wallet-panel').style.display = 'none';
                   return;
           }
           try{
-                  const res = await fetch('/api/points?username=' + encodeURIComponent(CURRENT_IDENTITY.username));
+                  const res = await fetch('/api/coins', { headers: await coinAuthHeaders() });
                   const data = await res.json();
-                  CHIPS_BALANCE = (data && typeof data.points === 'number') ? data.points : 0;
+                  if(!res.ok) throw new Error(data.error || 'Fehler');
+                  CHIPS_BALANCE = data.balance;
+                  renderWallet(data);
           }catch(e){
                   CHIPS_BALANCE = 0;
-                  console.error('Punkte laden fehlgeschlagen:', e);
+                  setWalletMsg('Chips konnten nicht geladen werden: ' + e.message, false);
           }
           updateChipsDisplay();
+          loadChannelPoints();
+    }
+
+    async function loadChannelPoints(){
+          try{
+                  const res = await fetch('/api/points?username=' + encodeURIComponent(CURRENT_IDENTITY.username));
+                  const data = await res.json();
+                  document.getElementById('wallet-points').textContent =
+                        (data && typeof data.points === 'number') ? data.points.toLocaleString('de-CH') : '–';
+          }catch(e){ /* Anzeige ist optional */ }
+    }
+
+    const PAYOUT_STATUS = {
+          pending: '⏳ wird geprüft', processing: '⏳ in Bearbeitung', approved: '✓ ausbezahlt',
+          approved_auto: '✓ ausbezahlt', rejected: '✗ abgelehnt (Chips zurück)', failed: '✗ fehlgeschlagen (Chips zurück)'
+    };
+
+    function renderWallet(data){
+          document.getElementById('wallet-rate').textContent =
+                '1 Kanalpunkt = ' + data.rates.points_to_coins + ' Chips, 1 Chip = ' + data.rates.coins_to_points + ' Kanalpunkte';
+          document.getElementById('wallet-min').textContent = data.min_payout_coins;
+          const list = (data.requests || []).slice(0, 5).map(r =>
+                `<div>#${r.id} · ${r.coins.toLocaleString('de-CH')} Chips → ${r.points.toLocaleString('de-CH')} Punkte · ${PAYOUT_STATUS[r.status] || r.status} · ${new Date(r.created_at).toLocaleString('de-CH')}</div>`
+          ).join('');
+          document.getElementById('wallet-requests').innerHTML = list ? '<b>Deine Auszahlungen</b>' + list : '';
+    }
+
+    function setWalletMsg(text, ok){
+          const el = document.getElementById('wallet-msg');
+          el.textContent = text;
+          el.className = 'wallet-msg ' + (ok ? 'ok' : 'err');
+    }
+
+    async function exchangePoints(){
+          const points = parseInt(document.getElementById('wallet-exchange-amount').value, 10);
+          if(!(points > 0)) return setWalletMsg('Bitte eine gültige Punktzahl eingeben.', false);
+          try{
+                  const r = await coinPost({ action: 'exchange', points });
+                  setWalletMsg('✓ ' + r.points.toLocaleString('de-CH') + ' Kanalpunkte in ' + r.coins.toLocaleString('de-CH') + ' Chips getauscht.', true);
+                  document.getElementById('wallet-exchange-amount').value = '';
+          }catch(e){ setWalletMsg(e.message, false); }
+          await loadChips();
+    }
+
+    async function requestPayout(){
+          const coins = parseInt(document.getElementById('wallet-payout-amount').value, 10);
+          if(!(coins > 0)) return setWalletMsg('Bitte eine gültige Anzahl Chips eingeben.', false);
+          try{
+                  const r = await coinPost({ action: 'payout', coins });
+                  if(r.status === 'approved_auto') setWalletMsg('✓ ' + r.points.toLocaleString('de-CH') + ' Kanalpunkte gutgeschrieben.', true);
+                  else setWalletMsg('⏳ Dein Antrag wird vom Team geprüft. Die Chips sind bis dahin reserviert.', true);
+                  document.getElementById('wallet-payout-amount').value = '';
+          }catch(e){ setWalletMsg(e.message, false); }
+          await loadChips();
     }
 
     function updateChipsDisplay(){
@@ -1055,26 +1160,35 @@ let CHIPS_BALANCE = 0;
           if(navChips) navChips.textContent = '🪙 ' + CHIPS_BALANCE.toLocaleString('de-CH');
     }
 
-    async function saveChips(newBalance){
-          const clamped = Math.max(0, Math.round(newBalance));
-          const delta = clamped - CHIPS_BALANCE;
-          CHIPS_BALANCE = clamped;
+    // Buchungen werden nacheinander geschickt, damit Einsatz immer vor Gewinn ankommt.
+    function queueCoinTx(body){
+          COIN_CHAIN = COIN_CHAIN.then(async () => {
+                  try{
+                          const r = await coinPost(body);
+                          if(typeof r.balance === 'number'){ CHIPS_BALANCE = r.balance; updateChipsDisplay(); }
+                  }catch(e){
+                          console.error('Chip-Buchung fehlgeschlagen:', e);
+                          alert('Buchung fehlgeschlagen: ' + e.message + '\nDein Kontostand wird neu geladen.');
+                          await loadChips();
+                  }
+          });
+          return COIN_CHAIN;
+    }
+
+    function coinBet(game, amount, raise){
+          amount = Math.round(amount);
+          if(!(amount > 0) || !CURRENT_IDENTITY || CURRENT_IDENTITY.provider !== 'twitch') return;
+          CHIPS_BALANCE = Math.max(0, CHIPS_BALANCE - amount);
           updateChipsDisplay();
-          if(delta === 0 || !CURRENT_IDENTITY || CURRENT_IDENTITY.provider !== 'twitch') return;
-          try{
-                  const { data: { session } } = await sb.auth.getSession();
-                  if(!session) return;
-                  await fetch('/api/points-update', {
-                            method: 'POST',
-                            headers: {
-                                      'Content-Type': 'application/json',
-                                      'Authorization': 'Bearer ' + session.access_token
-                            },
-                            body: JSON.stringify({ amount: delta })
-                  });
-          }catch(e){
-                  console.error('Punkte-Update fehlgeschlagen:', e);
-          }
+          return queueCoinTx({ action: raise ? 'raise' : 'bet', game, amount });
+    }
+
+    function coinWin(game, amount){
+          amount = Math.round(amount);
+          if(!(amount > 0) || !CURRENT_IDENTITY || CURRENT_IDENTITY.provider !== 'twitch') return;
+          CHIPS_BALANCE += amount;
+          updateChipsDisplay();
+          return queueCoinTx({ action: 'win', game, amount });
     }
   /* ================= GAME NAVIGATION ================= */
   function openGame(name){
@@ -1140,7 +1254,7 @@ let CHIPS_BALANCE = 0;
       minePositions.add(Math.floor(Math.random() * MINES_N));
     }
     minesState = { bet, mineCount, minePositions, revealed: 0, active: true, multiplier: 1 };
-    saveChips(CHIPS_BALANCE - bet);
+    coinBet('mines', bet);
     document.querySelectorAll('.mine-tile').forEach(t => { t.classList.remove('revealed-safe','revealed-bomb','disabled'); t.textContent=''; });
     document.getElementById('mines-start-btn').style.display = 'none';
     document.getElementById('mines-cashout-btn').style.display = 'block';
@@ -1193,7 +1307,7 @@ let CHIPS_BALANCE = 0;
     const displayMult = minesState.multiplier * MINES_HOUSE_EDGE;
     const winnings = Math.round(minesState.bet * displayMult);
     minesState.active = false;
-    saveChips(CHIPS_BALANCE + winnings);
+    coinWin('mines', winnings);
     document.getElementById('mines-result').textContent = '✓ ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
     document.getElementById('mines-result').className = 'result-msg win';
     document.getElementById('mines-cashout-btn').style.display = 'none';
@@ -1246,12 +1360,13 @@ let CHIPS_BALANCE = 0;
       const win = outcome === coinChoice;
       if(win){
         const winnings = Math.round(bet * COIN_MULTIPLIER);
-        saveChips(CHIPS_BALANCE - bet + winnings);
+        coinBet('coinflip', bet);
+        coinWin('coinflip', winnings);
         document.getElementById('coin-result').textContent = '✓ ' + (outcome === 'heads' ? 'Kopf' : 'Zahl') + '! ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
         document.getElementById('coin-result').className = 'result-msg win';
         playWinSound();
       } else {
-        saveChips(CHIPS_BALANCE - bet);
+        coinBet('coinflip', bet);
         document.getElementById('coin-result').textContent = (outcome === 'heads' ? 'Kopf' : 'Zahl') + '! Leider verloren.';
         document.getElementById('coin-result').className = 'result-msg lose';
         playLoseSound();
@@ -1560,7 +1675,8 @@ let CHIPS_BALANCE = 0;
         totalWinnings += resolveBet(key, amount, winningNumber);
       }
 
-      saveChips(CHIPS_BALANCE - totalBet + totalWinnings);
+      coinBet('roulette', totalBet);
+      coinWin('roulette', totalWinnings);
 
       if(totalWinnings > 0){
         document.getElementById('roulette-result').textContent = '✓ ' + winningNumber + ' (' + numberColor(winningNumber) + ') — ' + totalWinnings.toLocaleString('de-CH') + ' Chips gewonnen!';
@@ -1752,7 +1868,7 @@ let CHIPS_BALANCE = 0;
       alert('Nicht genug Chips.');
       return;
     }
-    saveChips(CHIPS_BALANCE - totalCost);
+    coinBet('blackjack', totalCost);
     updateBjTotalDisplay();
 
     bjDealer = [drawCard(), drawCard()];
@@ -1775,7 +1891,7 @@ let CHIPS_BALANCE = 0;
         if(tp){ box.tpResult = tp; sideWinnings += box.tpBet * tp.mult; }
       }
     });
-    if(sideWinnings > 0) saveChips(CHIPS_BALANCE + sideWinnings);
+    if(sideWinnings > 0) coinWin('blackjack', sideWinnings);
 
     document.getElementById('bj-setup').style.display = 'none';
     document.getElementById('bj-deal-btn').style.display = 'none';
@@ -1835,7 +1951,7 @@ let CHIPS_BALANCE = 0;
     if(bjPhase !== 'boxes' || bjActiveBoxIndex >= bjBoxes.length) return;
     const box = bjBoxes[bjActiveBoxIndex];
     if(box.cards.length !== 2 || box.bet > CHIPS_BALANCE) return;
-    saveChips(CHIPS_BALANCE - box.bet);
+    coinBet('blackjack', box.bet, true);
     box.bet *= 2;
     box.doubled = true;
     box.cards.push(drawCard());
@@ -1909,7 +2025,7 @@ let CHIPS_BALANCE = 0;
       }
     });
 
-    if(totalWinnings > 0) saveChips(CHIPS_BALANCE + totalWinnings);
+    if(totalWinnings > 0) coinWin('blackjack', totalWinnings);
     updateBjTotalDisplay();
     renderBjBoxes();
 
@@ -1980,7 +2096,7 @@ let CHIPS_BALANCE = 0;
       alert('Ungültiger Einsatz.');
       return;
     }
-    saveChips(CHIPS_BALANCE - bet);
+    coinBet('crash', bet);
     const crashPoint = generateCrashPoint();
     crashState = { bet, crashPoint, startTime: performance.now(), cashedOut: false, crashed: false };
 
@@ -2047,7 +2163,7 @@ let CHIPS_BALANCE = 0;
     const mult = crashMultiplierAt(elapsed);
     crashState.cashedOut = true;
     const winnings = Math.round(crashState.bet * mult);
-    saveChips(CHIPS_BALANCE + winnings);
+    coinWin('crash', winnings);
     document.getElementById('crash-result').textContent = '✓ Bei ' + mult.toFixed(2) + '× ausgezahlt — ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
     document.getElementById('crash-result').className = 'result-msg win';
     document.getElementById('crash-status').textContent = 'Ausgezahlt ✓';
@@ -2136,7 +2252,7 @@ let CHIPS_BALANCE = 0;
     const risk = document.getElementById('plinko-risk').value;
     const dropBtn = document.getElementById('plinko-drop-btn');
     dropBtn.disabled = true;
-    saveChips(CHIPS_BALANCE - bet);
+    coinBet('plinko', bet);
     document.getElementById('plinko-result').textContent = '';
     document.getElementById('plinko-result').className = 'result-msg';
 
@@ -2171,17 +2287,17 @@ let CHIPS_BALANCE = 0;
         const winnings = Math.round(bet * multiplier);
         setTimeout(() => {
           if(winnings > bet){
-            saveChips(CHIPS_BALANCE + winnings);
+            coinWin('plinko', winnings);
             document.getElementById('plinko-result').textContent = '✓ ' + multiplier + '× — ' + winnings.toLocaleString('de-CH') + ' Chips gewonnen!';
             document.getElementById('plinko-result').className = 'result-msg win';
             playWinSound();
           } else if(winnings === bet){
-            saveChips(CHIPS_BALANCE + winnings);
+            coinWin('plinko', winnings);
             document.getElementById('plinko-result').textContent = multiplier + '× — Einsatz zurück.';
             document.getElementById('plinko-result').className = 'result-msg';
             playClickSound();
           } else {
-            saveChips(CHIPS_BALANCE + winnings);
+            coinWin('plinko', winnings);
             document.getElementById('plinko-result').textContent = 'Nur ' + multiplier + '× getroffen — ' + (bet - winnings).toLocaleString('de-CH') + ' Chips verloren.';
             document.getElementById('plinko-result').className = 'result-msg lose';
             playLoseSound();
