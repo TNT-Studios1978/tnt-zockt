@@ -37,16 +37,16 @@ store-url: "https://tnt-zockt.tebex.store"
 ranks:
   supporter:
     display: "Supporter"
-    color: "yellow"
+    color: "aqua"
     icon: "GOLD_NUGGET"
     particles: [HEART, NOTE]
   vip:
     display: "VIP"
-    color: "aqua"
+    color: "gold"
     icon: "DIAMOND"
     particles: [HAPPY_VILLAGER, END_ROD, ENCHANT]
   legende:
     display: "Legende"
-    color: "gold"
+    color: "light_purple"
     icon: "NETHER_STAR"
     particles: [FLAME, SOUL_FIRE_FLAME, TOTEM_OF_UNDYING, WITCH, ELECTRIC_SPARK]
