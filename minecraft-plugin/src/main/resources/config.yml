@@ -25,3 +25,28 @@ starter-kit:
 
 # Wartezeit zwischen zwei Käufen pro Spieler (Schutz vor Doppelklicks), in Sekunden
 click-cooldown-seconds: 3
+
+# ============================================================
+# Ränge (Echtgeld über Tebex) – NUR Kosmetik, kein Spielvorteil
+# (Mojang-Regeln). Reihenfolge = tief -> hoch. Ein höherer Rang
+# bekommt auch alle Partikel der tieferen Ränge.
+# Farben: Namen wie gold, aqua, yellow ... oder Hex wie "#ff8800"
+# ============================================================
+store-url: "https://tnt-zockt.tebex.io"
+
+ranks:
+  supporter:
+    display: "Supporter"
+    color: "yellow"
+    icon: "GOLD_NUGGET"
+    particles: [HEART, NOTE]
+  vip:
+    display: "VIP"
+    color: "aqua"
+    icon: "DIAMOND"
+    particles: [HAPPY_VILLAGER, END_ROD, ENCHANT]
+  legende:
+    display: "Legende"
+    color: "gold"
+    icon: "NETHER_STAR"
+    particles: [FLAME, SOUL_FIRE_FLAME, TOTEM_OF_UNDYING, WITCH, ELECTRIC_SPARK]

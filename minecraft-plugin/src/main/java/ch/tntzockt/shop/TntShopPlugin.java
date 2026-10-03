@@ -36,6 +36,7 @@ import java.util.function.Consumer;
 public final class TntShopPlugin extends JavaPlugin implements Listener {
 
     private ApiClient api;
+    private RankManager ranks;
     private final Map<UUID, Long> lastClick = new HashMap<>();
     private NamespacedKey starterKey;
     private NamespacedKey kitKey;
@@ -53,11 +54,23 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         kitKey = new NamespacedKey(this, "kit_id");
         loadApi();
         getServer().getPluginManager().registerEvents(this, this);
+        ranks = new RankManager(this);
+        ranks.load();
+        getServer().getPluginManager().registerEvents(ranks, this);
+        for (String c : new String[]{"store", "partikel", "tntrang"}) {
+            var cmd = getCommand(c);
+            if (cmd != null) { cmd.setExecutor(ranks); cmd.setTabCompleter(ranks); }
+        }
         getLogger().info("TNT-Shop aktiv" + (api.isConfigured() ? " (Verbindung eingerichtet)" : " - ACHTUNG: server-secret in config.yml fehlt!"));
     }
 
     private void loadApi() {
         reloadConfig();
+        // Ältere config.yml um neue Abschnitte (Ränge, Store) ergänzen – bestehende Werte bleiben
+        if (!getConfig().isSet("ranks") || !getConfig().isSet("store-url")) {
+            getConfig().options().copyDefaults(true);
+            saveConfig();
+        }
         api = new ApiClient(getConfig().getString("api-url", ""), getConfig().getString("server-secret", "").trim());
     }
 
@@ -132,6 +145,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         if (name.equals("tntshop")) {
             if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                 loadApi();
+                ranks.load();
                 sender.sendMessage(prefix().append(Component.text("Konfiguration neu geladen. Verbindung: "
                         + (api.isConfigured() ? "eingerichtet" : "server-secret fehlt"), NamedTextColor.GREEN)));
                 return true;

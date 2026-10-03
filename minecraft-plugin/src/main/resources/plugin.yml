@@ -19,6 +19,20 @@ commands:
     description: Öffnet den TNT-Shop
     usage: /shop
     permission: tntshop.use
+  store:
+    description: Link zum TNT-Zockt Store (Ränge, nur Kosmetik)
+    usage: /store
+    aliases: [ränge, raenge]
+    permission: tntshop.use
+  partikel:
+    description: Partikel-Effekt deines Rangs wählen
+    usage: /partikel
+    aliases: [particles]
+    permission: tntshop.use
+  tntrang:
+    description: Ränge verwalten (wird von Tebex aus der Konsole benutzt)
+    usage: /tntrang give|set|remove|info <spieler|uuid> [rang]
+    permission: tntshop.admin
   tntshop:
     description: Admin-Befehle des TNT-Shops
     usage: /tntshop reload
