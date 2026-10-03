@@ -32,7 +32,7 @@ click-cooldown-seconds: 3
 # bekommt auch alle Partikel der tieferen Ränge.
 # Farben: Namen wie gold, aqua, yellow ... oder Hex wie "#ff8800"
 # ============================================================
-store-url: "https://tnt-zockt.tebex.io"
+store-url: "https://tnt-zockt.tebex.store"
 
 ranks:
   supporter:
