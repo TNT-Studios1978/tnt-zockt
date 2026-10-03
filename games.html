@@ -1065,6 +1065,7 @@ let CHIPS_BALANCE = 0;
     // Alle Coin-Buchungen laufen über den Server (/api/coins). Der Server führt
     // den Spielverlauf und ist die einzige Quelle für den Kontostand.
     let COIN_CHAIN = Promise.resolve();
+    let CHANNEL_POINTS = null;   // StreamElements-Kanalpunkte (nur Anzeige)
 
     async function coinAuthHeaders(){
           const { data: { session } } = await sb.auth.getSession();
@@ -1105,8 +1106,10 @@ let CHIPS_BALANCE = 0;
           try{
                   const res = await fetch('/api/points?username=' + encodeURIComponent(CURRENT_IDENTITY.username));
                   const data = await res.json();
+                  CHANNEL_POINTS = (data && typeof data.points === 'number') ? data.points : null;
                   document.getElementById('wallet-points').textContent =
-                        (data && typeof data.points === 'number') ? data.points.toLocaleString('de-CH') : '–';
+                        CHANNEL_POINTS !== null ? CHANNEL_POINTS.toLocaleString('de-CH') : '–';
+                  updateChipsDisplay();
           }catch(e){ /* Anzeige ist optional */ }
     }
 
@@ -1157,7 +1160,8 @@ let CHIPS_BALANCE = 0;
     function updateChipsDisplay(){
           document.getElementById('chips-amount').textContent = CHIPS_BALANCE.toLocaleString('de-CH');
           const navChips = document.getElementById('nav-chips');
-          if(navChips) navChips.textContent = '🪙 ' + CHIPS_BALANCE.toLocaleString('de-CH');
+          if(navChips) navChips.textContent = '🪙 ' + CHIPS_BALANCE.toLocaleString('de-CH') + ' Chips'
+                + (CHANNEL_POINTS !== null ? ' · ⭐ ' + CHANNEL_POINTS.toLocaleString('de-CH') + ' Punkte' : '');
     }
 
     // Buchungen werden nacheinander geschickt, damit Einsatz immer vor Gewinn ankommt.
