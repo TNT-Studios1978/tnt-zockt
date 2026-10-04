@@ -99,10 +99,10 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         plots.configure(plotWorld, c.getInt("worlds.plot-size", 64), c.getInt("worlds.plot-road", 7), c.getInt("worlds.plots-per-player", 1));
         plots.load();
 
-        World l = create(lobby, new Generators.Void());
+        World l = createFixed(lobby, new Generators.Void());
         World f = createNormal(farm);
-        World p = create(plotWorld, plots.generator());
-        World k = create(creative, new Generators.Flat());
+        World p = createFixed(plotWorld, plots.generator());
+        World k = createFixed(creative, new Generators.Flat());
 
         if (l != null) {
             setupCalm(l);
@@ -110,6 +110,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             set(l, GameRule.PVP, false);
             l.setDifficulty(Difficulty.PEACEFUL);
             buildLobby(l);
+            if (!l.getPersistentDataContainer().has(castleKey(), PersistentDataType.BYTE)) buildCastle(l, null);
         }
         for (World w : new World[]{p, k}) {
             if (w == null) continue;
@@ -135,6 +136,39 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         } catch (Exception e) {
             plugin.getLogger().severe("Welt " + name + " konnte nicht erstellt werden: " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Erzeugt eine Welt mit eigenem Generator. Welten aus Version 1.3.0 enthielten
+     * fälschlich normales Gelände – die werden einmalig gelöscht und sauber neu erzeugt.
+     */
+    private World createFixed(String name, org.bukkit.generator.ChunkGenerator gen) {
+        World w = create(name, gen);
+        if (w == null) return null;
+        NamespacedKey fixed = new NamespacedKey(plugin, "gen_v2");
+        if (w.getPersistentDataContainer().has(fixed, PersistentDataType.BYTE)) return w;
+        if (!w.getPlayers().isEmpty() || !deleteWorld(w)) {
+            plugin.getLogger().warning("Welt " + name + " konnte nicht neu erzeugt werden");
+            return w;
+        }
+        w = create(name, gen);
+        if (w != null) {
+            w.getPersistentDataContainer().set(fixed, PersistentDataType.BYTE, (byte) 1);
+            plugin.getLogger().info("Welt " + name + " sauber neu erzeugt");
+        }
+        return w;
+    }
+
+    private boolean deleteWorld(World w) {
+        File folder = w.getWorldFolder();
+        if (!Bukkit.unloadWorld(w, false)) return false;
+        try (Stream<Path> s = Files.walk(folder.toPath())) {
+            s.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Löschen fehlgeschlagen: " + e.getMessage());
+            return false;
         }
     }
 
@@ -167,6 +201,50 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         w.setTime(6000);
         w.setStorm(false);
         w.setThundering(false);
+    }
+
+    private NamespacedKey castleKey() {
+        return new NamespacedKey(plugin, "castle_v1");
+    }
+
+    private List<LobbyCastle.Portal> portals() {
+        return LobbyCastle.portals(survival, farm, plotWorld, creative);
+    }
+
+    private boolean building = false;
+
+    void buildCastle(World l, CommandSender by) {
+        if (building) { if (by != null) by.sendMessage("Das Schloss wird schon gebaut …"); return; }
+        building = true;
+        plugin.getLogger().info("Baue Lobby-Schloss …");
+        new LobbyCastle().build(l, plugin, portals(), () -> {
+            building = false;
+            l.getPersistentDataContainer().set(castleKey(), PersistentDataType.BYTE, (byte) 1);
+            for (Player p : l.getPlayers()) p.teleport(LobbyCastle.spawn(l));
+            plugin.getLogger().info("Lobby-Schloss fertig");
+            if (by != null) by.sendMessage(Component.text("✔ Lobby-Schloss ist fertig gebaut.", NamedTextColor.GREEN));
+        });
+    }
+
+    private final java.util.Map<java.util.UUID, Long> portalCooldown = new java.util.HashMap<>();
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPortalWalk(PlayerMoveEvent e) {
+        if (!isLobby(e.getTo().getWorld())) return;
+        if (e.getFrom().getBlockX() == e.getTo().getBlockX() && e.getFrom().getBlockY() == e.getTo().getBlockY()
+                && e.getFrom().getBlockZ() == e.getTo().getBlockZ()) return;
+        int bx = e.getTo().getBlockX(), by = e.getTo().getBlockY(), bz = e.getTo().getBlockZ();
+        for (LobbyCastle.Portal p : portals()) {
+            if (p.contains(bx, by, bz) || p.contains(bx, by + 1, bz)) {
+                long now = System.currentTimeMillis();
+                Long last = portalCooldown.get(e.getPlayer().getUniqueId());
+                if (last != null && now - last < 3000) return;
+                portalCooldown.put(e.getPlayer().getUniqueId(), now);
+                Player pl = e.getPlayer();
+                Bukkit.getScheduler().runTask(plugin, () -> travel(pl, p.world()));
+                return;
+            }
+        }
     }
 
     /** Lobby-Plattform einmalig bauen. */
@@ -303,7 +381,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         World l = Bukkit.getWorld(lobby);
         if (joinToLobby && l != null && !p.getWorld().equals(l)) {
             saveLast(p, p.getLocation());
-            p.teleport(l.getSpawnLocation().add(0.5, 0, 0.5));
+            p.teleport(lobbySpawn(l));
         }
         ensureGroup(p);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -344,6 +422,11 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     // ---------------------------------------------------------------- Lobby- & Kreativ-Regeln
 
+    private Location lobbySpawn(World l) {
+        return l.getPersistentDataContainer().has(castleKey(), PersistentDataType.BYTE)
+                ? LobbyCastle.spawn(l) : l.getSpawnLocation().add(0.5, 0, 0.5);
+    }
+
     private boolean isLobby(World w) {
         return w != null && w.getName().equals(lobby);
     }
@@ -381,7 +464,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     public void onMove(PlayerMoveEvent e) {
         // aus der Lobby fallen → zurück zum Spawn
         if (isLobby(e.getTo().getWorld()) && e.getTo().getY() < Generators.SURFACE - 30) {
-            e.getPlayer().teleport(e.getTo().getWorld().getSpawnLocation().add(0.5, 0, 0.5));
+            e.getPlayer().teleport(lobbySpawn(e.getTo().getWorld()));
         }
     }
 
@@ -483,6 +566,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         Location target = null;
         if (worldName.equals(plotWorld)) target = plots.homeOf(p);
         if (target == null && !worldName.equals(lobby)) target = last(p, w);
+        if (target == null && worldName.equals(lobby)) target = lobbySpawn(w);
         if (target == null) {
             Location s = w.getSpawnLocation();
             target = worldName.equals(lobby) || isCreative(w) ? s.add(0.5, 0, 0.5)
@@ -519,12 +603,18 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             resetFarm(sender);
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("schloss")) {
+            World l = Bukkit.getWorld(lobby);
+            if (l != null) { sender.sendMessage("Baue das Lobby-Schloss neu …"); buildCastle(l, sender); }
+            return true;
+        }
         if (args.length >= 2 && args[0].equalsIgnoreCase("tp") && sender instanceof Player p) {
             travel(p, args[1]);
             return true;
         }
         sender.sendMessage("/welt reset " + farm + "  – Farmwelt neu erzeugen");
         sender.sendMessage("/welt tp <welt>  – in eine Welt reisen");
+        sender.sendMessage("/welt schloss  – Lobby-Schloss neu bauen");
         return true;
     }
 
@@ -534,7 +624,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         World l = Bukkit.getWorld(lobby);
         if (w != null) {
             for (Player p : w.getPlayers()) {
-                if (l != null) p.teleport(l.getSpawnLocation().add(0.5, 0, 0.5));
+                if (l != null) p.teleport(lobbySpawn(l));
                 p.sendMessage(Component.text("Die Farmwelt wird zurückgesetzt – du bist jetzt in der Lobby.", NamedTextColor.YELLOW));
             }
             File folder = w.getWorldFolder();
@@ -557,7 +647,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args) {
         if (!command.getName().equalsIgnoreCase("welt")) return List.of();
-        if (args.length == 1) return List.of("reset", "tp");
+        if (args.length == 1) return List.of("reset", "tp", "schloss");
         if (args.length == 2 && args[0].equalsIgnoreCase("reset")) return List.of(farm);
         if (args.length == 2) {
             Collection<World> ws = Bukkit.getWorlds();

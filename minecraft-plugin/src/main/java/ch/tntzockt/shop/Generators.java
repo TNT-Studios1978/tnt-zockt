@@ -33,6 +33,13 @@ final class Generators {
         @Override public boolean shouldGenerateDecorations() { return false; }
         @Override public boolean shouldGenerateMobs() { return false; }
         @Override public boolean shouldGenerateStructures() { return false; }
+        // Paper 26.x fragt die Varianten mit Koordinaten ab – auch diese abschalten
+        @Override public boolean shouldGenerateNoise(@NotNull WorldInfo w, @NotNull Random r, int x, int z) { return false; }
+        @Override public boolean shouldGenerateSurface(@NotNull WorldInfo w, @NotNull Random r, int x, int z) { return false; }
+        @Override public boolean shouldGenerateCaves(@NotNull WorldInfo w, @NotNull Random r, int x, int z) { return false; }
+        @Override public boolean shouldGenerateDecorations(@NotNull WorldInfo w, @NotNull Random r, int x, int z) { return false; }
+        @Override public boolean shouldGenerateMobs(@NotNull WorldInfo w, @NotNull Random r, int x, int z) { return false; }
+        @Override public boolean shouldGenerateStructures(@NotNull WorldInfo w, @NotNull Random r, int x, int z) { return false; }
         @Override public BiomeProvider getDefaultBiomeProvider(@NotNull WorldInfo worldInfo) { return new PlainsBiomes(); }
     }
 
