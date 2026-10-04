@@ -50,3 +50,16 @@ ranks:
     color: "light_purple"
     icon: "NETHER_STAR"
     particles: [FLAME, SOUL_FIRE_FLAME, TOTEM_OF_UNDYING, WITCH, ELECTRIC_SPARK]
+
+# ============================================================
+# Discord: Spielerliste + Beitritts-Meldungen über einen Webhook
+# Discord-Kanal → Einstellungen → Integrationen → Webhooks → Neuer Webhook
+# → "Webhook-URL kopieren" und hier einfügen. Leer = aus.
+# Die URL ist geheim (wer sie hat, kann in den Kanal schreiben).
+# ============================================================
+discord:
+  webhook-url: ""
+  server-address: "stamina-elk.tun.ply.gg"
+  join-messages: true      # Meldung, wenn jemand beitritt
+  first-join-only: false   # true = nur bei ganz neuen Spielern melden
+  leave-messages: false    # Meldung, wenn jemand geht

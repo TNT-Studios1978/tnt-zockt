@@ -37,6 +37,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
 
     private ApiClient api;
     private RankManager ranks;
+    private DiscordStatus discord;
     private final Map<UUID, Long> lastClick = new HashMap<>();
     private NamespacedKey starterKey;
     private NamespacedKey kitKey;
@@ -57,6 +58,9 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         ranks = new RankManager(this);
         ranks.load();
         getServer().getPluginManager().registerEvents(ranks, this);
+        discord = new DiscordStatus(this, ranks);
+        discord.load();
+        getServer().getPluginManager().registerEvents(discord, this);
         for (String c : new String[]{"store", "partikel", "tntrang"}) {
             var cmd = getCommand(c);
             if (cmd != null) { cmd.setExecutor(ranks); cmd.setTabCompleter(ranks); }
@@ -64,10 +68,15 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         getLogger().info("TNT-Shop aktiv" + (api.isConfigured() ? " (Verbindung eingerichtet)" : " - ACHTUNG: server-secret in config.yml fehlt!"));
     }
 
+    @Override
+    public void onDisable() {
+        if (discord != null) discord.shutdown();
+    }
+
     private void loadApi() {
         reloadConfig();
         // Ältere config.yml um neue Abschnitte (Ränge, Store) ergänzen – bestehende Werte bleiben
-        if (!getConfig().isSet("ranks") || !getConfig().isSet("store-url")) {
+        if (!getConfig().isSet("ranks") || !getConfig().isSet("store-url") || !getConfig().isSet("discord")) {
             getConfig().options().copyDefaults(true);
             saveConfig();
         }
@@ -146,6 +155,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
             if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                 loadApi();
                 ranks.load();
+                discord.load();
                 sender.sendMessage(prefix().append(Component.text("Konfiguration neu geladen. Verbindung: "
                         + (api.isConfigured() ? "eingerichtet" : "server-secret fehlt"), NamedTextColor.GREEN)));
                 return true;
