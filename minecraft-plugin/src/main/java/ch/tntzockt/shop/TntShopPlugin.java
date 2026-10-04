@@ -38,6 +38,8 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
     private ApiClient api;
     private RankManager ranks;
     private DiscordStatus discord;
+    private PlotManager plots;
+    private WorldManager worlds;
     private final Map<UUID, Long> lastClick = new HashMap<>();
     private NamespacedKey starterKey;
     private NamespacedKey kitKey;
@@ -61,6 +63,17 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         discord = new DiscordStatus(this, ranks);
         discord.load();
         getServer().getPluginManager().registerEvents(discord, this);
+        plots = new PlotManager(this);
+        worlds = new WorldManager(this, plots);
+        worlds.load();
+        getServer().getPluginManager().registerEvents(worlds, this);
+        getServer().getPluginManager().registerEvents(plots, this);
+        for (String c : new String[]{"welten", "lobby", "welt"}) {
+            var cmd = getCommand(c);
+            if (cmd != null) { cmd.setExecutor(worlds); cmd.setTabCompleter(worlds); }
+        }
+        var plotCmd = getCommand("plot");
+        if (plotCmd != null) { plotCmd.setExecutor(plots); plotCmd.setTabCompleter(plots); }
         for (String c : new String[]{"store", "partikel", "tntrang"}) {
             var cmd = getCommand(c);
             if (cmd != null) { cmd.setExecutor(ranks); cmd.setTabCompleter(ranks); }
@@ -76,7 +89,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
     private void loadApi() {
         reloadConfig();
         // Ältere config.yml um neue Abschnitte (Ränge, Store) ergänzen – bestehende Werte bleiben
-        if (!getConfig().isSet("ranks") || !getConfig().isSet("store-url") || !getConfig().isSet("discord")) {
+        if (!getConfig().isSet("ranks") || !getConfig().isSet("store-url") || !getConfig().isSet("discord") || !getConfig().isSet("worlds")) {
             getConfig().options().copyDefaults(true);
             saveConfig();
         }
@@ -304,6 +317,10 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         lastClick.put(p.getUniqueId(), now);
 
         p.closeInventory();
+        if (worlds != null && worlds.isCreative(p.getWorld())) {
+            error(p, "Pakete gibt es nur in der Survival-Welt. Reise mit /welten dorthin.");
+            return;
+        }
         buy(p, kitId);
     }
 

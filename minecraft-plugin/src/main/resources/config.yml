@@ -63,3 +63,18 @@ discord:
   join-messages: true      # Meldung, wenn jemand beitritt
   first-join-only: false   # true = nur bei ganz neuen Spielern melden
   leave-messages: false    # Meldung, wenn jemand geht
+
+# ============================================================
+# Welten. Survival-Gruppe (world, Nether, End, Lobby, Farmwelt) und
+# Kreativ-Gruppe (Grundstücke, Kreativwelt) haben getrennte Inventare.
+# ============================================================
+worlds:
+  lobby: "lobby"
+  survival: "world"
+  farm: "farmwelt"
+  plots: "grundstuecke"
+  creative: "kreativ"
+  join-to-lobby: true     # beim Einloggen immer in der Lobby starten
+  plot-size: 64           # Parzelle 64x64 Blöcke
+  plot-road: 7            # Wegbreite zwischen den Parzellen
+  plots-per-player: 1

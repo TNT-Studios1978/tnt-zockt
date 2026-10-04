@@ -33,6 +33,25 @@ commands:
     description: Ränge verwalten (wird von Tebex aus der Konsole benutzt)
     usage: /tntrang give|set|remove|info <spieler|uuid> [rang]
     permission: tntshop.admin
+  welten:
+    description: Weltenmenü öffnen
+    usage: /welten
+    aliases: [worlds, menu, menü]
+    permission: tntshop.use
+  lobby:
+    description: Zur Lobby
+    usage: /lobby
+    aliases: [spawn, hub]
+    permission: tntshop.use
+  plot:
+    description: Grundstücke (Parzellen)
+    usage: /plot claim|home|visit|trust|untrust|info|clear
+    aliases: [p, gs, grundstueck, grundstück, plots]
+    permission: tntshop.use
+  welt:
+    description: Welten verwalten (Admin)
+    usage: /welt reset farmwelt | /welt tp <welt>
+    permission: tntshop.admin
   tntshop:
     description: Admin-Befehle des TNT-Shops
     usage: /tntshop reload
