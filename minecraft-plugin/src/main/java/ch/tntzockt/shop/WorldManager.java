@@ -65,7 +65,7 @@ import java.util.stream.Stream;
  */
 final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
-    enum Group { SURVIVAL, CREATIVE, SKYBLOCK, HARDCORE, EVENT }
+    enum Group { SURVIVAL, CREATIVE, SKYBLOCK, HARDCORE, EVENT, MINIGAME }
 
     private static final class Menu implements InventoryHolder {
         private Inventory inventory;
@@ -75,7 +75,10 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     private final TntShopPlugin plugin;
     private final PlotManager plots;
     private final SkyblockManager sky;
-    private String adventure = "abenteuer", skyblock = "skyblock", hardcore = "hardcore", event = "event";
+    private String adventure = "abenteuer", skyblock = "skyblock", hardcore = "hardcore", event = "event", minigames = "minispiele";
+    private Minigames games;
+
+    void setMinigames(Minigames g) { this.games = g; }
     private boolean eventOpen = false;
     private final NamespacedKey hcKey;
     private final java.util.Map<java.util.UUID, String> deathWorld = new java.util.HashMap<>();
@@ -107,6 +110,8 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         skyblock = c.getString("worlds.skyblock", skyblock);
         hardcore = c.getString("worlds.hardcore", hardcore);
         event = c.getString("worlds.event", event);
+        minigames = c.getString("worlds.minigames", minigames);
+        if (games != null) games.configure(minigames);
         sky.configure(skyblock);
         sky.load();
         plots.configure(plotWorld, c.getInt("worlds.plot-size", 64), c.getInt("worlds.plot-road", 7), c.getInt("worlds.plots-per-player", 1));
@@ -154,6 +159,19 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             set(e, GameRule.TNT_EXPLODES, false);
             set(e, GameRule.KEEP_INVENTORY, true);
             e.setDifficulty(Difficulty.PEACEFUL);
+        }
+        World g = createFixed(minigames, new Generators.Void());
+        if (g != null) {
+            setupCalm(g);
+            set(g, GameRule.PVP, true);
+            set(g, GameRule.TNT_EXPLODES, false);
+            set(g, GameRule.MOB_GRIEFING, false);
+            set(g, GameRule.DO_FIRE_TICK, false);
+            set(g, GameRule.FALL_DAMAGE, false);
+            set(g, GameRule.KEEP_INVENTORY, true);
+            set(g, GameRule.ALLOW_ENTERING_NETHER_USING_PORTALS, false);
+            g.setDifficulty(Difficulty.PEACEFUL);
+            if (games != null) games.setup(g);
         }
     }
 
@@ -248,11 +266,11 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private NamespacedKey castleKey() {
-        return new NamespacedKey(plugin, "castle_v2");
+        return new NamespacedKey(plugin, "castle_v3");
     }
 
     private List<LobbyCastle.Portal> portals() {
-        return LobbyCastle.portals(survival, farm, plotWorld, creative, adventure, skyblock, hardcore, event);
+        return LobbyCastle.portals(survival, farm, plotWorld, creative, adventure, skyblock, hardcore, event, minigames);
     }
 
     private boolean building = false;
@@ -321,6 +339,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         if (n.equals(skyblock)) return Group.SKYBLOCK;
         if (n.equals(hardcore)) return Group.HARDCORE;
         if (n.equals(event)) return Group.EVENT;
+        if (n.equals(minigames)) return Group.MINIGAME;
         return Group.SURVIVAL;
     }
 
@@ -339,7 +358,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private GameMode modeFor(World w) {
-        if (w.getName().equals(lobby)) return GameMode.ADVENTURE;
+        if (w.getName().equals(lobby) || w.getName().equals(minigames)) return GameMode.ADVENTURE;
         return isCreative(w) ? GameMode.CREATIVE : GameMode.SURVIVAL;
     }
 
@@ -574,7 +593,10 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     public void onRespawn(org.bukkit.event.player.PlayerRespawnEvent e) {
         String w = deathWorld.remove(e.getPlayer().getUniqueId());
         if (w == null) return;
-        if (w.equals(hardcore) || w.equals(event)) {
+        if (w.equals(minigames) && games != null) {
+            World g = Bukkit.getWorld(minigames);
+            if (g != null) e.setRespawnLocation(games.hub(g));
+        } else if (w.equals(hardcore) || w.equals(event)) {
             World l = Bukkit.getWorld(lobby);
             if (l != null) e.setRespawnLocation(lobbySpawn(l));
         } else if (w.equals(skyblock)) {
@@ -650,6 +672,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         inv.setItem(23, icon(Material.OAK_SIGN, "Grundstücke", NamedTextColor.AQUA, plotWorld, "Deine eigene 64×64-Parzelle", "Kreativmodus · /plot claim"));
         inv.setItem(24, icon(Material.CRAFTING_TABLE, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, creative, "Freies Bauen für alle"));
         inv.setItem(25, icon(Material.OAK_SAPLING, "Skyblock", NamedTextColor.BLUE, skyblock, "Deine eigene Insel im Himmel", "Eigenes Inventar · /is"));
+        inv.setItem(31, icon(Material.TNT, "Minispiele", NamedTextColor.RED, minigames, "TNT-Run · Spleef · Parkour · PvP", "Eigenes Inventar · /spiele"));
         String wait = hardcoreBlocked(p);
         inv.setItem(30, icon(Material.WITHER_SKELETON_SKULL, "Hardcore", NamedTextColor.DARK_RED, hardcore, "Schwer · eigenes Inventar",
                 wait == null ? "Wer stirbt, muss 24h warten" : "☠ Gesperrt: noch " + wait));
@@ -702,6 +725,11 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             p.sendActionBar(Component.text("→ Skyblock", NamedTextColor.GOLD));
             return;
         }
+        if (worldName.equals(minigames) && games != null) {
+            p.teleport(games.hub(w));
+            p.sendActionBar(Component.text("→ Minispiele", NamedTextColor.GOLD));
+            return;
+        }
         Location target = null;
         if (worldName.equals(plotWorld)) target = plots.homeOf(p);
         if (target == null && !worldName.equals(lobby)) target = last(p, w);
@@ -724,6 +752,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         if (world.equals(adventure)) return "Abenteuer";
         if (world.equals(hardcore)) return "Hardcore";
         if (world.equals(event)) return "Events";
+        if (world.equals(minigames)) return "Minispiele";
         return world;
     }
 

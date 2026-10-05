@@ -66,7 +66,12 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         plots = new PlotManager(this);
         SkyblockManager sky = new SkyblockManager(this);
         worlds = new WorldManager(this, plots, sky);
+        Minigames games = new Minigames(this);
+        worlds.setMinigames(games);
         worlds.load();
+        getServer().getPluginManager().registerEvents(games, this);
+        var gameCmd = getCommand("spiele");
+        if (gameCmd != null) { gameCmd.setExecutor(games); gameCmd.setTabCompleter(games); }
         getServer().getPluginManager().registerEvents(worlds, this);
         getServer().getPluginManager().registerEvents(plots, this);
         getServer().getPluginManager().registerEvents(sky, this);

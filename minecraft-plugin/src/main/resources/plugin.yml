@@ -53,6 +53,10 @@ commands:
     usage: /is [visit|trust|untrust|reset]
     aliases: [insel, skyblock, island]
     permission: tntshop.use
+  spiele:
+    description: "Minispiele - TNT-Run, Spleef, Parkour, PvP"
+    usage: /spiele [tntrun|spleef|pvp|parkour|leave|top]
+    aliases: [games, minispiele, mg]
   event:
     description: "Eventwelt betreten (Admins - /event open|close)"
     usage: /event [open|close]

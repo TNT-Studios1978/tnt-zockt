@@ -41,7 +41,7 @@ final class LobbyCastle {
     private final Random rnd = new Random(42);
 
     static List<Portal> portals(String survival, String farm, String plots, String creative,
-                                String adventure, String skyblock, String hardcore, String event) {
+                                String adventure, String skyblock, String hardcore, String event, String minigames) {
         int z = -4;
         return List.of(
                 new Portal(-15, z, true, survival, "Survival", NamedTextColor.GREEN, Material.EMERALD_BLOCK, "Die Hauptwelt"),
@@ -51,7 +51,8 @@ final class LobbyCastle {
                 new Portal(-18, 3, false, adventure, "Abenteuer", NamedTextColor.GOLD, Material.COPPER_BLOCK, "Riesige Berge erkunden"),
                 new Portal(-18, 13, false, skyblock, "Skyblock", NamedTextColor.BLUE, Material.LAPIS_BLOCK, "Deine Insel im Himmel"),
                 new Portal(18, 3, false, hardcore, "Hardcore", NamedTextColor.DARK_RED, Material.NETHER_BRICKS, "Ein Leben – Tod = 24h Pause"),
-                new Portal(18, 13, false, event, "Events", NamedTextColor.YELLOW, Material.GOLD_BLOCK, "Stream-Events"));
+                new Portal(18, 13, false, event, "Events", NamedTextColor.YELLOW, Material.GOLD_BLOCK, "Stream-Events"),
+                new Portal(0, KEEP_GATE_Z, true, minigames, "Minispiele", NamedTextColor.RED, Material.TNT, "TNT-Run · Spleef · Parkour · PvP"));
     }
 
     static Location spawn(World w) {
@@ -349,6 +350,29 @@ final class LobbyCastle {
         }, 1L, 1L);
     }
 
+    static final int KEEP_GATE_Z = -9;
+
+    /** Gut lesbare Schwebeschrift: gross, dunkler Hintergrund, immer voll beleuchtet. */
+    private static void label(World w, Location l, Component text, float scale) {
+        w.spawn(l, TextDisplay.class, t -> {
+            t.text(text);
+            t.setBillboard(Display.Billboard.CENTER);
+            t.setAlignment(TextDisplay.TextAlignment.CENTER);
+            t.setShadowed(true);
+            t.setSeeThrough(false);
+            t.setDefaultBackground(false);
+            t.setBackgroundColor(org.bukkit.Color.fromARGB(185, 10, 10, 18));
+            t.setBrightness(new Display.Brightness(15, 15));
+            t.setLineWidth(220);
+            t.setViewRange(2.0f);
+            t.setTransformation(new org.bukkit.util.Transformation(
+                    new org.joml.Vector3f(0, 0, 0), new org.joml.AxisAngle4f(),
+                    new org.joml.Vector3f(scale, scale, scale), new org.joml.AxisAngle4f()));
+            t.addScoreboardTag(TAG);
+            t.setPersistent(true);
+        });
+    }
+
     private void finish(World w, List<Portal> portals) {
         // Wasserfälle am Inselrand (mit Physik, damit sie fliessen)
         for (int[] p : new int[][]{{-38, 8}, {37, -10}, {12, 39}}) {
@@ -367,28 +391,17 @@ final class LobbyCastle {
         // alte Schilder/Texte entfernen und neu setzen
         for (Entity e : w.getEntities()) if (e.getScoreboardTags().contains(TAG)) e.remove();
         for (Portal p : portals) {
-            Location l = new Location(w, p.x() + 0.5, G + 8.2, p.z() + 0.5);
-            w.spawn(l, TextDisplay.class, t -> {
-                t.text(Component.text(p.name(), p.color(), TextDecoration.BOLD)
-                        .append(Component.newline())
-                        .append(Component.text(p.sub(), NamedTextColor.GRAY)));
-                t.setBillboard(Display.Billboard.CENTER);
-                t.setShadowed(true);
-                t.addScoreboardTag(TAG);
-                t.setPersistent(true);
-            });
-        }
-        Location title = new Location(w, 0.5, G + 12, 4.5);
-        w.spawn(title, TextDisplay.class, t -> {
-            t.text(Component.text("TNT", NamedTextColor.RED, TextDecoration.BOLD)
-                    .append(Component.text("-ZOCKT", NamedTextColor.WHITE, TextDecoration.BOLD))
+            boolean keepGate = p.alongX() && p.z() == KEEP_GATE_Z;
+            Location l = keepGate ? new Location(w, p.x() + 0.5, G + 10.6, p.z() + 2.2)
+                    : new Location(w, p.x() + 0.5, G + 7.3, p.z() + 0.5);
+            label(w, l, Component.text(p.name(), p.color(), TextDecoration.BOLD)
                     .append(Component.newline())
-                    .append(Component.text("Lauf durch ein Portal oder tippe /welten", NamedTextColor.GOLD)));
-            t.setBillboard(Display.Billboard.CENTER);
-            t.setShadowed(true);
-            t.addScoreboardTag(TAG);
-            t.setPersistent(true);
-        });
+                    .append(Component.text(p.sub(), NamedTextColor.WHITE)), 2.2f);
+        }
+        label(w, new Location(w, 0.5, G + 11.5, 6.5), Component.text("TNT", NamedTextColor.RED, TextDecoration.BOLD)
+                .append(Component.text("-ZOCKT", NamedTextColor.WHITE, TextDecoration.BOLD))
+                .append(Component.newline())
+                .append(Component.text("Lauf durch ein Portal oder tippe /welten", NamedTextColor.GOLD)), 2.8f);
         w.setSpawnLocation(spawn(w));
     }
 }

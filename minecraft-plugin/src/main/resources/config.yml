@@ -78,6 +78,7 @@ worlds:
   skyblock: "skyblock"
   hardcore: "hardcore"
   event: "event"
+  minigames: "minispiele"
   join-to-lobby: true     # beim Einloggen immer in der Lobby starten
   plot-size: 64           # Parzelle 64x64 Blöcke
   plot-road: 7            # Wegbreite zwischen den Parzellen
