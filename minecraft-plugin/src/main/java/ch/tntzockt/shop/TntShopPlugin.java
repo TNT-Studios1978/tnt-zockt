@@ -64,11 +64,15 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         discord.load();
         getServer().getPluginManager().registerEvents(discord, this);
         plots = new PlotManager(this);
-        worlds = new WorldManager(this, plots);
+        SkyblockManager sky = new SkyblockManager(this);
+        worlds = new WorldManager(this, plots, sky);
         worlds.load();
         getServer().getPluginManager().registerEvents(worlds, this);
         getServer().getPluginManager().registerEvents(plots, this);
-        for (String c : new String[]{"welten", "lobby", "welt"}) {
+        getServer().getPluginManager().registerEvents(sky, this);
+        var isCmd = getCommand("is");
+        if (isCmd != null) { isCmd.setExecutor(sky); isCmd.setTabCompleter(sky); }
+        for (String c : new String[]{"welten", "lobby", "welt", "event"}) {
             var cmd = getCommand(c);
             if (cmd != null) { cmd.setExecutor(worlds); cmd.setTabCompleter(worlds); }
         }
@@ -317,8 +321,8 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         lastClick.put(p.getUniqueId(), now);
 
         p.closeInventory();
-        if (worlds != null && worlds.isCreative(p.getWorld())) {
-            error(p, "Pakete gibt es nur in der Survival-Welt. Reise mit /welten dorthin.");
+        if (worlds != null && !worlds.isSurvivalGroup(p.getWorld())) {
+            error(p, "Pakete gibt es nur in Survival, Abenteuer und Farmwelt. Reise mit /welten dorthin.");
             return;
         }
         buy(p, kitId);

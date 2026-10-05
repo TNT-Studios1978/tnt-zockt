@@ -48,6 +48,15 @@ commands:
     usage: /plot claim|home|visit|trust|untrust|info|clear
     aliases: [p, gs, grundstueck, grundstück, plots]
     permission: tntshop.use
+  is:
+    description: Skyblock-Insel
+    usage: /is [visit|trust|untrust|reset]
+    aliases: [insel, skyblock, island]
+    permission: tntshop.use
+  event:
+    description: "Eventwelt betreten (Admins - /event open|close)"
+    usage: /event [open|close]
+    permission: tntshop.use
   welt:
     description: Welten verwalten (Admin)
     usage: /welt reset farmwelt | /welt tp <welt>

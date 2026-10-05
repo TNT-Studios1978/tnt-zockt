@@ -65,7 +65,7 @@ import java.util.stream.Stream;
  */
 final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
-    enum Group { SURVIVAL, CREATIVE }
+    enum Group { SURVIVAL, CREATIVE, SKYBLOCK, HARDCORE, EVENT }
 
     private static final class Menu implements InventoryHolder {
         private Inventory inventory;
@@ -74,14 +74,21 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     private final TntShopPlugin plugin;
     private final PlotManager plots;
+    private final SkyblockManager sky;
+    private String adventure = "abenteuer", skyblock = "skyblock", hardcore = "hardcore", event = "event";
+    private boolean eventOpen = false;
+    private final NamespacedKey hcKey;
+    private final java.util.Map<java.util.UUID, String> deathWorld = new java.util.HashMap<>();
     private final NamespacedKey groupKey, menuKey;
     private String lobby = "lobby", survival = "world", farm = "farmwelt", plotWorld = "grundstuecke", creative = "kreativ";
     private boolean joinToLobby = true;
     private int lobbyProtectRadius = 30, creativeSpawnProtect = 16;
 
-    WorldManager(TntShopPlugin plugin, PlotManager plots) {
+    WorldManager(TntShopPlugin plugin, PlotManager plots, SkyblockManager sky) {
         this.plugin = plugin;
         this.plots = plots;
+        this.sky = sky;
+        this.hcKey = new NamespacedKey(plugin, "hardcore_until");
         this.groupKey = new NamespacedKey(plugin, "inv_group");
         this.menuKey = new NamespacedKey(plugin, "menu_world");
     }
@@ -96,6 +103,12 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         plotWorld = c.getString("worlds.plots", plotWorld);
         creative = c.getString("worlds.creative", creative);
         joinToLobby = c.getBoolean("worlds.join-to-lobby", true);
+        adventure = c.getString("worlds.adventure", adventure);
+        skyblock = c.getString("worlds.skyblock", skyblock);
+        hardcore = c.getString("worlds.hardcore", hardcore);
+        event = c.getString("worlds.event", event);
+        sky.configure(skyblock);
+        sky.load();
         plots.configure(plotWorld, c.getInt("worlds.plot-size", 64), c.getInt("worlds.plot-road", 7), c.getInt("worlds.plots-per-player", 1));
         plots.load();
 
@@ -124,6 +137,37 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             w.setDifficulty(Difficulty.PEACEFUL);
         }
         if (f != null) f.setDifficulty(Difficulty.NORMAL);
+
+        World a = createType(adventure, org.bukkit.WorldType.AMPLIFIED);
+        if (a != null) a.setDifficulty(Difficulty.NORMAL);
+        World h = createNormal(hardcore);
+        if (h != null) h.setDifficulty(Difficulty.HARD);
+        World s = createFixed(skyblock, new Generators.Void());
+        if (s != null) {
+            s.setDifficulty(Difficulty.NORMAL);
+            s.setSpawnLocation(0, SkyblockManager.Y + 1, 0);
+        }
+        World e = createFixed(event, new Generators.Flat());
+        if (e != null) {
+            setupCalm(e);
+            set(e, GameRule.PVP, false);
+            set(e, GameRule.TNT_EXPLODES, false);
+            set(e, GameRule.KEEP_INVENTORY, true);
+            e.setDifficulty(Difficulty.PEACEFUL);
+        }
+    }
+
+    private World createType(String name, org.bukkit.WorldType type) {
+        World w = Bukkit.getWorld(name);
+        if (w != null) return w;
+        try {
+            w = new WorldCreator(name).environment(World.Environment.NORMAL).type(type).createWorld();
+            if (w != null) plugin.getLogger().info("Welt geladen: " + name);
+            return w;
+        } catch (Exception ex) {
+            plugin.getLogger().severe("Welt " + name + " konnte nicht erstellt werden: " + ex.getMessage());
+            return null;
+        }
     }
 
     private World create(String name, org.bukkit.generator.ChunkGenerator gen) {
@@ -204,11 +248,11 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private NamespacedKey castleKey() {
-        return new NamespacedKey(plugin, "castle_v1");
+        return new NamespacedKey(plugin, "castle_v2");
     }
 
     private List<LobbyCastle.Portal> portals() {
-        return LobbyCastle.portals(survival, farm, plotWorld, creative);
+        return LobbyCastle.portals(survival, farm, plotWorld, creative, adventure, skyblock, hardcore, event);
     }
 
     private boolean building = false;
@@ -273,7 +317,21 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     Group groupOf(World w) {
         if (w == null) return Group.SURVIVAL;
         String n = w.getName();
-        return n.equals(plotWorld) || n.equals(creative) ? Group.CREATIVE : Group.SURVIVAL;
+        if (n.equals(plotWorld) || n.equals(creative)) return Group.CREATIVE;
+        if (n.equals(skyblock)) return Group.SKYBLOCK;
+        if (n.equals(hardcore)) return Group.HARDCORE;
+        if (n.equals(event)) return Group.EVENT;
+        return Group.SURVIVAL;
+    }
+
+    /** Eigene Inventare/Regeln – keine Portale in andere Welten. */
+    private boolean isIsolated(World w) {
+        Group g = groupOf(w);
+        return g != Group.SURVIVAL || isLobby(w);
+    }
+
+    boolean isSurvivalGroup(World w) {
+        return groupOf(w) == Group.SURVIVAL;
     }
 
     boolean isCreative(World w) {
@@ -288,6 +346,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     private void applyMode(Player p) {
         if (p.isOp() && p.getGameMode() == GameMode.SPECTATOR) return;
         GameMode m = modeFor(p.getWorld());
+        if (p.getWorld().getName().equals(event)) m = p.hasPermission("tntshop.admin") ? GameMode.CREATIVE : GameMode.ADVENTURE;
         if (p.getGameMode() != m) p.setGameMode(m);
     }
 
@@ -451,13 +510,13 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     @EventHandler(ignoreCancelled = true)
     public void onDamage(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Player && isLobby(e.getEntity().getWorld())) e.setCancelled(true);
+        if (e.getEntity() instanceof Player && (isLobby(e.getEntity().getWorld()) || e.getEntity().getWorld().getName().equals(event))) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onHunger(FoodLevelChangeEvent e) {
         World w = e.getEntity().getWorld();
-        if (isLobby(w) || isCreative(w)) e.setCancelled(true);
+        if (isLobby(w) || isCreative(w) || w.getName().equals(event)) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -486,14 +545,74 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     @EventHandler(ignoreCancelled = true)
     public void onPortal(PlayerPortalEvent e) {
-        World w = e.getFrom().getWorld();
-        if (isLobby(w) || isCreative(w)) e.setCancelled(true);
+        if (isIsolated(e.getFrom().getWorld())) {
+            e.setCancelled(true);
+            if (!isLobby(e.getFrom().getWorld())) e.getPlayer().sendActionBar(Component.text("In dieser Welt gibt es keine Portale.", NamedTextColor.GRAY));
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onEntityPortal(EntityPortalEvent e) {
-        World w = e.getFrom().getWorld();
-        if (isLobby(w) || isCreative(w)) e.setCancelled(true);
+        if (isIsolated(e.getFrom().getWorld())) e.setCancelled(true);
+    }
+
+    // ---------------------------------------------------------------- Hardcore, Skyblock, Event
+
+    @EventHandler
+    public void onDeath(org.bukkit.event.entity.PlayerDeathEvent e) {
+        Player p = e.getEntity();
+        deathWorld.put(p.getUniqueId(), p.getWorld().getName());
+        if (p.getWorld().getName().equals(hardcore)) {
+            long until = System.currentTimeMillis() + 24L * 3600 * 1000;
+            p.getPersistentDataContainer().set(hcKey, PersistentDataType.LONG, until);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> p.sendMessage(
+                    Component.text("☠ Hardcore vorbei! Du kannst die Hardcore-Welt in 24 Stunden wieder betreten.", NamedTextColor.DARK_RED)), 20L);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onRespawn(org.bukkit.event.player.PlayerRespawnEvent e) {
+        String w = deathWorld.remove(e.getPlayer().getUniqueId());
+        if (w == null) return;
+        if (w.equals(hardcore) || w.equals(event)) {
+            World l = Bukkit.getWorld(lobby);
+            if (l != null) e.setRespawnLocation(lobbySpawn(l));
+        } else if (w.equals(skyblock)) {
+            Location h = sky.homeOf(e.getPlayer());
+            if (h != null) e.setRespawnLocation(h);
+        } else if (w.equals(lobby)) {
+            World l = Bukkit.getWorld(lobby);
+            if (l != null) e.setRespawnLocation(lobbySpawn(l));
+        }
+    }
+
+    private String hardcoreBlocked(Player p) {
+        Long until = p.getPersistentDataContainer().get(hcKey, PersistentDataType.LONG);
+        if (until == null || until <= System.currentTimeMillis()) return null;
+        long min = (until - System.currentTimeMillis()) / 60000;
+        return min >= 60 ? (min / 60) + " Std. " + (min % 60) + " Min." : min + " Min.";
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEventBreak(BlockBreakEvent e) {
+        if (e.getBlock().getWorld().getName().equals(event) && !e.getPlayer().hasPermission("tntshop.admin")) e.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEventPlace(BlockPlaceEvent e) {
+        if (e.getBlock().getWorld().getName().equals(event) && !e.getPlayer().hasPermission("tntshop.admin")) e.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onSkyVoid(PlayerMoveEvent e) {
+        // Skyblock: wer ins Leere fällt, landet (mit Inventar) wieder auf seiner Insel
+        if (e.getTo().getY() > -40 || !e.getTo().getWorld().getName().equals(skyblock)) return;
+        Location h = sky.homeOf(e.getPlayer());
+        if (h != null) {
+            e.getPlayer().setFallDistance(0);
+            e.getPlayer().teleport(h);
+            e.getPlayer().sendActionBar(Component.text("Fast hinuntergefallen! Zurück auf deiner Insel.", NamedTextColor.YELLOW));
+        }
     }
 
     // ---------------------------------------------------------------- Menü
@@ -517,28 +636,35 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     void openMenu(Player p) {
         Menu holder = new Menu();
-        Inventory inv = Bukkit.createInventory(holder, 27, Component.text("Welten · TNT-Zockt", NamedTextColor.DARK_RED));
+        Inventory inv = Bukkit.createInventory(holder, 45, Component.text("Welten · TNT-Zockt", NamedTextColor.DARK_RED));
         holder.inventory = inv;
         ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta pm = pane.getItemMeta();
         pm.displayName(Component.text(" "));
         pane.setItemMeta(pm);
-        for (int i = 0; i < 27; i++) inv.setItem(i, pane);
-        inv.setItem(10, icon(Material.BEACON, "Lobby", NamedTextColor.WHITE, lobby, "Treffpunkt und Startpunkt"));
-        inv.setItem(11, icon(Material.GRASS_BLOCK, "Survival", NamedTextColor.GREEN, survival, "Die Hauptwelt zum Überleben", "Shop: /shop · Punkte: /punkte"));
-        inv.setItem(12, icon(Material.IRON_PICKAXE, "Farmwelt", NamedTextColor.GRAY, farm, "Zum Abbauen von Ressourcen", "Wird ab und zu zurückgesetzt –", "nichts Wichtiges hier bauen!"));
-        inv.setItem(14, icon(Material.OAK_SIGN, "Grundstücke", NamedTextColor.AQUA, plotWorld, "Deine eigene 64×64-Parzelle", "Kreativmodus · nur du baust dort", "/plot claim · /plot home"));
-        inv.setItem(15, icon(Material.CRAFTING_TABLE, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, creative, "Freies Bauen für alle", "Kreativmodus"));
+        for (int i = 0; i < 45; i++) inv.setItem(i, pane);
+        inv.setItem(4, icon(Material.BEACON, "Lobby", NamedTextColor.WHITE, lobby, "Treffpunkt im Schloss"));
+        inv.setItem(19, icon(Material.GRASS_BLOCK, "Survival", NamedTextColor.GREEN, survival, "Die Hauptwelt zum Überleben", "Shop: /shop · Punkte: /punkte"));
+        inv.setItem(20, icon(Material.COMPASS, "Abenteuer", NamedTextColor.GOLD, adventure, "Riesige Berge (Amplified)", "Gleiches Inventar wie Survival"));
+        inv.setItem(21, icon(Material.IRON_PICKAXE, "Farmwelt", NamedTextColor.GRAY, farm, "Zum Abbauen von Ressourcen", "Wird ab und zu zurückgesetzt!"));
+        inv.setItem(23, icon(Material.OAK_SIGN, "Grundstücke", NamedTextColor.AQUA, plotWorld, "Deine eigene 64×64-Parzelle", "Kreativmodus · /plot claim"));
+        inv.setItem(24, icon(Material.CRAFTING_TABLE, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, creative, "Freies Bauen für alle"));
+        inv.setItem(25, icon(Material.OAK_SAPLING, "Skyblock", NamedTextColor.BLUE, skyblock, "Deine eigene Insel im Himmel", "Eigenes Inventar · /is"));
+        String wait = hardcoreBlocked(p);
+        inv.setItem(30, icon(Material.WITHER_SKELETON_SKULL, "Hardcore", NamedTextColor.DARK_RED, hardcore, "Schwer · eigenes Inventar",
+                wait == null ? "Wer stirbt, muss 24h warten" : "☠ Gesperrt: noch " + wait));
+        inv.setItem(32, icon(Material.FIREWORK_ROCKET, "Events", NamedTextColor.YELLOW, event, "Stream-Events von TNT-Zockt",
+                eventOpen ? "● Gerade GEÖFFNET!" : "Gerade geschlossen"));
         ItemStack info = new ItemStack(Material.BOOK);
         ItemMeta im = info.getItemMeta();
         im.displayName(Component.text("Gut zu wissen", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         im.lore(List.of(
-                Component.text("Survival und Kreativ haben", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                Component.text("getrennte Inventare.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+                Component.text("Survival/Abenteuer/Farmwelt teilen ein Inventar.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+                Component.text("Kreativ, Skyblock und Hardcore haben eigene.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
                 Component.text("Du kommst immer dorthin zurück,", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                Component.text("wo du die Welt verlassen hast.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                Component.text("wo du eine Welt verlassen hast.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
         info.setItemMeta(im);
-        inv.setItem(16, info);
+        inv.setItem(40, info);
         p.openInventory(inv);
     }
 
@@ -563,6 +689,19 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     void travel(Player p, String worldName) {
         World w = Bukkit.getWorld(worldName);
         if (w == null) { p.sendMessage(Component.text("Diese Welt ist gerade nicht verfügbar.", NamedTextColor.RED)); return; }
+        if (worldName.equals(hardcore)) {
+            String wait = hardcoreBlocked(p);
+            if (wait != null) { p.sendMessage(Component.text("☠ Du bist in Hardcore gestorben – noch " + wait + " warten.", NamedTextColor.DARK_RED)); return; }
+        }
+        if (worldName.equals(event) && !eventOpen && !p.hasPermission("tntshop.admin")) {
+            p.sendMessage(Component.text("Die Eventwelt ist gerade geschlossen – sie öffnet bei Stream-Events.", NamedTextColor.YELLOW));
+            return;
+        }
+        if (worldName.equals(skyblock)) {
+            sky.goHome(p);
+            p.sendActionBar(Component.text("→ Skyblock", NamedTextColor.GOLD));
+            return;
+        }
         Location target = null;
         if (worldName.equals(plotWorld)) target = plots.homeOf(p);
         if (target == null && !worldName.equals(lobby)) target = last(p, w);
@@ -582,6 +721,9 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         if (world.equals(farm)) return "Farmwelt";
         if (world.equals(plotWorld)) return "Grundstücke";
         if (world.equals(creative)) return "Kreativwelt";
+        if (world.equals(adventure)) return "Abenteuer";
+        if (world.equals(hardcore)) return "Hardcore";
+        if (world.equals(event)) return "Events";
         return world;
     }
 
@@ -592,6 +734,25 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         String name = command.getName().toLowerCase(Locale.ROOT);
         if (name.equals("welten")) {
             if (sender instanceof Player p) openMenu(p); else sender.sendMessage("Nur im Spiel verfügbar.");
+            return true;
+        }
+        if (name.equals("event")) {
+            boolean admin = sender.hasPermission("tntshop.admin");
+            String sub = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
+            if (admin && (sub.equals("open") || sub.equals("auf"))) {
+                eventOpen = true;
+                Bukkit.broadcast(Component.text("🎉 Die Eventwelt ist offen! ", NamedTextColor.YELLOW)
+                        .append(Component.text("[Jetzt beitreten]", NamedTextColor.GOLD, TextDecoration.BOLD).clickEvent(ClickEvent.runCommand("/event"))));
+                return true;
+            }
+            if (admin && (sub.equals("close") || sub.equals("zu"))) {
+                eventOpen = false;
+                World ev = Bukkit.getWorld(event), l = Bukkit.getWorld(lobby);
+                if (ev != null && l != null) for (Player pl : ev.getPlayers()) if (!pl.hasPermission("tntshop.admin")) pl.teleport(lobbySpawn(l));
+                sender.sendMessage(Component.text("Eventwelt geschlossen.", NamedTextColor.GRAY));
+                return true;
+            }
+            if (sender instanceof Player p) travel(p, event);
             return true;
         }
         if (name.equals("lobby")) {

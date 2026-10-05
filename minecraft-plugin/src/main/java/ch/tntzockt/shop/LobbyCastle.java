@@ -30,22 +30,28 @@ final class LobbyCastle {
     static final String TAG = "tnt_lobby";
 
     /** Portal: Mitte x, z (Ebene), Zielwelt, Name, Farbe, Rahmenmaterial. */
-    record Portal(int x, int z, String world, String name, NamedTextColor color, Material frame, String sub) {
+    record Portal(int x, int z, boolean alongX, String world, String name, NamedTextColor color, Material frame, String sub) {
         boolean contains(int bx, int by, int bz) {
-            return bx >= x - 1 && bx <= x + 1 && bz == z && by >= G + 1 && by <= G + 5;
+            if (by < G + 1 || by > G + 5) return false;
+            return alongX ? (bx >= x - 1 && bx <= x + 1 && bz == z) : (bz >= z - 1 && bz <= z + 1 && bx == x);
         }
     }
 
     private final Map<Long, BlockData> ops = new LinkedHashMap<>();
     private final Random rnd = new Random(42);
 
-    static List<Portal> portals(String survival, String farm, String plots, String creative) {
+    static List<Portal> portals(String survival, String farm, String plots, String creative,
+                                String adventure, String skyblock, String hardcore, String event) {
         int z = -4;
         return List.of(
-                new Portal(-15, z, survival, "Survival", NamedTextColor.GREEN, Material.EMERALD_BLOCK, "Die Hauptwelt"),
-                new Portal(-5, z, farm, "Farmwelt", NamedTextColor.GRAY, Material.IRON_BLOCK, "Ressourcen abbauen"),
-                new Portal(5, z, plots, "Grundstücke", NamedTextColor.AQUA, Material.PRISMARINE_BRICKS, "Deine eigene Parzelle"),
-                new Portal(15, z, creative, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, Material.PURPUR_BLOCK, "Freies Bauen"));
+                new Portal(-15, z, true, survival, "Survival", NamedTextColor.GREEN, Material.EMERALD_BLOCK, "Die Hauptwelt"),
+                new Portal(-5, z, true, farm, "Farmwelt", NamedTextColor.GRAY, Material.IRON_BLOCK, "Ressourcen abbauen"),
+                new Portal(5, z, true, plots, "Grundstücke", NamedTextColor.AQUA, Material.PRISMARINE_BRICKS, "Deine eigene Parzelle"),
+                new Portal(15, z, true, creative, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, Material.PURPUR_BLOCK, "Freies Bauen"),
+                new Portal(-18, 3, false, adventure, "Abenteuer", NamedTextColor.GOLD, Material.COPPER_BLOCK, "Riesige Berge erkunden"),
+                new Portal(-18, 13, false, skyblock, "Skyblock", NamedTextColor.BLUE, Material.LAPIS_BLOCK, "Deine Insel im Himmel"),
+                new Portal(18, 3, false, hardcore, "Hardcore", NamedTextColor.DARK_RED, Material.NETHER_BRICKS, "Ein Leben – Tod = 24h Pause"),
+                new Portal(18, 13, false, event, "Events", NamedTextColor.YELLOW, Material.GOLD_BLOCK, "Stream-Events"));
     }
 
     static Location spawn(World w) {
@@ -283,20 +289,31 @@ final class LobbyCastle {
 
     private void portal(Portal p) {
         int y0 = G;
-        for (int dx = -2; dx <= 2; dx++) {
+        String axis = p.alongX() ? "x" : "z";
+        for (int d = -2; d <= 2; d++) {
+            int bx = p.alongX() ? p.x() + d : p.x();
+            int bz = p.alongX() ? p.z() : p.z() + d;
             for (int y = y0; y <= y0 + 6; y++) {
-                boolean inner = Math.abs(dx) <= 1 && y >= y0 + 1 && y <= y0 + 5;
-                if (inner) set(p.x() + dx, y, p.z(), "minecraft:nether_portal[axis=x]");
-                else set(p.x() + dx, y, p.z(), p.frame());
+                boolean inner = Math.abs(d) <= 1 && y >= y0 + 1 && y <= y0 + 5;
+                if (inner) set(bx, y, bz, "minecraft:nether_portal[axis=" + axis + "]");
+                else set(bx, y, bz, p.frame());
+            }
+            // Sockel davor/dahinter
+            if (p.alongX()) {
+                set(bx, y0, bz + 1, Material.POLISHED_ANDESITE);
+                set(bx, y0, bz - 1, Material.POLISHED_ANDESITE);
+            } else {
+                set(bx + 1, y0, bz, Material.POLISHED_ANDESITE);
+                set(bx - 1, y0, bz, Material.POLISHED_ANDESITE);
             }
         }
-        // Sockel vorne/hinten
-        for (int dx = -2; dx <= 2; dx++) {
-            set(p.x() + dx, y0, p.z() + 1, Material.POLISHED_ANDESITE);
-            set(p.x() + dx, y0, p.z() - 1, Material.POLISHED_ANDESITE);
+        if (p.alongX()) {
+            set(p.x() - 3, y0 + 1, p.z(), "minecraft:lantern[hanging=false]");
+            set(p.x() + 3, y0 + 1, p.z(), "minecraft:lantern[hanging=false]");
+        } else {
+            set(p.x(), y0 + 1, p.z() - 3, "minecraft:lantern[hanging=false]");
+            set(p.x(), y0 + 1, p.z() + 3, "minecraft:lantern[hanging=false]");
         }
-        set(p.x() - 3, y0 + 1, p.z(), "minecraft:lantern[hanging=false]");
-        set(p.x() + 3, y0 + 1, p.z(), "minecraft:lantern[hanging=false]");
     }
 
     // ---------------------------------------------------------------- Bauen

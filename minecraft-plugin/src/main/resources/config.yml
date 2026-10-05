@@ -74,6 +74,10 @@ worlds:
   farm: "farmwelt"
   plots: "grundstuecke"
   creative: "kreativ"
+  adventure: "abenteuer"   # Amplified-Welt, Inventar wie Survival
+  skyblock: "skyblock"
+  hardcore: "hardcore"
+  event: "event"
   join-to-lobby: true     # beim Einloggen immer in der Lobby starten
   plot-size: 64           # Parzelle 64x64 Blöcke
   plot-road: 7            # Wegbreite zwischen den Parzellen
