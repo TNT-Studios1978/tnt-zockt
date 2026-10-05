@@ -40,6 +40,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
     private DiscordStatus discord;
     private PlotManager plots;
     private WorldManager worlds;
+    private Minigames games;
     private final Map<UUID, Long> lastClick = new HashMap<>();
     private NamespacedKey starterKey;
     private NamespacedKey kitKey;
@@ -66,10 +67,11 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         plots = new PlotManager(this);
         SkyblockManager sky = new SkyblockManager(this);
         worlds = new WorldManager(this, plots, sky);
-        Minigames games = new Minigames(this);
+        games = new Minigames(this);
         worlds.setMinigames(games);
         worlds.load();
         getServer().getPluginManager().registerEvents(games, this);
+        getServer().getPluginManager().registerEvents(games.arena, this);
         var gameCmd = getCommand("spiele");
         if (gameCmd != null) { gameCmd.setExecutor(games); gameCmd.setTabCompleter(games); }
         getServer().getPluginManager().registerEvents(worlds, this);
@@ -93,6 +95,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         if (discord != null) discord.shutdown();
+        if (games != null) games.arena.shutdown();
     }
 
     private void loadApi() {

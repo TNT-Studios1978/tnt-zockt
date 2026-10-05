@@ -52,7 +52,7 @@ final class LobbyCastle {
                 new Portal(-18, 13, false, skyblock, "Skyblock", NamedTextColor.BLUE, Material.LAPIS_BLOCK, "Deine Insel im Himmel"),
                 new Portal(18, 3, false, hardcore, "Hardcore", NamedTextColor.DARK_RED, Material.NETHER_BRICKS, "Ein Leben – Tod = 24h Pause"),
                 new Portal(18, 13, false, event, "Events", NamedTextColor.YELLOW, Material.GOLD_BLOCK, "Stream-Events"),
-                new Portal(0, KEEP_GATE_Z, true, minigames, "Minispiele", NamedTextColor.RED, Material.TNT, "TNT-Run · Spleef · Parkour · PvP"));
+                new Portal(0, KEEP_GATE_Z, true, minigames, "Minispiele", NamedTextColor.RED, Material.TNT, "Bedwars · Skywars · TNT-Run · Spleef · PvP · Parkour"));
     }
 
     static Location spawn(World w) {

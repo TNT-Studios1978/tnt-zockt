@@ -164,7 +164,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         if (g != null) {
             setupCalm(g);
             set(g, GameRule.PVP, true);
-            set(g, GameRule.TNT_EXPLODES, false);
+            set(g, GameRule.TNT_EXPLODES, true); // nur Bedwars/Skywars – sonst schützt das Plugin
             set(g, GameRule.MOB_GRIEFING, false);
             set(g, GameRule.DO_FIRE_TICK, false);
             set(g, GameRule.FALL_DAMAGE, false);
@@ -266,7 +266,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private NamespacedKey castleKey() {
-        return new NamespacedKey(plugin, "castle_v3");
+        return new NamespacedKey(plugin, "castle_v4");
     }
 
     private List<LobbyCastle.Portal> portals() {
@@ -672,7 +672,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         inv.setItem(23, icon(Material.OAK_SIGN, "Grundstücke", NamedTextColor.AQUA, plotWorld, "Deine eigene 64×64-Parzelle", "Kreativmodus · /plot claim"));
         inv.setItem(24, icon(Material.CRAFTING_TABLE, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, creative, "Freies Bauen für alle"));
         inv.setItem(25, icon(Material.OAK_SAPLING, "Skyblock", NamedTextColor.BLUE, skyblock, "Deine eigene Insel im Himmel", "Eigenes Inventar · /is"));
-        inv.setItem(31, icon(Material.TNT, "Minispiele", NamedTextColor.RED, minigames, "TNT-Run · Spleef · Parkour · PvP", "Eigenes Inventar · /spiele"));
+        inv.setItem(31, icon(Material.TNT, "Minispiele", NamedTextColor.RED, minigames, "Bedwars · Skywars · TNT-Run", "Spleef · PvP · Parkour", "Eigenes Inventar · /spiele"));
         String wait = hardcoreBlocked(p);
         inv.setItem(30, icon(Material.WITHER_SKELETON_SKULL, "Hardcore", NamedTextColor.DARK_RED, hardcore, "Schwer · eigenes Inventar",
                 wait == null ? "Wer stirbt, muss 24h warten" : "☠ Gesperrt: noch " + wait));
@@ -770,7 +770,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             String sub = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
             if (admin && (sub.equals("open") || sub.equals("auf"))) {
                 eventOpen = true;
-                Bukkit.broadcast(Component.text("🎉 Die Eventwelt ist offen! ", NamedTextColor.YELLOW)
+                Bukkit.broadcast(Component.text("✦ Die Eventwelt ist offen! ", NamedTextColor.YELLOW)
                         .append(Component.text("[Jetzt beitreten]", NamedTextColor.GOLD, TextDecoration.BOLD).clickEvent(ClickEvent.runCommand("/event"))));
                 return true;
             }

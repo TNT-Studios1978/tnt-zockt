@@ -78,6 +78,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
     private String worldName = "minispiele";
     private final Map<Kind, Round> rounds = new HashMap<>();
     private final Parkour parkour = new Parkour();
+    final ArenaGames arena;
     private File statsFile;
     private YamlConfiguration stats;
 
@@ -90,6 +91,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
         this.plugin = plugin;
         this.menuKey = new NamespacedKey(plugin, "menu_game");
         for (Kind k : Kind.values()) rounds.put(k, new Round(k));
+        this.arena = new ArenaGames(plugin, this);
     }
 
     void configure(String worldName) {
@@ -122,6 +124,8 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
             w.getPersistentDataContainer().set(built, PersistentDataType.BYTE, (byte) 1);
             plugin.getLogger().info("Minispiel-Welt gebaut");
         }
+        arena.setup(w);
+        arena.repairIfDirty(w);
         w.setSpawnLocation(0, HUB_Y + 1, 0);
         Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
         Bukkit.getScheduler().runTaskTimer(plugin, parkour::tickTimer, 4L, 4L);
@@ -342,7 +346,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
         void eliminate(UUID u, String reason) {
             if (!alive.remove(u)) return;
             Player p = Bukkit.getPlayer(u);
-            if (p != null) {
+            if (p != null && isGameWorld(p.getWorld())) {
                 resetPlayer(p);
                 p.setGameMode(GameMode.ADVENTURE);
                 p.teleport(hub(p.getWorld()));
@@ -359,13 +363,13 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
             Player w = Bukkit.getPlayer(winner);
             String name = w != null ? w.getName() : "?";
             if (w != null && players.size() > 1) addWin(kind.name().toLowerCase(Locale.ROOT), w);
-            Component c = Component.text("🏆 " + name + " gewinnt " + title() + "!", NamedTextColor.GOLD, TextDecoration.BOLD);
+            Component c = Component.text("★ " + name + " gewinnt " + title() + "!", NamedTextColor.GOLD, TextDecoration.BOLD);
             World gw = world();
             if (gw != null) for (Player p : gw.getPlayers()) p.sendMessage(c);
             for (UUID u : players) {
                 Player p = Bukkit.getPlayer(u);
                 if (p == null) continue;
-                if (alive.contains(u)) { resetPlayer(p); p.setGameMode(GameMode.ADVENTURE); p.teleport(hub(p.getWorld())); }
+                if (alive.contains(u) && isGameWorld(p.getWorld())) { resetPlayer(p); p.setGameMode(GameMode.ADVENTURE); p.teleport(hub(p.getWorld())); }
                 p.showTitle(Title.title(Component.text(name, NamedTextColor.GOLD, TextDecoration.BOLD), Component.text("hat gewonnen!", NamedTextColor.WHITE)));
             }
             alive.clear();
@@ -375,7 +379,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
         }
     }
 
-    private void resetPlayer(Player p) {
+    void resetPlayer(Player p) {
         p.getInventory().clear();
         var max = p.getAttribute(Attribute.MAX_HEALTH);
         p.setHealth(max == null ? 20 : max.getValue());
@@ -396,6 +400,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
             r.queue.remove(u);
             if (r.alive.contains(u)) r.eliminate(u, "Spiel verlassen");
         }
+        arena.leave(p);
         parkour.stop(p);
     }
 
@@ -403,6 +408,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
         World w = world();
         if (w == null) return;
         for (Round r : rounds.values()) r.tick(w);
+        arena.tick(w);
     }
 
     // ---------------------------------------------------------------- Parkour
@@ -480,7 +486,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
                 }
                 long record = bestOverall();
                 World gw = p.getWorld();
-                Component c = Component.text("🏁 " + p.getName() + " hat den Parkour in " + time + " geschafft!", NamedTextColor.AQUA)
+                Component c = Component.text("⚑ " + p.getName() + " hat den Parkour in " + time + " geschafft!", NamedTextColor.AQUA)
                         .append(Component.text(ms <= record ? "  NEUER REKORD!" : pb ? "  (persönliche Bestzeit)" : "", NamedTextColor.GOLD, TextDecoration.BOLD));
                 for (Player o : gw.getPlayers()) o.sendMessage(c);
                 p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
@@ -519,7 +525,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
 
     // ---------------------------------------------------------------- Statistik
 
-    private void addWin(String game, Player p) {
+    void addWin(String game, Player p) {
         String k = "wins." + game + "." + p.getUniqueId();
         stats.set(k + ".count", stats.getInt(k + ".count") + 1);
         stats.set(k + ".name", p.getName());
@@ -531,7 +537,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
     }
 
     private void showTop(CommandSender s) {
-        s.sendMessage(Component.text("🏆 Bestenliste", NamedTextColor.GOLD, TextDecoration.BOLD));
+        s.sendMessage(Component.text("★ Bestenliste", NamedTextColor.GOLD, TextDecoration.BOLD));
         for (Kind k : Kind.values()) {
             var sec = stats.getConfigurationSection("wins." + k.name().toLowerCase(Locale.ROOT));
             List<String[]> list = new ArrayList<>();
@@ -540,6 +546,15 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < Math.min(3, list.size()); i++) sb.append(i + 1).append(". ").append(list.get(i)[0]).append(" (").append(list.get(i)[1]).append(")  ");
             s.sendMessage(Component.text(" " + rounds.get(k).title() + ": ", NamedTextColor.YELLOW).append(Component.text(sb.isEmpty() ? "noch keine Siege" : sb.toString(), NamedTextColor.WHITE)));
+        }
+        for (String[] g : new String[][]{{"bedwars", "Bedwars"}, {"skywars", "Skywars"}}) {
+            var sec = stats.getConfigurationSection("wins." + g[0]);
+            List<String[]> list = new ArrayList<>();
+            if (sec != null) for (String u : sec.getKeys(false)) list.add(new String[]{sec.getString(u + ".name", "?"), String.valueOf(sec.getInt(u + ".count"))});
+            list.sort((a, b) -> Integer.parseInt(b[1]) - Integer.parseInt(a[1]));
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < Math.min(3, list.size()); i++) sb.append(i + 1).append(". ").append(list.get(i)[0]).append(" (").append(list.get(i)[1]).append(")  ");
+            s.sendMessage(Component.text(" " + g[1] + ": ", NamedTextColor.YELLOW).append(Component.text(sb.isEmpty() ? "noch keine Siege" : sb.toString(), NamedTextColor.WHITE)));
         }
         var pk = stats.getConfigurationSection("parkour");
         List<String[]> times = new ArrayList<>();
@@ -577,9 +592,11 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
         Menu h = new Menu();
         Inventory inv = Bukkit.createInventory(h, 27, Component.text("Minispiele · TNT-Zockt", NamedTextColor.DARK_RED));
         h.inventory = inv;
+        inv.setItem(14, icon(Material.RED_BED, "bedwars", "Bedwars", NamedTextColor.RED, "4 Teams · Schütze dein Bett!", "Shop, Generatoren, bis 8 Spieler.", arena.bedwars.status()));
+        inv.setItem(15, icon(Material.GRASS_BLOCK, "skywars", "Skywars", NamedTextColor.AQUA, "Jeder auf seiner Insel, Truhen plündern.", "Der Letzte gewinnt. Bis 8 Spieler.", arena.skywars.status()));
         inv.setItem(10, icon(Material.TNT, "tntrun", "TNT-Run", NamedTextColor.RED, "Der Boden verschwindet unter dir!", "Wer zuletzt steht, gewinnt.", status(rounds.get(Kind.TNTRUN))));
-        inv.setItem(12, icon(Material.DIAMOND_SHOVEL, "spleef", "Spleef", NamedTextColor.AQUA, "Schaufle den Schnee unter den", "anderen weg!", status(rounds.get(Kind.SPLEEF))));
-        inv.setItem(14, icon(Material.IRON_SWORD, "pvp", "PvP-Arena", NamedTextColor.GOLD, "Alle gegen alle, gleiche Ausrüstung.", "Der Letzte gewinnt.", status(rounds.get(Kind.PVP))));
+        inv.setItem(11, icon(Material.DIAMOND_SHOVEL, "spleef", "Spleef", NamedTextColor.AQUA, "Schaufle den Schnee unter den", "anderen weg!", status(rounds.get(Kind.SPLEEF))));
+        inv.setItem(12, icon(Material.IRON_SWORD, "pvp", "PvP-Arena", NamedTextColor.GOLD, "Alle gegen alle, gleiche Ausrüstung.", "Der Letzte gewinnt.", status(rounds.get(Kind.PVP))));
         inv.setItem(16, icon(Material.FEATHER, "parkour", "Parkour", NamedTextColor.GREEN, "40 Sprünge, 4 Schwierigkeiten.", "Jag die Bestzeit!"));
         inv.setItem(22, icon(Material.GOLD_INGOT, "top", "Bestenliste", NamedTextColor.YELLOW, "Siege und Parkour-Bestzeiten"));
         p.openInventory(inv);
@@ -627,6 +644,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
         Player p = e.getPlayer();
         if (!isGameWorld(p.getWorld())) return;
         Location to = e.getTo();
+        if (arena.handleMove(p, to)) return;
         UUID u = p.getUniqueId();
         Round r = roundOf(u);
         if (r != null) {
@@ -664,6 +682,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
     public void onBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
         if (!isGameWorld(p.getWorld())) return;
+        if (arena.handleBreak(e)) return;
         Round r = roundOf(p.getUniqueId());
         if (r != null && r.kind == Kind.SPLEEF && r.state == State.RUNNING && e.getBlock().getType() == Material.SNOW_BLOCK && r.contains(e.getBlock().getLocation())) {
             e.setCancelled(false);
@@ -675,12 +694,14 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlace(BlockPlaceEvent e) {
+        if (isGameWorld(e.getPlayer().getWorld()) && arena.handlePlace(e)) return;
         if (isGameWorld(e.getPlayer().getWorld()) && (!e.getPlayer().hasPermission("tntshop.admin") || e.getPlayer().getGameMode() != GameMode.CREATIVE)) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent e) {
         if (!isGameWorld(e.getPlayer().getWorld())) return;
+        if (arena.handleInteract(e)) return;
         if (e.getAction() == Action.PHYSICAL && e.getClickedBlock() != null) {
             parkour.onPlate(e.getPlayer(), e.getClickedBlock());
             return;
@@ -694,17 +715,19 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
 
     @EventHandler(ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent e) {
-        if (isGameWorld(e.getPlayer().getWorld())) e.setCancelled(true);
+        if (isGameWorld(e.getPlayer().getWorld()) && !arena.handleDrop(e.getPlayer())) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onHunger(FoodLevelChangeEvent e) {
-        if (isGameWorld(e.getEntity().getWorld()) && roundOf(e.getEntity().getUniqueId()) == null) e.setCancelled(true);
+        if (isGameWorld(e.getEntity().getWorld()) && roundOf(e.getEntity().getUniqueId()) == null
+                && !(e.getEntity() instanceof Player hp && arena.isPlaying(hp))) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p) || !isGameWorld(p.getWorld())) return;
+        if (arena.handleDamage(e, p)) return;
         Round r = roundOf(p.getUniqueId());
         if (r == null || r.kind != Kind.PVP || r.state != State.RUNNING) {
             if (e.getCause() != EntityDamageEvent.DamageCause.VOID) e.setCancelled(true);
@@ -746,6 +769,8 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
             case "tntrun", "tnt" -> rounds.get(Kind.TNTRUN).join(p);
             case "spleef" -> rounds.get(Kind.SPLEEF).join(p);
             case "pvp", "arena" -> rounds.get(Kind.PVP).join(p);
+            case "bedwars", "bw" -> arena.bedwars.join(p);
+            case "skywars", "sw" -> arena.skywars.join(p);
             case "parkour" -> {
                 leaveAll(p);
                 p.teleport(parkour.start(w));
@@ -755,14 +780,16 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
             case "start" -> {
                 if (!p.hasPermission("tntshop.admin")) return true;
                 for (Round r : rounds.values()) if (r.queue.contains(p.getUniqueId())) { r.forced = true; msg(p, r.title() + " wird gestartet (Test).", NamedTextColor.YELLOW); }
+                arena.forceStart(p);
             }
             case "neubauen", "rebuild" -> {
                 if (!p.hasPermission("tntshop.admin")) return true;
                 buildHub(w); parkour.build(w); for (Round r : rounds.values()) r.buildArena(w); buildPvpArena(w);
+                arena.rebuild(w, p);
                 msg(p, "Alle Minispiel-Arenen neu gebaut.", NamedTextColor.GREEN);
             }
             default -> {
-                msg(p, "/spiele – Menü · /spiele <tntrun|spleef|pvp|parkour> · /spiele leave · /spiele top", NamedTextColor.GRAY);
+                msg(p, "/spiele – Menü · /spiele <bedwars|skywars|tntrun|spleef|pvp|parkour> · /spiele leave · /spiele top", NamedTextColor.GRAY);
             }
         }
         return true;
@@ -770,7 +797,7 @@ final class Minigames implements Listener, CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender s, @NotNull Command c, @NotNull String a, String @NotNull [] args) {
-        if (args.length == 1) return List.of("tntrun", "spleef", "pvp", "parkour", "leave", "top");
+        if (args.length == 1) return List.of("bedwars", "skywars", "tntrun", "spleef", "pvp", "parkour", "leave", "top");
         return List.of();
     }
 
