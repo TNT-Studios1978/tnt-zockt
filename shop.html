@@ -311,6 +311,33 @@ footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
   background:var(--bg-2); color:var(--text-mid); font-size:12.5px; cursor:pointer;
 }
 .faq-btn:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+/* ---------- Produkt-Detailfenster ---------- */
+.pmodal{ position:fixed; inset:0; z-index:300; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.78); backdrop-filter:blur(4px); }
+.pmodal.open{ display:flex; }
+.pmodal-box{ position:relative; width:100%; max-width:860px; max-height:90vh; display:flex; background:var(--bg-1); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 24px 70px rgba(0,0,0,.65); overflow:hidden; }
+.pmodal-close{ position:absolute; top:12px; right:12px; z-index:3; width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--bg-0); color:var(--text-hi); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.pmodal-close:hover{ border-color:var(--fuse-red); color:var(--fuse-red); }
+.pmodal-media{ position:relative; flex:0 0 42%; min-height:280px; background:var(--bg-2); display:flex; align-items:center; justify-content:center; }
+.pmodal-media .pimg{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.pmodal-media .picon{ width:100%; height:100%; min-height:280px; display:flex; align-items:center; justify-content:center; color:var(--text-low); }
+.pmodal-media .picon svg{ width:40%; height:40%; opacity:.6; }
+.pmodal-body{ flex:1; min-width:0; min-height:0; display:flex; flex-direction:column; gap:10px; padding:28px 26px 24px; }
+.pmodal-cat{ font-family:var(--mono); font-size:10.5px; letter-spacing:1px; color:var(--cyan); text-transform:uppercase; }
+.pmodal-title{ font-family:var(--display); font-size:24px; text-transform:uppercase; letter-spacing:.3px; line-height:1.15; padding-right:40px; overflow-wrap:anywhere; }
+.pmodal-price{ font-family:var(--mono); font-weight:700; font-size:20px; color:var(--gold); }
+.pmodal-desc{ flex:1; min-height:0; overflow-y:auto; font-size:14px; line-height:1.65; color:var(--text-mid); white-space:pre-line; overflow-wrap:anywhere; padding-right:6px; }
+.pmodal-cta{ display:inline-block; text-align:center; font-weight:800; font-size:14px; padding:14px 22px; border-radius:9px; margin-top:6px; }
+.pmodal-cta.live{ background:linear-gradient(135deg, var(--fuse-red), #c2281c); color:#fff; box-shadow:0 4px 20px var(--fuse-red-glow); }
+.pmodal-cta.soon{ background:var(--bg-2); border:1px solid var(--line); color:var(--text-low); cursor:not-allowed; }
+@media(max-width:640px){
+.pmodal{ padding:10px; }
+.pmodal-box{ flex-direction:column; max-height:94vh; overflow-y:auto; }
+.pmodal-media{ flex:0 0 auto; min-height:0; aspect-ratio:1/1; max-height:44vh; }
+.pmodal-media .picon{ min-height:0; }
+.pmodal-body{ overflow:visible; padding:20px 18px 20px; }
+.pmodal-desc{ overflow:visible; }
+}
 </style>
 </head>
 <body>
@@ -382,6 +409,21 @@ footer{border-top:1px solid var(--line); padding:40px 24px 30px;}
 </form>
 </div>
 </section>
+</div>
+
+<!-- PRODUKT-DETAILFENSTER -->
+<div class="pmodal" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="pmodal-title" onclick="if(event.target===this) closeProductModal()">
+<div class="pmodal-box">
+<button class="pmodal-close" onclick="closeProductModal()" aria-label="Schliessen">✕</button>
+<div class="pmodal-media" id="pmodal-media"></div>
+<div class="pmodal-body">
+<div class="pmodal-cat" id="pmodal-cat"></div>
+<h3 class="pmodal-title" id="pmodal-title"></h3>
+<div class="pmodal-price" id="pmodal-price"></div>
+<div class="pmodal-desc" id="pmodal-desc"></div>
+<div id="pmodal-cta"></div>
+</div>
+</div>
 </div>
 
 <footer>
@@ -582,9 +624,9 @@ return p.image_url
 function productCardHtml(p){
 const hasLink = p.link && String(p.link).trim().length > 0;
 const ctaHtml = hasLink
-? '<a class="pcta live" href="' + p.link + '" target="_blank" rel="noopener">Jetzt ansehen →</a>'
+? '<a class="pcta live" onclick="event.stopPropagation()" href="' + p.link + '" target="_blank" rel="noopener">Jetzt ansehen →</a>'
 : '<span class="pcta soon">Bald da</span>';
-return '<div class="pcard" onclick="toggleProductCard(this, event)">'
+return '<div class="pcard" onclick="openProductModal(\'' + p.id + '\')">'
 + (p.is_hit ? '<span class="hit-badge">⭐ Hit</span>' : '')
 + (hasLink ? '<span class="live-badge">Live</span>' : '')
 + productImageHtml(p)
@@ -630,6 +672,44 @@ if(!hits.length){ section.style.display = 'none'; return; }
 section.style.display = 'block';
 grid.innerHTML = hits.map(productCardHtml).join('');
 }
+
+function openProductModal(id){
+const p = PRODUCTS_ALL.find(x => String(x.id) === String(id));
+if(!p) return;
+document.getElementById('pmodal-media').innerHTML = productImageHtml(p);
+document.getElementById('pmodal-cat').textContent = p.category || '';
+document.getElementById('pmodal-title').textContent = p.name || '';
+document.getElementById('pmodal-price').textContent = p.price || '';
+const descEl = document.getElementById('pmodal-desc');
+descEl.textContent = (p.description && String(p.description).trim()) ? p.description : 'Keine weitere Beschreibung vorhanden.';
+descEl.scrollTop = 0;
+const ctaEl = document.getElementById('pmodal-cta');
+ctaEl.innerHTML = '';
+const hasLink = p.link && String(p.link).trim().length > 0;
+if(hasLink){
+const a = document.createElement('a');
+a.className = 'pmodal-cta live';
+a.href = p.link;
+a.target = '_blank';
+a.rel = 'noopener sponsored';
+a.textContent = 'Jetzt bestellen \u2192';
+ctaEl.appendChild(a);
+} else {
+const s = document.createElement('span');
+s.className = 'pmodal-cta soon';
+s.textContent = 'Bald verf\u00fcgbar';
+ctaEl.appendChild(s);
+}
+document.getElementById('product-modal').classList.add('open');
+document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal(){
+document.getElementById('product-modal').classList.remove('open');
+document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeProductModal(); });
 
 async function renderProducts(){
 const grid = document.getElementById('product-grid');
