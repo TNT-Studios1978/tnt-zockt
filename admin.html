@@ -114,6 +114,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn active" data-tab="casinos_ch" onclick="switchTab('casinos_ch')">Casinos CH</button>
 <button class="tab-btn" data-tab="streamers" onclick="switchTab('streamers')">Streamer</button>
 <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
+<button class="tab-btn" data-tab="partner" onclick="switchTab('partner')">Partner</button>
 <button class="tab-btn" data-tab="visits" onclick="switchTab('visits')">Besucher</button>
 <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Nutzer</button>
 <button class="tab-btn" data-tab="payouts" onclick="switchTab('payouts')">Auszahlungen</button>
@@ -157,6 +158,16 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <div class="toolbar"><h2>Shop-Produkte</h2></div>
 <div id="product-list"></div>
 <div class="add-row"><button class="btn-ghost" onclick="addProduct()">+ Produkt hinzufügen</button></div>
+</div>
+
+<!-- PARTNER TAB -->
+<div class="tab-panel" id="tab-partner">
+<div class="toolbar"><h2>Partner-Angebote (Awin &amp; Co.)</h2></div>
+<div class="info-box" style="margin-bottom:20px;">
+Hier pflegst du die Angebote der Seite <strong>partner.html</strong>. Als Link immer den <strong>Tracking-Link</strong> aus dem Partnerprogramm einfügen (bei Awin: Link-Builder), nicht die normale Produktseite. Nur Links mit https:// werden angezeigt. Inaktive Angebote sind auf der Website unsichtbar.
+</div>
+<div id="partner-list"></div>
+<div class="add-row"><button class="btn-ghost" onclick="addPartner()">+ Angebot hinzufügen</button></div>
 </div>
 
 <!-- VISITS TAB -->
@@ -337,6 +348,7 @@ async function loadAll(){
   CASINOS = c.data; CASINOS_CH = cch.data; STREAMERS = s.data; PRODUCTS = p.data;
   renderCasinoList(); renderCasinoChList(); renderStreamerList(); renderProductList();
   loadVisits();
+  loadPartners();
   setStatus('✓ Geladen (' + new Date().toLocaleTimeString() + ')');
 }
 
@@ -1029,8 +1041,69 @@ renderProductList();
 setStatus(' ✓ Produktbild aktualisiert (' + new Date().toLocaleTimeString() + ')');
 }
 
+/* ---------- PARTNER-ANGEBOTE ---------- */
+let PARTNERS = [];
+const PARTNER_CATS = ['Spielzeug','Gaming','Technik','Mode','Haushalt','Sonstiges'];
+function pEsc(v){ return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function loadPartners(){
+  const { data, error } = await sb.from('partner_offers').select('*').order('sort_order', { ascending: true });
+  if(error){ console.error(error); setStatus('Partner-Angebote konnten nicht geladen werden.', true); return; }
+  PARTNERS = data;
+  renderPartnerList();
+}
+
+function renderPartnerList(){
+  const list = document.getElementById('partner-list');
+  if(!PARTNERS.length){ list.innerHTML = '<p style="color:var(--text-low)">Noch keine Partner-Angebote. Mit "+ Angebot hinzufügen" starten.</p>'; return; }
+  list.innerHTML = PARTNERS.map(function(p, i){
+    const cats = PARTNER_CATS.map(function(c){ return '<option value="' + c + '"' + (p.category === c ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+    const linkOk = /^https?:\/\//i.test(String(p.link || '').trim());
+    return '<div class="entry-card" style="' + (p.is_active ? '' : 'opacity:.6;') + '"><div class="entry-grid">'
+      + '<div><label>Name</label><input value="' + pEsc(p.name) + '" onchange="updateField(\'partner_offers\',' + i + ',\'name\',this.value)"></div>'
+      + '<div><label>Partner / Händler</label><input value="' + pEsc(p.partner) + '" placeholder="z.B. BrickZoneHub" onchange="updateField(\'partner_offers\',' + i + ',\'partner\',this.value)"></div>'
+      + '<div><label>Kategorie</label><select onchange="updateField(\'partner_offers\',' + i + ',\'category\',this.value)"><option value="">– keine –</option>' + cats + '</select></div>'
+      + '<div><label>Preis / Aktion (optional)</label><input value="' + pEsc(p.price) + '" placeholder="z.B. ab 9.90 CHF" onchange="updateField(\'partner_offers\',' + i + ',\'price\',this.value)"></div>'
+      + '<div><label>Reihenfolge</label><input type="number" value="' + pEsc(p.sort_order) + '" onchange="updateField(\'partner_offers\',' + i + ',\'sort_order\',Number(this.value)||0)"></div>'
+      + '<div style="display:flex; align-items:center; gap:8px; padding-top:20px;"><input type="checkbox" id="pactive-' + i + '"' + (p.is_active ? ' checked' : '') + ' onchange="updateField(\'partner_offers\',' + i + ',\'is_active\',this.checked); renderPartnerList();" style="width:auto;"><label for="pactive-' + i + '" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Aktiv (auf Website sichtbar)</label></div>'
+      + '<div style="grid-column:span 3;"><label>Beschreibung</label><input value="' + pEsc(p.description) + '" onchange="updateField(\'partner_offers\',' + i + ',\'description\',this.value)"></div>'
+      + '<div style="grid-column:span 3;"><label>Tracking-Link (https://…)' + (p.link && !linkOk ? ' <span style="color:#ff6b6b;">– ungültig, wird nicht angezeigt</span>' : '') + '</label><input value="' + pEsc(p.link) + '" placeholder="https://www.awin1.com/cread.php?…" onchange="updateField(\'partner_offers\',' + i + ',\'link\',this.value.trim())"></div>'
+      + '<div style="grid-column:span 3;"><label>Bild</label><div style="display:flex; gap:10px; align-items:center;">'
+      + (p.image_url ? '<img src="' + pEsc(p.image_url) + '" alt="" style="width:50px; height:50px; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:var(--bg-2);">' : '')
+      + '<input type="file" accept="image/*" onchange="uploadPartnerImage(event, ' + i + ')" style="flex:1;"></div>'
+      + '<div id="upload-status-partner-' + i + '" style="font-size:11px; color:var(--text-low); margin-top:4px;"></div></div>'
+      + '</div><div class="entry-footer"><span class="id-tag">ID: ' + pEsc(p.id) + '</span><button class="btn-danger" onclick="removeEntry(\'partner_offers\',' + i + ')">Entfernen</button></div></div>';
+  }).join('');
+}
+
+async function addPartner(){
+  const entry = { id: uid('partner'), name: '[Neues Angebot]', partner: '', category: '', description: '', price: '', link: '', sort_order: PARTNERS.length + 1, is_active: false };
+  setStatus('Speichere…');
+  const { error } = await sb.from('partner_offers').insert(entry);
+  if(error){ setStatus('Fehler beim Hinzufügen.', true); console.error(error); return; }
+  PARTNERS.push(entry); renderPartnerList(); setStatus('✓ Hinzugefügt (noch inaktiv – erst aktivieren, wenn Name und Link stimmen)');
+}
+
+async function uploadPartnerImage(event, index){
+  const file = event.target.files[0];
+  if(!file) return;
+  const entry = PARTNERS[index];
+  const statusEl = document.getElementById('upload-status-partner-' + index);
+  statusEl.textContent = 'Lade hoch…';
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const path = 'partners/' + entry.id + '-' + Date.now() + '.' + ext;
+  const up = await sb.storage.from('logos').upload(path, file, { upsert: true });
+  if(up.error){ statusEl.textContent = 'Fehler beim Hochladen.'; console.error(up.error); return; }
+  const publicUrl = sb.storage.from('logos').getPublicUrl(path).data.publicUrl;
+  const db = await sb.from('partner_offers').update({ image_url: publicUrl }).eq('id', entry.id);
+  if(db.error){ statusEl.textContent = 'Bild hochgeladen, aber Speichern fehlgeschlagen.'; console.error(db.error); return; }
+  entry.image_url = publicUrl;
+  renderPartnerList();
+  setStatus('✓ Bild gespeichert (' + new Date().toLocaleTimeString() + ')');
+}
+
 /* ---------- SHARED ---------- */
-const TABLE_MAP = { casinos: () => CASINOS, casinos_ch: () => CASINOS_CH, streamers: () => STREAMERS, products: () => PRODUCTS };
+const TABLE_MAP = { casinos: () => CASINOS, casinos_ch: () => CASINOS_CH, streamers: () => STREAMERS, products: () => PRODUCTS, partner_offers: () => PARTNERS };
 
 async function updateField(section, index, field, value){
   const arr = TABLE_MAP[section]();
@@ -1054,6 +1127,7 @@ async function removeEntry(section, index){
   if(section === 'casinos_ch') renderCasinoChList();
   if(section === 'streamers') renderStreamerList();
   if(section === 'products') renderProductList();
+  if(section === 'partner_offers') renderPartnerList();
   setStatus('✓ Entfernt');
 }
 </script>
