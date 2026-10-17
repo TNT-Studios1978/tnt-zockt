@@ -60,13 +60,15 @@ final class VegasStrip {
             new Place("venetian", "The Venetian", 9.5, -110.5, -90f),
             new Place("sphere", "Sphere", 95.5, -115.5, -90f),
             new Place("wynn", "Wynn & Encore", 9.5, -215.5, -90f),
-            new Place("strat", "The STRAT", 9.5, -300.5, -90f));
+            new Place("strat", "The STRAT", 9.5, -300.5, -90f),
+            new Place("restaurant", "Top of the World (Restaurant im STRAT)", 38.5, -297.5, 0f));
 
     static Location spawn(World w) {
         return new Location(w, 0.5, G + 1, 338.5, 180f, 0f);
     }
 
     static Location place(World w, Place p) {
+        if (p.key().equals("restaurant")) return VegasGuard.liftTop(w);
         return new Location(w, p.x(), G + 1, p.z(), p.yaw(), -10f);
     }
 
@@ -574,7 +576,6 @@ final class VegasStrip {
     private void wynn() {
         prism(40, -280, 80, -160, max(arc(112, -195, 55, 62, 148, 212, 62), arc(112, -250, 54, 60, 158, 202, 56)),
                 Material.BROWN_TERRACOTTA, Material.BROWN_STAINED_GLASS, Material.SMOOTH_STONE, Material.OCHRE_FROGLIGHT, 0.25);
-        box(48, G + 1, -230, 60, G + 9, -218, Material.CUT_RED_SANDSTONE);
         for (int z = -275; z <= -170; z += 12) palm(32, z, 8);
     }
 
@@ -604,8 +605,9 @@ final class VegasStrip {
                 if (d > r + 0.4) continue;
                 boolean edge = d > r - 0.8;
                 Material m = null;
-                if (k == 0 || k == 18) m = Material.WHITE_CONCRETE;
-                else if (edge) m = (k >= 6 && k <= 12) ? (k % 3 == 0 ? Material.PEARLESCENT_FROGLIGHT : Material.LIGHT_BLUE_STAINED_GLASS) : Material.WHITE_CONCRETE;
+                if (k == 0 || k == 18 || k == 12) m = Material.WHITE_CONCRETE;
+                else if (k == 5) m = edge ? Material.WHITE_CONCRETE : Material.DARK_OAK_PLANKS; // Restaurantboden
+                else if (edge) m = (k >= 6 && k <= 11) ? (k == 11 ? Material.PEARLESCENT_FROGLIGHT : Material.LIGHT_BLUE_STAINED_GLASS) : Material.WHITE_CONCRETE;
                 if (m != null) set(cx + x, y, cz + z, m);
             }
         }
@@ -721,10 +723,12 @@ final class VegasStrip {
         steps.add(() -> filler(-80, -330, -20, -175, 3));
         steps.add(() -> filler(20, -276, 34, -262, 4));
         steps.add(this::signs);
+        new VegasInteriors(w).build(steps, plugin);
         final int[] i = {0};
         Bukkit.getScheduler().runTaskTimer(plugin, task -> {
             if (i[0] >= steps.size()) { task.cancel(); done.run(); return; }
-            steps.get(i[0]++).run();
+            try { steps.get(i[0]++).run(); }
+            catch (Exception ex) { plugin.getLogger().warning("Las Vegas Bauschritt " + i[0] + " fehlgeschlagen: " + ex); }
         }, 1L, 2L);
     }
 

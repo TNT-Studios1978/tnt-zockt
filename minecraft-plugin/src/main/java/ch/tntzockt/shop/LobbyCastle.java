@@ -53,7 +53,7 @@ final class LobbyCastle {
                 new Portal(18, 3, false, hardcore, "Hardcore", NamedTextColor.DARK_RED, Material.NETHER_BRICKS, "Ein Leben – Tod = 24h Pause"),
                 new Portal(18, 13, false, event, "Events", NamedTextColor.YELLOW, Material.GOLD_BLOCK, "Stream-Events"),
                 new Portal(0, KEEP_GATE_Z, true, minigames, "Minispiele", NamedTextColor.RED, Material.TNT, "Bedwars · Skywars · TNT-Run · Spleef · PvP · Parkour"),
-                new Portal(-18, -13, false, vegas, "Las Vegas Strip", NamedTextColor.GOLD, Material.SHROOMLIGHT, "Die Glitzermeile bei Nacht"));
+                new Portal(-18, -13, false, vegas, "Las Vegas Strip", NamedTextColor.GOLD, Material.SHROOMLIGHT, "Casinos · Restaurant · freies Bauen"));
     }
 
     static Location spawn(World w) {

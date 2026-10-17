@@ -79,6 +79,8 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     private Minigames games;
 
     void setMinigames(Minigames g) { this.games = g; }
+
+    private VegasGuard vegasGuard;
     private boolean eventOpen = false;
     private final NamespacedKey hcKey;
     private final java.util.Map<java.util.UUID, String> deathWorld = new java.util.HashMap<>();
@@ -175,6 +177,18 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             if (games != null) games.setup(g);
         }
         World v = createFixed(vegas, new Generators.Desert());
+        NamespacedKey vk = new NamespacedKey(plugin, "vegas_v2");
+        if (v != null && !v.getPersistentDataContainer().has(vk, PersistentDataType.BYTE)
+                && v.getPersistentDataContainer().has(new NamespacedKey(plugin, "vegas_v1"), PersistentDataType.BYTE)) {
+            // Version 1 (ohne Innenräume) einmalig komplett neu erzeugen – damals durfte noch niemand bauen
+            World l0 = Bukkit.getWorld(lobby);
+            for (Player pl : v.getPlayers()) if (l0 != null) pl.teleport(lobbySpawn(l0));
+            if (deleteWorld(v)) {
+                v = create(vegas, new Generators.Desert());
+                if (v != null) v.getPersistentDataContainer().set(new NamespacedKey(plugin, "gen_v2"), PersistentDataType.BYTE, (byte) 1);
+                plugin.getLogger().info("Las Vegas wird mit Innenräumen neu gebaut");
+            }
+        }
         if (v != null) {
             setupCalm(v);
             v.setTime(18000); // ewige Nacht – die Lichter sollen leuchten
@@ -186,15 +200,19 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             set(v, GameRule.ALLOW_ENTERING_NETHER_USING_PORTALS, false);
             v.setDifficulty(Difficulty.PEACEFUL);
             v.setSpawnLocation(VegasStrip.spawn(v));
-            NamespacedKey vk = new NamespacedKey(plugin, "vegas_v1");
+            World vw = v;
             if (!v.getPersistentDataContainer().has(vk, PersistentDataType.BYTE)) {
                 plugin.getLogger().info("Baue den Las Vegas Strip …");
                 new VegasStrip(v).build(plugin, () -> {
-                    v.getPersistentDataContainer().set(vk, PersistentDataType.BYTE, (byte) 1);
+                    vw.getPersistentDataContainer().set(vk, PersistentDataType.BYTE, (byte) 1);
+                    if (vegasGuard != null) vegasGuard.load();
                     plugin.getLogger().info("Las Vegas Strip fertig");
                 });
             }
             VegasStrip.startShows(plugin, vegas);
+            vegasGuard = new VegasGuard(plugin, vegas);
+            Bukkit.getPluginManager().registerEvents(vegasGuard, plugin);
+            vegasGuard.start();
         }
     }
 
@@ -289,7 +307,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private NamespacedKey castleKey() {
-        return new NamespacedKey(plugin, "castle_v5");
+        return new NamespacedKey(plugin, "castle_v6");
     }
 
     private List<LobbyCastle.Portal> portals() {
@@ -358,7 +376,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     Group groupOf(World w) {
         if (w == null) return Group.SURVIVAL;
         String n = w.getName();
-        if (n.equals(plotWorld) || n.equals(creative)) return Group.CREATIVE;
+        if (n.equals(plotWorld) || n.equals(creative) || n.equals(vegas)) return Group.CREATIVE;
         if (n.equals(skyblock)) return Group.SKYBLOCK;
         if (n.equals(hardcore)) return Group.HARDCORE;
         if (n.equals(event)) return Group.EVENT;
@@ -534,7 +552,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     /** Lobby und Las Vegas: nur anschauen – kein Bauen, kein Schaden, kein Hunger. */
     private boolean isShowcase(World w) {
-        return w != null && (w.getName().equals(lobby) || w.getName().equals(vegas));
+        return w != null && w.getName().equals(lobby);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -701,8 +719,8 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         inv.setItem(24, icon(Material.CRAFTING_TABLE, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, creative, "Freies Bauen für alle"));
         inv.setItem(25, icon(Material.OAK_SAPLING, "Skyblock", NamedTextColor.BLUE, skyblock, "Deine eigene Insel im Himmel", "Eigenes Inventar · /is"));
         inv.setItem(30, icon(Material.TNT, "Minispiele", NamedTextColor.RED, minigames, "Bedwars · Skywars · TNT-Run", "Spleef · PvP · Parkour", "Eigenes Inventar · /spiele"));
-        inv.setItem(32, icon(Material.SHROOMLIGHT, "Las Vegas Strip", NamedTextColor.GOLD, vegas, "Die Glitzermeile bei Nacht",
-                "Pyramide, Eiffelturm, Sphere & mehr", "Rundgang: /vegas <ort>"));
+        inv.setItem(32, icon(Material.SHROOMLIGHT, "Las Vegas Strip", NamedTextColor.GOLD, vegas, "Casinos zum Besichtigen · Restaurant im STRAT",
+                "Kreativ: freies Bauen neben dem Strip", "Rundgang: /vegas <ort>"));
         String wait = hardcoreBlocked(p);
         inv.setItem(28, icon(Material.WITHER_SKELETON_SKULL, "Hardcore", NamedTextColor.DARK_RED, hardcore, "Schwer · eigenes Inventar",
                 wait == null ? "Wer stirbt, muss 24h warten" : "☠ Gesperrt: noch " + wait));
@@ -756,9 +774,10 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             return;
         }
         if (worldName.equals(vegas)) {
-            p.teleport(VegasStrip.spawn(w));
+            Location back = last(p, w);
+            p.teleport(back != null ? back : VegasStrip.spawn(w));
             p.showTitle(net.kyori.adventure.title.Title.title(Component.text("LAS VEGAS", NamedTextColor.GOLD, TextDecoration.BOLD),
-                    Component.text("Willkommen auf dem Strip! · /vegas für den Rundgang", NamedTextColor.WHITE)));
+                    Component.text("Kreativmodus: bau neben dem Strip! · /vegas = Rundgang", NamedTextColor.WHITE)));
             return;
         }
         if (worldName.equals(minigames) && games != null) {
