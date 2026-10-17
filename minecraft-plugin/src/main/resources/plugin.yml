@@ -38,6 +38,11 @@ commands:
     usage: /welten
     aliases: [worlds, menu, menü]
     permission: tntshop.use
+  vegas:
+    description: "Las Vegas Strip - Rundgang zu den Sehenswürdigkeiten"
+    usage: /vegas [ort]
+    aliases: [lasvegas, strip]
+    permission: tntshop.use
   lobby:
     description: Zur Lobby
     usage: /lobby

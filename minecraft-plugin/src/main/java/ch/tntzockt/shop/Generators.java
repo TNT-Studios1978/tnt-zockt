@@ -65,6 +65,49 @@ final class Generators {
         }
     }
 
+    /** Wüste für Las Vegas: flacher Sand rund um den Strip, rote Berge am Horizont. */
+    static final class Desert extends Base {
+        static final int X1 = -170, X2 = 200, Z1 = -370, Z2 = 370;
+
+        static int mountain(int x, int z) {
+            int dx = x < X1 ? X1 - x : x > X2 ? x - X2 : 0;
+            int dz = z < Z1 ? Z1 - z : z > Z2 ? z - Z2 : 0;
+            double d = Math.sqrt(dx * dx + dz * dz);
+            if (d <= 0) return 0;
+            double wave = 0.55 + 0.45 * Math.sin(x * 0.043 + Math.cos(z * 0.031) * 2) * Math.cos(z * 0.052 + x * 0.011);
+            return (int) Math.round(Math.min(75, d * 0.55) * wave);
+        }
+
+        private static final Material[] LAYERS = {Material.ORANGE_TERRACOTTA, Material.RED_SANDSTONE, Material.TERRACOTTA,
+                Material.RED_TERRACOTTA, Material.SMOOTH_RED_SANDSTONE, Material.BROWN_TERRACOTTA, Material.RED_SANDSTONE};
+
+        @Override
+        public void generateNoise(@NotNull WorldInfo info, @NotNull Random random, int cx, int cz, @NotNull ChunkData data) {
+            int min = info.getMinHeight();
+            data.setRegion(0, min, 0, 16, min + 1, 16, Material.BEDROCK);
+            data.setRegion(0, min + 1, 0, 16, SURFACE - 4, 16, Material.STONE);
+            data.setRegion(0, SURFACE - 4, 0, 16, SURFACE, 16, Material.SANDSTONE);
+            for (int lx = 0; lx < 16; lx++) for (int lz = 0; lz < 16; lz++) {
+                int x = cx * 16 + lx, z = cz * 16 + lz;
+                int h = mountain(x, z);
+                if (h <= 0) { data.setBlock(lx, SURFACE, lz, Material.SAND); continue; }
+                for (int y = SURFACE; y <= SURFACE + h; y++) data.setBlock(lx, y, lz, LAYERS[Math.floorMod(y / 3, LAYERS.length)]);
+                data.setBlock(lx, SURFACE + h, lz, h > 40 ? Material.SMOOTH_RED_SANDSTONE : Material.RED_SAND);
+            }
+        }
+
+        @Override public BiomeProvider getDefaultBiomeProvider(@NotNull WorldInfo worldInfo) {
+            return new BiomeProvider() {
+                @Override public @NotNull Biome getBiome(@NotNull WorldInfo w, int x, int y, int z) { return Biome.DESERT; }
+                @Override public @NotNull List<Biome> getBiomes(@NotNull WorldInfo w) { return List.of(Biome.DESERT); }
+            };
+        }
+
+        @Override public Location getFixedSpawnLocation(@NotNull World world, @NotNull Random random) {
+            return new Location(world, 0.5, SURFACE + 1, 338.5);
+        }
+    }
+
     /** Grundstück-Raster: Parzellen aus Gras, dazwischen Wege mit Rand-Stufen. */
     static final class Plots extends Base {
         private final int size, road, cell;

@@ -41,7 +41,7 @@ final class LobbyCastle {
     private final Random rnd = new Random(42);
 
     static List<Portal> portals(String survival, String farm, String plots, String creative,
-                                String adventure, String skyblock, String hardcore, String event, String minigames) {
+                                String adventure, String skyblock, String hardcore, String event, String minigames, String vegas) {
         int z = -4;
         return List.of(
                 new Portal(-15, z, true, survival, "Survival", NamedTextColor.GREEN, Material.EMERALD_BLOCK, "Die Hauptwelt"),
@@ -52,7 +52,8 @@ final class LobbyCastle {
                 new Portal(-18, 13, false, skyblock, "Skyblock", NamedTextColor.BLUE, Material.LAPIS_BLOCK, "Deine Insel im Himmel"),
                 new Portal(18, 3, false, hardcore, "Hardcore", NamedTextColor.DARK_RED, Material.NETHER_BRICKS, "Ein Leben – Tod = 24h Pause"),
                 new Portal(18, 13, false, event, "Events", NamedTextColor.YELLOW, Material.GOLD_BLOCK, "Stream-Events"),
-                new Portal(0, KEEP_GATE_Z, true, minigames, "Minispiele", NamedTextColor.RED, Material.TNT, "Bedwars · Skywars · TNT-Run · Spleef · PvP · Parkour"));
+                new Portal(0, KEEP_GATE_Z, true, minigames, "Minispiele", NamedTextColor.RED, Material.TNT, "Bedwars · Skywars · TNT-Run · Spleef · PvP · Parkour"),
+                new Portal(-18, -13, false, vegas, "Las Vegas Strip", NamedTextColor.GOLD, Material.SHROOMLIGHT, "Die Glitzermeile bei Nacht"));
     }
 
     static Location spawn(World w) {

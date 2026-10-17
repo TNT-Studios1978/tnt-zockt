@@ -75,7 +75,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     private final TntShopPlugin plugin;
     private final PlotManager plots;
     private final SkyblockManager sky;
-    private String adventure = "abenteuer", skyblock = "skyblock", hardcore = "hardcore", event = "event", minigames = "minispiele";
+    private String adventure = "abenteuer", skyblock = "skyblock", hardcore = "hardcore", event = "event", minigames = "minispiele", vegas = "lasvegas";
     private Minigames games;
 
     void setMinigames(Minigames g) { this.games = g; }
@@ -112,6 +112,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         event = c.getString("worlds.event", event);
         minigames = c.getString("worlds.minigames", minigames);
         if (games != null) games.configure(minigames);
+        vegas = c.getString("worlds.vegas", vegas);
         sky.configure(skyblock);
         sky.load();
         plots.configure(plotWorld, c.getInt("worlds.plot-size", 64), c.getInt("worlds.plot-road", 7), c.getInt("worlds.plots-per-player", 1));
@@ -172,6 +173,28 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             set(g, GameRule.ALLOW_ENTERING_NETHER_USING_PORTALS, false);
             g.setDifficulty(Difficulty.PEACEFUL);
             if (games != null) games.setup(g);
+        }
+        World v = createFixed(vegas, new Generators.Desert());
+        if (v != null) {
+            setupCalm(v);
+            v.setTime(18000); // ewige Nacht – die Lichter sollen leuchten
+            set(v, GameRule.PVP, false);
+            set(v, GameRule.FALL_DAMAGE, false);
+            set(v, GameRule.TNT_EXPLODES, false);
+            set(v, GameRule.MOB_GRIEFING, false);
+            set(v, GameRule.DO_FIRE_TICK, false);
+            set(v, GameRule.ALLOW_ENTERING_NETHER_USING_PORTALS, false);
+            v.setDifficulty(Difficulty.PEACEFUL);
+            v.setSpawnLocation(VegasStrip.spawn(v));
+            NamespacedKey vk = new NamespacedKey(plugin, "vegas_v1");
+            if (!v.getPersistentDataContainer().has(vk, PersistentDataType.BYTE)) {
+                plugin.getLogger().info("Baue den Las Vegas Strip …");
+                new VegasStrip(v).build(plugin, () -> {
+                    v.getPersistentDataContainer().set(vk, PersistentDataType.BYTE, (byte) 1);
+                    plugin.getLogger().info("Las Vegas Strip fertig");
+                });
+            }
+            VegasStrip.startShows(plugin, vegas);
         }
     }
 
@@ -266,11 +289,11 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private NamespacedKey castleKey() {
-        return new NamespacedKey(plugin, "castle_v4");
+        return new NamespacedKey(plugin, "castle_v5");
     }
 
     private List<LobbyCastle.Portal> portals() {
-        return LobbyCastle.portals(survival, farm, plotWorld, creative, adventure, skyblock, hardcore, event, minigames);
+        return LobbyCastle.portals(survival, farm, plotWorld, creative, adventure, skyblock, hardcore, event, minigames, vegas);
     }
 
     private boolean building = false;
@@ -346,7 +369,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     /** Eigene Inventare/Regeln – keine Portale in andere Welten. */
     private boolean isIsolated(World w) {
         Group g = groupOf(w);
-        return g != Group.SURVIVAL || isLobby(w);
+        return g != Group.SURVIVAL || isShowcase(w);
     }
 
     boolean isSurvivalGroup(World w) {
@@ -358,7 +381,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private GameMode modeFor(World w) {
-        if (w.getName().equals(lobby) || w.getName().equals(minigames)) return GameMode.ADVENTURE;
+        if (isShowcase(w) || w.getName().equals(minigames)) return GameMode.ADVENTURE;
         return isCreative(w) ? GameMode.CREATIVE : GameMode.SURVIVAL;
     }
 
@@ -509,15 +532,20 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         return w != null && w.getName().equals(lobby);
     }
 
+    /** Lobby und Las Vegas: nur anschauen – kein Bauen, kein Schaden, kein Hunger. */
+    private boolean isShowcase(World w) {
+        return w != null && (w.getName().equals(lobby) || w.getName().equals(vegas));
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onLobbyBreak(BlockBreakEvent e) {
-        if (isLobby(e.getBlock().getWorld()) && !e.getPlayer().hasPermission("tntshop.admin")) e.setCancelled(true);
+        if (isShowcase(e.getBlock().getWorld()) && !e.getPlayer().hasPermission("tntshop.admin")) e.setCancelled(true);
         else if (protectedCreativeSpawn(e.getPlayer(), e.getBlock().getLocation())) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onLobbyPlace(BlockPlaceEvent e) {
-        if (isLobby(e.getBlock().getWorld()) && !e.getPlayer().hasPermission("tntshop.admin")) e.setCancelled(true);
+        if (isShowcase(e.getBlock().getWorld()) && !e.getPlayer().hasPermission("tntshop.admin")) e.setCancelled(true);
         else if (protectedCreativeSpawn(e.getPlayer(), e.getBlock().getLocation())) e.setCancelled(true);
     }
 
@@ -529,13 +557,13 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     @EventHandler(ignoreCancelled = true)
     public void onDamage(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Player && (isLobby(e.getEntity().getWorld()) || e.getEntity().getWorld().getName().equals(event))) e.setCancelled(true);
+        if (e.getEntity() instanceof Player && (isShowcase(e.getEntity().getWorld()) || e.getEntity().getWorld().getName().equals(event))) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onHunger(FoodLevelChangeEvent e) {
         World w = e.getEntity().getWorld();
-        if (isLobby(w) || isCreative(w) || w.getName().equals(event)) e.setCancelled(true);
+        if (isShowcase(w) || isCreative(w) || w.getName().equals(event)) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -549,13 +577,13 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     @EventHandler(ignoreCancelled = true)
     public void onExplode(EntityExplodeEvent e) {
         World w = e.getEntity().getWorld();
-        if (isLobby(w) || isCreative(w)) e.blockList().clear();
+        if (isShowcase(w) || isCreative(w)) e.blockList().clear();
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onSpawn(CreatureSpawnEvent e) {
         World w = e.getEntity().getWorld();
-        if (isLobby(w) && e.getSpawnReason() != CreatureSpawnEvent.SpawnReason.CUSTOM) { e.setCancelled(true); return; }
+        if (isShowcase(w) && e.getSpawnReason() != CreatureSpawnEvent.SpawnReason.CUSTOM) { e.setCancelled(true); return; }
         if (isCreative(w)) {
             EntityType t = e.getEntityType();
             if (t == EntityType.WITHER || t == EntityType.ENDER_DRAGON || t == EntityType.WARDEN) e.setCancelled(true);
@@ -566,7 +594,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
     public void onPortal(PlayerPortalEvent e) {
         if (isIsolated(e.getFrom().getWorld())) {
             e.setCancelled(true);
-            if (!isLobby(e.getFrom().getWorld())) e.getPlayer().sendActionBar(Component.text("In dieser Welt gibt es keine Portale.", NamedTextColor.GRAY));
+            if (!isShowcase(e.getFrom().getWorld())) e.getPlayer().sendActionBar(Component.text("In dieser Welt gibt es keine Portale.", NamedTextColor.GRAY));
         }
     }
 
@@ -672,11 +700,13 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         inv.setItem(23, icon(Material.OAK_SIGN, "Grundstücke", NamedTextColor.AQUA, plotWorld, "Deine eigene 64×64-Parzelle", "Kreativmodus · /plot claim"));
         inv.setItem(24, icon(Material.CRAFTING_TABLE, "Kreativwelt", NamedTextColor.LIGHT_PURPLE, creative, "Freies Bauen für alle"));
         inv.setItem(25, icon(Material.OAK_SAPLING, "Skyblock", NamedTextColor.BLUE, skyblock, "Deine eigene Insel im Himmel", "Eigenes Inventar · /is"));
-        inv.setItem(31, icon(Material.TNT, "Minispiele", NamedTextColor.RED, minigames, "Bedwars · Skywars · TNT-Run", "Spleef · PvP · Parkour", "Eigenes Inventar · /spiele"));
+        inv.setItem(30, icon(Material.TNT, "Minispiele", NamedTextColor.RED, minigames, "Bedwars · Skywars · TNT-Run", "Spleef · PvP · Parkour", "Eigenes Inventar · /spiele"));
+        inv.setItem(32, icon(Material.SHROOMLIGHT, "Las Vegas Strip", NamedTextColor.GOLD, vegas, "Die Glitzermeile bei Nacht",
+                "Pyramide, Eiffelturm, Sphere & mehr", "Rundgang: /vegas <ort>"));
         String wait = hardcoreBlocked(p);
-        inv.setItem(30, icon(Material.WITHER_SKELETON_SKULL, "Hardcore", NamedTextColor.DARK_RED, hardcore, "Schwer · eigenes Inventar",
+        inv.setItem(28, icon(Material.WITHER_SKELETON_SKULL, "Hardcore", NamedTextColor.DARK_RED, hardcore, "Schwer · eigenes Inventar",
                 wait == null ? "Wer stirbt, muss 24h warten" : "☠ Gesperrt: noch " + wait));
-        inv.setItem(32, icon(Material.FIREWORK_ROCKET, "Events", NamedTextColor.YELLOW, event, "Stream-Events von TNT-Zockt",
+        inv.setItem(34, icon(Material.FIREWORK_ROCKET, "Events", NamedTextColor.YELLOW, event, "Stream-Events von TNT-Zockt",
                 eventOpen ? "● Gerade GEÖFFNET!" : "Gerade geschlossen"));
         ItemStack info = new ItemStack(Material.BOOK);
         ItemMeta im = info.getItemMeta();
@@ -725,6 +755,12 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
             p.sendActionBar(Component.text("→ Skyblock", NamedTextColor.GOLD));
             return;
         }
+        if (worldName.equals(vegas)) {
+            p.teleport(VegasStrip.spawn(w));
+            p.showTitle(net.kyori.adventure.title.Title.title(Component.text("LAS VEGAS", NamedTextColor.GOLD, TextDecoration.BOLD),
+                    Component.text("Willkommen auf dem Strip! · /vegas für den Rundgang", NamedTextColor.WHITE)));
+            return;
+        }
         if (worldName.equals(minigames) && games != null) {
             p.teleport(games.hub(w));
             p.sendActionBar(Component.text("→ Minispiele", NamedTextColor.GOLD));
@@ -753,6 +789,7 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
         if (world.equals(hardcore)) return "Hardcore";
         if (world.equals(event)) return "Events";
         if (world.equals(minigames)) return "Minispiele";
+        if (world.equals(vegas)) return "Las Vegas Strip";
         return world;
     }
 
@@ -782,6 +819,26 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
                 return true;
             }
             if (sender instanceof Player p) travel(p, event);
+            return true;
+        }
+        if (name.equals("vegas")) {
+            if (!(sender instanceof Player p)) { sender.sendMessage("Nur im Spiel verfügbar."); return true; }
+            World v = Bukkit.getWorld(vegas);
+            if (v == null) { p.sendMessage(Component.text("Las Vegas ist gerade nicht verfügbar.", NamedTextColor.RED)); return true; }
+            if (args.length == 0) {
+                if (!p.getWorld().equals(v)) { travel(p, vegas); return true; }
+                p.sendMessage(Component.text("✦ Las Vegas Strip – Rundgang", NamedTextColor.GOLD, TextDecoration.BOLD));
+                for (VegasStrip.Place pl : VegasStrip.PLACES) p.sendMessage(Component.text("  ▶ " + pl.name(), NamedTextColor.YELLOW)
+                        .append(Component.text("  /vegas " + pl.key(), NamedTextColor.GRAY)).clickEvent(ClickEvent.runCommand("/vegas " + pl.key())));
+                return true;
+            }
+            for (VegasStrip.Place pl : VegasStrip.PLACES) if (pl.key().equalsIgnoreCase(args[0])) {
+                if (!p.getWorld().equals(v)) travel(p, vegas);
+                p.teleport(VegasStrip.place(v, pl));
+                p.sendActionBar(Component.text("✦ " + pl.name(), NamedTextColor.GOLD));
+                return true;
+            }
+            p.sendMessage(Component.text("Unbekannter Ort. Tippe /vegas für die Liste.", NamedTextColor.RED));
             return true;
         }
         if (name.equals("lobby")) {
@@ -836,6 +893,10 @@ final class WorldManager implements Listener, CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args) {
+        if (command.getName().equalsIgnoreCase("vegas")) {
+            if (args.length != 1) return List.of();
+            return VegasStrip.PLACES.stream().map(VegasStrip.Place::key).filter(k -> k.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
+        }
         if (!command.getName().equalsIgnoreCase("welt")) return List.of();
         if (args.length == 1) return List.of("reset", "tp", "schloss");
         if (args.length == 2 && args[0].equalsIgnoreCase("reset")) return List.of(farm);

@@ -79,7 +79,7 @@ public final class TntShopPlugin extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(sky, this);
         var isCmd = getCommand("is");
         if (isCmd != null) { isCmd.setExecutor(sky); isCmd.setTabCompleter(sky); }
-        for (String c : new String[]{"welten", "lobby", "welt", "event"}) {
+        for (String c : new String[]{"welten", "lobby", "welt", "event", "vegas"}) {
             var cmd = getCommand(c);
             if (cmd != null) { cmd.setExecutor(worlds); cmd.setTabCompleter(worlds); }
         }
