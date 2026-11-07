@@ -162,6 +162,10 @@ const TNT_TRANSLATIONS = {
   'games.chips.label':{ de: 'TNT-Chips', fr: 'TNT-Chips', en: 'TNT-Chips' },
   'games.back':        { de: '← Zurück zur Übersicht', fr: '← Retour à l\'aperçu', en: '← Back to overview' },
   'games.original':    { de: 'Original', fr: 'Original', en: 'Original' },
+  'games.world.tag':    { de: 'Testphase', fr: 'Phase de test', en: 'Test phase' },
+  'games.world.kind':   { de: '3D-Casino · ab 18', fr: 'Casino 3D · 18+', en: '3D casino · 18+' },
+  'games.world.code':   { de: 'Zugangscode:', fr: 'Code d’accès :', en: 'Access code:' },
+  'games.world.enter':  { de: 'Welt betreten →', fr: 'Entrer dans le monde →', en: 'Enter the world →' },
   'games.play':         { de: 'Jetzt spielen →', fr: 'Jouer maintenant →', en: 'Play now →' },
 
   /* Game names */
