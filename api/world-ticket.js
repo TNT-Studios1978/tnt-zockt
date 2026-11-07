@@ -20,7 +20,14 @@ async function twitchFromToken(token) {
   const id = data.sub || data.provider_id || twitch.id;
   const name = data.preferred_username || data.nickname || data.name || data.user_name || "";
   if (!id || !name) return null;
-  return { sub: `twitch:${id}`, name: String(name).slice(0, 24), avatar: data.avatar_url || data.picture || "" };
+  // login: derselbe Schlüssel wie bei den TNT-Coins der Website (api/_lib/coins.js), klein geschrieben.
+  const login = String(name).toLowerCase();
+  return {
+    sub: `twitch:${id}`,
+    name: String(name).slice(0, 24),
+    avatar: data.avatar_url || data.picture || "",
+    login: /^[a-z0-9_]{1,25}$/.test(login) ? login : undefined
+  };
 }
 
 export default async function handler(req, res) {

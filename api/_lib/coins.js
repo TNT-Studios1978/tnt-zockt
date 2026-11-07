@@ -27,8 +27,12 @@ export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
 
+// Name aus den Daten, die Twitch beim Login liefert (identity_data). user_metadata darf hier nicht
+// verwendet werden: Diesen Wert kann jeder eingeloggte Nutzer selbst ändern und sich so als ein
+// anderer Twitch-Nutzer ausgeben.
 function getTwitchUsername(user) {
-  const meta = (user && user.user_metadata) || {};
+  const twitch = ((user && user.identities) || []).find((identity) => identity.provider === "twitch");
+  const meta = (twitch && twitch.identity_data) || {};
   return meta.preferred_username || meta.nickname || meta.user_name || meta.name || meta.full_name || "";
 }
 
