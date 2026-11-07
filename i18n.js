@@ -165,6 +165,8 @@ const TNT_TRANSLATIONS = {
   'games.world.tag':    { de: 'Testphase', fr: 'Phase de test', en: 'Test phase' },
   'games.world.kind':   { de: '3D-Casino · ab 18', fr: 'Casino 3D · 18+', en: '3D casino · 18+' },
   'games.world.code':   { de: 'Zugangscode:', fr: 'Code d’accès :', en: 'Access code:' },
+  'games.world.copy':   { de: 'Kopieren', fr: 'Copier', en: 'Copy' },
+  'games.world.auto':   { de: 'Wird beim Betreten automatisch eingetragen.', fr: 'Saisi automatiquement en entrant.', en: 'Filled in automatically when you enter.' },
   'games.world.enter':  { de: 'Welt betreten →', fr: 'Entrer dans le monde →', en: 'Enter the world →' },
   'games.play':         { de: 'Jetzt spielen →', fr: 'Jouer maintenant →', en: 'Play now →' },
 
