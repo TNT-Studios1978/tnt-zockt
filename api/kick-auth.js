@@ -2,6 +2,8 @@
 // Tauscht den Kick-OAuth-Code gegen einen Access Token und holt die
 // Nutzerdaten ab. Der Client Secret bleibt server-seitig geheim.
 
+import { sign, ticketsConfigured } from "./_lib/ticket.js";
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Nur POST erlaubt' });
@@ -55,11 +57,15 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Kick-Nutzer nicht gefunden' });
     }
 
-    return res.status(200).json({
-      username: user.name || user.username || user.slug,
-      avatar: user.profile_picture || user.profile_pic || null,
-      user_id: user.user_id || user.id
-    });
+    const username = user.name || user.username || user.slug;
+    const avatar = user.profile_picture || user.profile_pic || null;
+    const userId = user.user_id || user.id;
+    // Signiertes Sitzungszeichen (30 Tage): damit stellt /api/world-ticket später Welt-Tickets aus.
+    const session_token = ticketsConfigured() && userId
+      ? sign("kicks", { sub: `kick:${userId}`, name: String(username).slice(0, 24), avatar: avatar || "", exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60 })
+      : null;
+
+    return res.status(200).json({ username, avatar, user_id: userId, session_token });
   } catch (err) {
     return res.status(500).json({ error: 'Fehler bei Kick-Anmeldung', message: err.message });
   }

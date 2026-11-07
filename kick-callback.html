@@ -58,7 +58,7 @@
       return;
     }
 
-    localStorage.setItem('kick_session', JSON.stringify({ username: data.username, avatar: data.avatar }));
+    localStorage.setItem('kick_session', JSON.stringify({ username: data.username, avatar: data.avatar, token: data.session_token || null }));
     sessionStorage.removeItem('kick_code_verifier');
     sessionStorage.removeItem('kick_oauth_state');
     sessionStorage.removeItem('kick_redirect_page');
