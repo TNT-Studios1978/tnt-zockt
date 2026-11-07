@@ -1,7 +1,7 @@
 // Testzugang zur TNT-Zockt Virtual World.
-// Der Schnelltunnel bekommt nach einem Neustart eine neue Adresse: dann nur die URL hier anpassen.
+// Läuft auf dem Oracle-Server (feste Adresse mit HTTPS). Bei einem Domainwechsel nur die URL hier anpassen.
 window.VIRTUAL_WORLD = {
-  url: 'https://curtis-concentration-journey-couple.trycloudflare.com/virtual',
+  url: 'https://144-24-253-88.sslip.io/virtual',
   code: '3BZV23UY',
 };
 
