@@ -121,6 +121,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn" data-tab="payouts" onclick="switchTab('payouts')">Auszahlungen</button>
 <button class="tab-btn" data-tab="minecraft" onclick="switchTab('minecraft')">Minecraft</button>
 <button class="tab-btn" data-tab="jukebox" onclick="switchTab('jukebox')">Jukebox</button>
+<button class="tab-btn" data-tab="poker" onclick="switchTab('poker')">Poker-Turnier</button>
 </div>
 <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
 <button class="btn-ghost" style="padding:9px 16px;" onclick="doLogout()">🚪 Logout</button>
@@ -160,6 +161,26 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <div class="toolbar"><h2>Shop-Produkte</h2></div>
 <div id="product-list"></div>
 <div class="add-row"><button class="btn-ghost" onclick="addProduct()">+ Produkt hinzufügen</button></div>
+</div>
+
+<!-- POKER-TURNIER TAB -->
+<div class="tab-panel" id="tab-poker">
+<div class="toolbar"><h2>Poker-Wochenturnier (Virtual World)</h2></div>
+<div class="info-box" style="margin-bottom:20px;">
+Plane hier das Poker-Turnier. Spieler melden sich in der Welt an der <strong>Kasse</strong> an; das Startgeld in <strong>TNT-Coins</strong> wird sofort abgebucht und der Platz ist reserviert.
+Zur Startzeit werden alle Angemeldeten, die online sind, in der Event-Arena an ihren Tisch gebracht (bis 9 pro Tisch, höchstens 3 Tische). Wer fehlt, verliert sein Startgeld; es bleibt im Pool.
+Sind weniger als <strong>4 Spieler</strong> anwesend, fällt das Turnier aus und alle bekommen ihr Startgeld zurück.
+Preise: 4–5 Spieler 65/35 %, 6–9 Spieler 50/30/20 %, 10–18 Spieler 45/27/18/10 %, ab 19 Spielern 40/25/16/11/8 %.
+</div>
+<div class="entry-card">
+<div class="entry-grid">
+<div><label>Start (Datum und Uhrzeit)</label><input type="datetime-local" id="poker-start"></div>
+<div><label>Startgeld (TNT-Coins)</label><input type="number" id="poker-buyin" min="1" value="500"></div>
+<div><label>Max. Spieler (4–27)</label><input type="number" id="poker-max" min="4" max="27" value="27"></div>
+</div>
+<button class="btn-primary" onclick="createPokerEvent()">Turnier planen</button>
+</div>
+<div id="poker-list"></div>
 </div>
 
 <!-- JUKEBOX TAB -->
@@ -356,6 +377,7 @@ function switchTab(name){
   if(name === 'payouts') loadPayouts();
   if(name === 'minecraft') loadMc();
   if(name === 'jukebox') loadJukebox();
+  if(name === 'poker') loadPoker();
 }
 
 function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
@@ -1138,6 +1160,79 @@ async function uploadPartnerImage(event, index){
 /* ---------- JUKEBOX ---------- */
 let JUKEBOX = [];
 const JUKEBOX_TYPES = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg', oga: 'audio/ogg', wav: 'audio/wav', webm: 'audio/webm' };
+
+// ---------- Poker-Wochenturnier ----------
+let POKER_EVENTS = [];
+const POKER_STATUS = { scheduled: 'Geplant', running: 'Läuft', finished: 'Beendet', cancelled: 'Abgesagt' };
+
+async function loadPoker(){
+  const { data, error } = await sb.from('poker_events').select('*').order('starts_at', { ascending: false }).limit(20);
+  if(error){ console.error(error); setStatus('Poker-Turniere konnten nicht geladen werden (SQL supabase-poker-weekly.sql ausgeführt?).', true); return; }
+  POKER_EVENTS = data || [];
+  const ids = POKER_EVENTS.map(e => e.id);
+  let entries = [];
+  if(ids.length){
+    const res = await sb.from('poker_entries').select('event_id,name,twitch_login,status,place,prize,paid').in('event_id', ids).order('created_at', { ascending: true });
+    if(res.error) console.error(res.error); else entries = res.data || [];
+  }
+  POKER_EVENTS.forEach(e => { e.entries = entries.filter(x => x.event_id === e.id); });
+  renderPokerList();
+}
+
+function renderPokerList(){
+  const list = document.getElementById('poker-list');
+  if(!POKER_EVENTS.length){ list.innerHTML = '<p style="color:var(--text-low); font-size:13px;">Noch kein Turnier geplant.</p>'; return; }
+  list.innerHTML = POKER_EVENTS.map((e, i) => {
+    const active = e.entries.filter(x => x.status !== 'refunded');
+    const pool = e.status === 'scheduled' ? active.length * e.buy_in : e.pool;
+    const when = new Date(e.starts_at).toLocaleString('de-CH', { weekday:'short', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const names = active.map(x => pEsc(x.name) + (x.place ? ' (' + x.place + '.' + (x.prize ? ', ' + x.prize + ' Coins' : '') + ')' : '') + (x.status === 'forfeit' ? ' (nicht erschienen)' : '')).join(', ') || '<em>noch niemand</em>';
+    const actions = e.status === 'scheduled'
+      ? (active.length ? '<button class="btn-danger" onclick="cancelPokerEvent(' + i + ')">Absagen und erstatten</button>' : '<button class="btn-danger" onclick="deletePokerEvent(' + i + ')">Löschen</button>')
+      : '';
+    return '<div class="entry-card"><div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">'
+      + '<div><strong>' + when + '</strong> · ' + (POKER_STATUS[e.status] || pEsc(e.status)) + '</div>'
+      + '<div>Startgeld ' + e.buy_in + ' · Anmeldungen ' + active.length + '/' + e.max_players + ' · Pool <strong>' + pool + '</strong></div></div>'
+      + '<p style="font-size:13px; color:var(--text-mid); margin-top:8px;">' + names + '</p>'
+      + '<div class="entry-footer"><span class="id-tag">ID: ' + pEsc(e.id) + '</span>' + actions + '</div></div>';
+  }).join('');
+}
+
+async function createPokerEvent(){
+  const startValue = document.getElementById('poker-start').value;
+  const buyIn = Math.round(Number(document.getElementById('poker-buyin').value));
+  const max = Math.round(Number(document.getElementById('poker-max').value));
+  if(!startValue){ setStatus('Bitte Datum und Uhrzeit wählen.', true); return; }
+  const starts = new Date(startValue);
+  if(isNaN(starts.getTime()) || starts.getTime() < Date.now() + 5 * 60 * 1000){ setStatus('Der Start muss mindestens 5 Minuten in der Zukunft liegen.', true); return; }
+  if(!(buyIn >= 1 && buyIn <= 100000)){ setStatus('Startgeld zwischen 1 und 100000 Coins.', true); return; }
+  if(!(max >= 4 && max <= 27)){ setStatus('Max. Spieler zwischen 4 und 27.', true); return; }
+  if(POKER_EVENTS.some(e => e.status === 'scheduled' || e.status === 'running')){
+    if(!confirm('Es gibt schon ein geplantes Turnier. Trotzdem ein weiteres planen? Die Welt zeigt immer das nächste.')) return;
+  }
+  const { error } = await sb.from('poker_events').insert({ starts_at: starts.toISOString(), buy_in: buyIn, max_players: max });
+  if(error){ console.error(error); setStatus('Turnier konnte nicht gespeichert werden.', true); return; }
+  setStatus('✓ Turnier geplant (' + starts.toLocaleString('de-CH') + ')');
+  loadPoker();
+}
+
+async function cancelPokerEvent(index){
+  const e = POKER_EVENTS[index];
+  if(!e || !confirm('Turnier absagen? Alle Angemeldeten bekommen ihr Startgeld zurück.')) return;
+  const { data, error } = await sb.rpc('admin_poker_cancel', { p_event: e.id });
+  if(error){ console.error(error); setStatus('Absage fehlgeschlagen.', true); return; }
+  setStatus('✓ Turnier abgesagt, ' + (data || 0) + ' Startgeld(er) erstattet');
+  loadPoker();
+}
+
+async function deletePokerEvent(index){
+  const e = POKER_EVENTS[index];
+  if(!e || !confirm('Geplantes Turnier ohne Anmeldungen löschen?')) return;
+  const { error } = await sb.from('poker_events').delete().eq('id', e.id);
+  if(error){ console.error(error); setStatus('Löschen fehlgeschlagen.', true); return; }
+  setStatus('✓ Turnier gelöscht');
+  loadPoker();
+}
 
 async function loadJukebox(){
   const { data, error } = await sb.from('jukebox_tracks').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
