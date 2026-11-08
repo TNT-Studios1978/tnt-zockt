@@ -147,6 +147,30 @@ export async function seAddPoints(username, delta) {
   return typeof d.newAmount === "number" ? d.newAmount : null;
 }
 
+// Kanalpunkte (StreamElements) -> TNT-Coins. Genutzt von der Coin-Seite und der Kasse in der Virtual World.
+export async function exchangePoints(login, rawPoints) {
+  const points = intAmount(rawPoints);
+  const settings = await getSettings();
+  const coins = Math.floor(points * Number(settings.points_to_coins));
+  if (coins <= 0) throw new HttpError(400, "Betrag zu klein");
+
+  const current = await seGetPoints(login);
+  if (current < points) throw new HttpError(400, "Nicht genug Kanalpunkte");
+
+  const newAmount = await seAddPoints(login, -points);
+  if (newAmount !== null && newAmount < 0) {
+    await seAddPoints(login, points); // gleichzeitiger Umtausch -> zurückbuchen
+    throw new HttpError(409, "Nicht genug Kanalpunkte");
+  }
+  try {
+    const balance = await rpc("coin_exchange_in", { p_login: login, p_coins: coins, p_points: points });
+    return { balance, coins, points };
+  } catch (e) {
+    await seAddPoints(login, points); // Coins konnten nicht gebucht werden -> Punkte zurück
+    throw e;
+  }
+}
+
 export function sendError(res, err) {
   const status = err instanceof HttpError ? err.status : 500;
   return res.status(status).json({ error: err.message || "Unbekannter Fehler" });

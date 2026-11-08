@@ -9,7 +9,7 @@
 
 import {
   MAX_MULT, HttpError, verifyTwitchUser, rpc, rest, getSettings,
-  seGetPoints, seAddPoints, sendError, intAmount
+  seAddPoints, sendError, intAmount, exchangePoints
 } from "./_lib/coins.js";
 
 function checkGame(game) {
@@ -32,29 +32,6 @@ async function overview(login) {
     ledger,
     requests
   };
-}
-
-async function exchange(login, body) {
-  const points = intAmount(body.points);
-  const settings = await getSettings();
-  const coins = Math.floor(points * Number(settings.points_to_coins));
-  if (coins <= 0) throw new HttpError(400, "Betrag zu klein");
-
-  const current = await seGetPoints(login);
-  if (current < points) throw new HttpError(400, "Nicht genug Kanalpunkte");
-
-  const newAmount = await seAddPoints(login, -points);
-  if (newAmount !== null && newAmount < 0) {
-    await seAddPoints(login, points); // gleichzeitiger Umtausch -> zurückbuchen
-    throw new HttpError(409, "Nicht genug Kanalpunkte");
-  }
-  try {
-    const balance = await rpc("coin_exchange_in", { p_login: login, p_coins: coins, p_points: points });
-    return { balance, coins, points };
-  } catch (e) {
-    await seAddPoints(login, points); // Coins konnten nicht gebucht werden -> Punkte zurück
-    throw e;
-  }
 }
 
 async function payout(login, body) {
@@ -121,7 +98,7 @@ export default async function handler(req, res) {
         return res.status(200).json(r);
       }
       case "exchange":
-        return res.status(200).json(await exchange(login, body));
+        return res.status(200).json(await exchangePoints(login, body.points));
       case "payout":
         return res.status(200).json(await payout(login, body));
       default:
