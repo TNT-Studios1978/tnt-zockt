@@ -120,6 +120,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Nutzer</button>
 <button class="tab-btn" data-tab="payouts" onclick="switchTab('payouts')">Auszahlungen</button>
 <button class="tab-btn" data-tab="minecraft" onclick="switchTab('minecraft')">Minecraft</button>
+<button class="tab-btn" data-tab="jukebox" onclick="switchTab('jukebox')">Jukebox</button>
 </div>
 <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
 <button class="btn-ghost" style="padding:9px 16px;" onclick="doLogout()">🚪 Logout</button>
@@ -159,6 +160,22 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <div class="toolbar"><h2>Shop-Produkte</h2></div>
 <div id="product-list"></div>
 <div class="add-row"><button class="btn-ghost" onclick="addProduct()">+ Produkt hinzufügen</button></div>
+</div>
+
+<!-- JUKEBOX TAB -->
+<div class="tab-panel" id="tab-jukebox">
+<div class="toolbar"><h2>Jukebox (Virtual World)</h2></div>
+<div class="info-box" style="margin-bottom:20px;">
+Lieder für die Jukebox in der Virtual World. Spieler wählen sie dort aus und bezahlen mit ihren <strong>TNT-Coins</strong>; das Lied läuft dann für alle in der ganzen Welt.
+Erlaubt sind MP3, M4A, OGG und WAV bis 25 MB. Heisst die Datei "Interpret - Titel.mp3", werden Interpret und Titel automatisch übernommen.
+<strong>Nur Musik hochladen, die du öffentlich abspielen darfst</strong> (eigene oder lizenzfreie Stücke). Inaktive Lieder sind in der Jukebox unsichtbar.
+</div>
+<div class="entry-card">
+<label>Lieder hochladen (mehrere möglich)</label>
+<input type="file" id="jukebox-files" accept="audio/*,.mp3,.m4a,.ogg,.wav" multiple onchange="uploadJukeboxFiles(event)">
+<div id="jukebox-upload-status" style="font-size:12px; color:var(--text-low); margin-top:6px;"></div>
+</div>
+<div id="jukebox-list"></div>
 </div>
 
 <!-- PARTNER TAB -->
@@ -338,6 +355,7 @@ function switchTab(name){
   if(name === 'users' && !USERS_LOADED) loadUsers();
   if(name === 'payouts') loadPayouts();
   if(name === 'minecraft') loadMc();
+  if(name === 'jukebox') loadJukebox();
 }
 
 function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
@@ -654,7 +672,7 @@ loadPayouts();
 const LEDGER_LABEL = {
   start: 'Startguthaben', opening_balance: 'Übernommenes Guthaben', exchange_in: 'Umtausch',
   bet: 'Einsatz', win: 'Gewinn', payout_reserved: 'Auszahlung reserviert',
-  payout_refund: 'Rückbuchung', admin_adjust: 'Admin-Korrektur'
+  payout_refund: 'Rückbuchung', admin_adjust: 'Admin-Korrektur', purchase: 'Kauf'
 };
 
 async function loadPlayer(){
@@ -1115,6 +1133,104 @@ async function uploadPartnerImage(event, index){
   entry.image_url = publicUrl;
   renderPartnerList();
   setStatus('✓ Bild gespeichert (' + new Date().toLocaleTimeString() + ')');
+}
+
+/* ---------- JUKEBOX ---------- */
+let JUKEBOX = [];
+const JUKEBOX_TYPES = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg', oga: 'audio/ogg', wav: 'audio/wav', webm: 'audio/webm' };
+
+async function loadJukebox(){
+  const { data, error } = await sb.from('jukebox_tracks').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+  if(error){ console.error(error); setStatus('Jukebox konnte nicht geladen werden (SQL supabase-jukebox.sql ausgeführt?).', true); return; }
+  JUKEBOX = data;
+  renderJukeboxList();
+}
+
+function jukeboxTime(sec){ sec = Number(sec) || 0; return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+
+function renderJukeboxList(){
+  const list = document.getElementById('jukebox-list');
+  if(!JUKEBOX.length){ list.innerHTML = '<p style="color:var(--text-low)">Noch keine Lieder. Oben Dateien auswählen, um zu starten.</p>'; return; }
+  list.innerHTML = JUKEBOX.map(function(t, i){
+    return '<div class="entry-card" style="' + (t.active ? '' : 'opacity:.6;') + '"><div class="entry-grid">'
+      + '<div><label>Titel</label><input maxlength="80" value="' + pEsc(t.title) + '" onchange="updateJukebox(' + i + ',\'title\',this.value.trim().slice(0,80)||\'Ohne Titel\')"></div>'
+      + '<div><label>Interpret</label><input maxlength="80" value="' + pEsc(t.artist) + '" onchange="updateJukebox(' + i + ',\'artist\',this.value.trim().slice(0,80))"></div>'
+      + '<div><label>Reihenfolge</label><input type="number" value="' + pEsc(t.sort_order) + '" onchange="updateJukebox(' + i + ',\'sort_order\',Number(this.value)||0)"></div>'
+      + '<div style="grid-column:span 2;"><label>Vorhören (' + jukeboxTime(t.duration_sec) + ')</label><audio controls preload="none" src="' + pEsc(t.file_url) + '" style="width:100%;"></audio></div>'
+      + '<div style="display:flex; align-items:center; gap:8px; padding-top:20px;"><input type="checkbox" id="jactive-' + i + '"' + (t.active ? ' checked' : '') + ' onchange="updateJukebox(' + i + ',\'active\',this.checked); renderJukeboxList();" style="width:auto;"><label for="jactive-' + i + '" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Aktiv (in der Jukebox wählbar)</label></div>'
+      + '</div><div class="entry-footer"><span class="id-tag">ID: ' + pEsc(t.id) + '</span><button class="btn-danger" onclick="removeJukebox(' + i + ')">Entfernen</button></div></div>';
+  }).join('');
+}
+
+/** Länge der Datei im Browser bestimmen, damit die Welt weiss, wann das nächste Lied kommt. */
+function jukeboxDuration(file){
+  return new Promise(function(resolve){
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    const done = function(value){ URL.revokeObjectURL(url); resolve(value); };
+    audio.preload = 'metadata';
+    audio.onloadedmetadata = function(){ done(Number.isFinite(audio.duration) ? Math.round(audio.duration) : 0); };
+    audio.onerror = function(){ done(0); };
+    audio.src = url;
+  });
+}
+
+async function uploadJukeboxFiles(event){
+  const files = Array.from(event.target.files || []);
+  const statusEl = document.getElementById('jukebox-upload-status');
+  const problems = [];
+  let ok = 0;
+  for(const file of files){
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const type = JUKEBOX_TYPES[ext];
+    if(!type){ problems.push(file.name + ': Format nicht unterstützt'); continue; }
+    if(file.size > 25 * 1024 * 1024){ problems.push(file.name + ': grösser als 25 MB'); continue; }
+    statusEl.textContent = 'Lade hoch: ' + file.name + ' …';
+    const duration = await jukeboxDuration(file);
+    if(duration < 5 || duration > 1200){ problems.push(file.name + ': Länge nicht lesbar oder nicht zwischen 5 Sekunden und 20 Minuten'); continue; }
+    const path = 'tracks/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    const up = await sb.storage.from('jukebox').upload(path, file, { contentType: type, cacheControl: '31536000' });
+    if(up.error){ problems.push(file.name + ': Fehler beim Hochladen (' + up.error.message + ')'); console.error(up.error); continue; }
+    const publicUrl = sb.storage.from('jukebox').getPublicUrl(path).data.publicUrl;
+    // "Interpret - Titel.mp3" wird aufgeteilt, sonst ist der Dateiname der Titel.
+    const base = file.name.replace(/\.[^.]+$/, '').replace(/_+/g, ' ').trim();
+    const parts = base.split(' - ');
+    const entry = {
+      title: (parts.length > 1 ? parts.slice(1).join(' - ') : base).slice(0, 80) || 'Ohne Titel',
+      artist: (parts.length > 1 ? parts[0] : '').slice(0, 80),
+      file_url: publicUrl, file_path: path, duration_sec: duration, active: true,
+      sort_order: JUKEBOX.length + 1
+    };
+    const { data, error } = await sb.from('jukebox_tracks').insert(entry).select().single();
+    if(error){ problems.push(file.name + ': hochgeladen, aber Speichern fehlgeschlagen'); console.error(error); await sb.storage.from('jukebox').remove([path]); continue; }
+    JUKEBOX.push(data); ok++;
+    renderJukeboxList();
+  }
+  event.target.value = '';
+  statusEl.textContent = ok + ' von ' + files.length + ' Lied(ern) hochgeladen.' + (problems.length ? ' Nicht geklappt: ' + problems.join('; ') + '.' : '');
+  setStatus('✓ Jukebox aktualisiert (' + new Date().toLocaleTimeString() + ')');
+}
+
+async function updateJukebox(index, field, value){
+  const entry = JUKEBOX[index];
+  entry[field] = value;
+  setStatus('Speichere…');
+  const { error } = await sb.from('jukebox_tracks').update({ [field]: value }).eq('id', entry.id);
+  if(error){ setStatus('Fehler beim Speichern.', true); console.error(error); return; }
+  setStatus('✓ Gespeichert (' + new Date().toLocaleTimeString() + ')');
+}
+
+async function removeJukebox(index){
+  const entry = JUKEBOX[index];
+  if(!confirm('Lied "' + entry.title + '" endgültig löschen? Die Datei wird ebenfalls entfernt. Bereits bezahlte Wünsche dafür werden in der Welt automatisch zurückerstattet.')) return;
+  setStatus('Lösche…');
+  const { error } = await sb.from('jukebox_tracks').delete().eq('id', entry.id);
+  if(error){ setStatus('Fehler beim Löschen.', true); console.error(error); return; }
+  const rm = await sb.storage.from('jukebox').remove([entry.file_path]);
+  if(rm.error) console.error(rm.error);
+  JUKEBOX.splice(index, 1);
+  renderJukeboxList();
+  setStatus('✓ Lied entfernt');
 }
 
 /* ---------- SHARED ---------- */
