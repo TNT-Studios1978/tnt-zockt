@@ -1,6 +1,8 @@
 // Vercel Serverless Function
 // Inhalt für die grosse Wand in der TNT-Zockt Virtual World:
 // ob der Twitch-Kanal live ist, und sonst die Shop-Artikel für die Werbung.
+// Dazu die Streamer fürs Stream-Terminal: alle im Admin mit "In der Virtual World zeigen" angehakten
+// Twitch-Kanäle und welche davon gerade live sind. Der eigene Kanal steht immer zuerst.
 // Öffentlich lesbar (CORS *), enthält nur Daten, die ohnehin auf der Website stehen.
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./_lib/coins.js";
@@ -25,24 +27,61 @@ async function twitchToken() {
   return cachedToken;
 }
 
-async function liveStatus() {
-  if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) return null;
+function streamInfo(stream, name, own) {
+  return {
+    channel: String(stream.user_login || "").toLowerCase(),
+    name: String(name || stream.user_name || stream.user_login || "").slice(0, 40),
+    title: String(stream.title || "").slice(0, 140),
+    game: String(stream.game_name || "").slice(0, 60),
+    viewers: Number(stream.viewer_count) || 0,
+    startedAt: stream.started_at || null,
+    own
+  };
+}
+
+/** Angehakte Twitch-Kanäle aus der Streamer-Liste. Fehlt die Spalte in_world noch, gibt es nur den eigenen Kanal. */
+async function worldStreamers() {
   try {
-    const res = await fetch(`https://api.twitch.tv/helix/streams?user_login=${CHANNEL}`, {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/streamers?select=name,link,platform,sort_order&in_world=eq.true&platform=eq.twitch&order=sort_order.asc&limit=60`,
+      { headers: { apikey: SUPABASE_ANON_KEY } }
+    );
+    if (!res.ok) return [];
+    const seen = new Set([CHANNEL]);
+    const list = [];
+    for (const row of await res.json()) {
+      const match = /twitch\.tv\/([A-Za-z0-9_]{3,25})/.exec(String(row?.link || ""));
+      const login = match ? match[1].toLowerCase() : "";
+      if (!login || seen.has(login)) continue;
+      seen.add(login);
+      list.push({ channel: login, name: String(row.name || login).slice(0, 40) });
+    }
+    return list;
+  } catch (e) {
+    return [];
+  }
+}
+
+/** Live-Status für den eigenen Kanal und alle Streamer in einer Abfrage (Twitch erlaubt bis 100 Kanäle). */
+async function liveStreams(streamers) {
+  if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) return [];
+  try {
+    const logins = [CHANNEL, ...streamers.map((s) => s.channel)].slice(0, 100);
+    const query = logins.map((login) => `user_login=${encodeURIComponent(login)}`).join("&");
+    const res = await fetch(`https://api.twitch.tv/helix/streams?first=100&${query}`, {
       headers: { "Client-Id": process.env.TWITCH_CLIENT_ID, Authorization: `Bearer ${await twitchToken()}` }
     });
-    if (!res.ok) return null;
-    const stream = ((await res.json()).data || [])[0];
-    if (!stream || stream.type !== "live") return null;
-    return {
-      channel: CHANNEL,
-      title: String(stream.title || "").slice(0, 140),
-      game: String(stream.game_name || "").slice(0, 60),
-      viewers: Number(stream.viewer_count) || 0,
-      startedAt: stream.started_at || null
-    };
+    if (!res.ok) return [];
+    const names = new Map(streamers.map((s) => [s.channel, s.name]));
+    return ((await res.json()).data || [])
+      .filter((stream) => stream && stream.type === "live")
+      .map((stream) => {
+        const login = String(stream.user_login || "").toLowerCase();
+        return streamInfo(stream, login === CHANNEL ? "TNT-Zockt" : names.get(login), login === CHANNEL);
+      })
+      .sort((a, b) => Number(b.own) - Number(a.own) || b.viewers - a.viewers);
   } catch (e) {
-    return null;
+    return [];
   }
 }
 
@@ -76,8 +115,17 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET") return res.status(405).json({ error: "Nur GET erlaubt" });
 
-  const [live, items] = await Promise.all([liveStatus(), products()]);
+  const [streamers, items] = await Promise.all([worldStreamers(), products()]);
+  const streams = await liveStreams(streamers);
+  const own = streams.find((stream) => stream.own) || null;
+  const live = own ? { channel: own.channel, title: own.title, game: own.game, viewers: own.viewers, startedAt: own.startedAt } : null;
   // Eine Minute zwischenspeichern, damit nicht jeder Besucher Twitch und die Datenbank abfragt.
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
-  return res.status(200).json({ live, products: items, shopUrl: "https://www.tnt-zockt.ch/shop.html" });
+  return res.status(200).json({
+    live,
+    streams,
+    streamers: [{ channel: CHANNEL, name: "TNT-Zockt", own: true }, ...streamers.map((s) => ({ ...s, own: false }))],
+    products: items,
+    shopUrl: "https://www.tnt-zockt.ch/shop.html"
+  });
 }
