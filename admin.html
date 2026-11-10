@@ -153,6 +153,8 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <div class="tab-panel" id="tab-streamers">
 <div class="toolbar"><h2>Streamer</h2></div>
 <div class="info-box" style="margin-bottom:20px;">
+Jeder Streamer hat zwei Häkchen: <strong>Auf der Website zeigen</strong> steuert die Streamer-Liste auf tnt-zockt.ch,
+<strong>In der Virtual World zeigen</strong> das Stream-Terminal in der Lounge. So kannst du Streamer nur für die Welt eintragen, ohne dass sie auf der Website erscheinen.
 Mit dem Häkchen <strong>In der Virtual World zeigen</strong> erscheint ein Twitch-Kanal am Stream-Terminal in der Lounge.
 Ist er live, können die Spieler ihn dort auf die grosse Wand holen. Dein eigener Kanal ist immer dabei und hat Vorrang:
 Gehst du live, springt die Wand bei allen auf deinen Stream. Es funktionieren nur Twitch-Kanäle mit einem Link wie https://www.twitch.tv/kanalname.
@@ -1006,6 +1008,10 @@ function renderStreamerList(){
           </select>
         </div>
         <div style="grid-column:span 2;"><label>Kanal-Link</label><input value="${s.link || ''}" onchange="updateField('streamers',${i},'link',this.value)"></div>
+        <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="sweb-${i}" ${s.on_website === false ? '' : 'checked'} onchange="updateField('streamers',${i},'on_website',this.checked)" style="width:auto;">
+          <label for="sweb-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Auf der Website zeigen</label>
+        </div>
         <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
           <input type="checkbox" id="sworld-${i}" ${s.in_world ? 'checked' : ''} ${s.platform === 'twitch' ? '' : 'disabled'} onchange="updateField('streamers',${i},'in_world',this.checked)" style="width:auto;">
           <label for="sworld-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">In der Virtual World zeigen${s.platform === 'twitch' ? '' : ' (nur Twitch)'}</label>

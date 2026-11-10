@@ -881,7 +881,9 @@
     };
     const { data, error } = await sb.from('streamers').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Streamer konnten nicht geladen werden.</p>'; console.error(error); return; }
-    grid.innerHTML = data.map((s, i) => {
+    // Nur Streamer, die im Admin für die Website freigegeben sind (Streamer nur für die Virtual World bleiben weg)
+    const list = data.filter(s => s.on_website !== false);
+    grid.innerHTML = list.map((s, i) => {
       const p = platMap[s.platform] || {label:s.platform, cls:''};
       const initials = s.name.replace(/[\[\]]/g,'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
       return `
@@ -899,7 +901,7 @@
     }).join('');
 
     // Echte Profilbilder für alle Plattformen im Hintergrund nachladen
-    data.forEach(s => {
+    list.forEach(s => {
       const login = getChannelLogin(s.platform, s.link);
       if(login) loadStreamerAvatar(s.id, s.platform, login);
     });
