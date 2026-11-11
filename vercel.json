@@ -11,5 +11,11 @@
       "destination": "https://tnt-zockt.ch/:path*",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/world-subs",
+      "destination": "/api/world-ticket"
+    }
   ]
 }

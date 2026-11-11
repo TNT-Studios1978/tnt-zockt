@@ -10,6 +10,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./_lib/coins.js";
 import { sign, ticketsConfigured, verify } from "./_lib/ticket.js";
 import { subTierOf } from "./_lib/twitchSubs.js";
 import { ownedItems } from "./_lib/shop.js";
+import { worldSubsPage } from "./_lib/worldSubs.js";
 
 const TICKET_SECONDS = 6 * 60 * 60;
 
@@ -70,6 +71,8 @@ async function perksFor(player) {
 export default async function handler(req, res) {
   cors(req, res);
   if (req.method === "OPTIONS") return res.status(204).end();
+  // /api/world-subs (Twitch-Abos verbinden) läuft per Umleitung hier durch
+  if (req.method === "GET") return worldSubsPage(req, res);
   if (req.method !== "POST") return res.status(405).json({ error: "Nur POST erlaubt" });
   if (!ticketsConfigured()) return res.status(503).json({ error: "Welt-Tickets nicht eingerichtet" });
   res.setHeader("Cache-Control", "no-store");

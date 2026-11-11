@@ -1,4 +1,6 @@
-// Vercel Serverless Function
+// Kein eigener Endpunkt mehr (Vercel erlaubt nur 12 Funktionen): /api/world-subs wird per vercel.json
+// auf /api/world-ticket umgeleitet, das GET-Anfragen hierher weitergibt. Die Adresse bleibt gleich.
+//
 // Verbindet den Twitch-Kanal einmalig mit der Website, damit die Virtual World Abo-Skins vergeben kann.
 //
 // Ablauf: Der Kanalinhaber öffnet /api/world-subs im Browser, meldet sich bei Twitch an und stimmt
@@ -8,8 +10,8 @@
 // In der Twitch-Entwicklerkonsole muss diese Adresse als OAuth Redirect URL eingetragen sein:
 //   https://<domain>/api/world-subs
 
-import { sign, ticketsConfigured, verify } from "./_lib/ticket.js";
-import { BROADCASTER_LOGIN, exchangeCode, saveBroadcaster, SUBS_SCOPE, twitchConfigured, validateToken } from "./_lib/twitchSubs.js";
+import { sign, ticketsConfigured, verify } from "./ticket.js";
+import { BROADCASTER_LOGIN, exchangeCode, saveBroadcaster, SUBS_SCOPE, twitchConfigured, validateToken } from "./twitchSubs.js";
 
 function page(res, status, title, text) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -23,7 +25,7 @@ function page(res, status, title, text) {
 <p><a style="color:#16e0d0" href="/">Zurück zu TNT-Zockt</a></p></main></body></html>`);
 }
 
-export default async function handler(req, res) {
+export async function worldSubsPage(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Nur GET erlaubt" });
   if (!twitchConfigured() || !ticketsConfigured()) return page(res, 503, "Nicht eingerichtet", "TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET oder WORLD_TICKET_SECRET fehlen bei Vercel.");
 
