@@ -16,7 +16,7 @@ const TICKET_SECONDS = 6 * 60 * 60;
 
 // Nur die Welt darf Tickets aus dem Browser erneuern.
 const ORIGINS = new Set(
-  ["https://144-24-253-88.sslip.io", "https://virtual.tnt-zockt.ch"]
+  ["https://152-67-91-74.sslip.io", "https://144-24-253-88.sslip.io", "https://virtual.tnt-zockt.ch"]
     .concat((process.env.WORLD_ORIGINS || "").split(","))
     .map((value) => value.trim())
     .filter(Boolean)

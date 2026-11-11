@@ -1,7 +1,7 @@
 // Testzugang zur TNT-Zockt Virtual World.
 // Läuft auf dem Oracle-Server (feste Adresse mit HTTPS). Bei einem Domainwechsel nur die URL hier anpassen.
 window.VIRTUAL_WORLD = {
-  url: 'https://144-24-253-88.sslip.io/virtual',
+  url: 'https://152-67-91-74.sslip.io/virtual',
   code: '3BZV23UY',
 };
 

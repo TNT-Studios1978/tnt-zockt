@@ -10,7 +10,7 @@ import { verify } from "./_lib/ticket.js";
 
 // Nur die Welt darf die Kasse aus dem Browser aufrufen.
 const ORIGINS = new Set(
-  ["https://144-24-253-88.sslip.io", "https://virtual.tnt-zockt.ch"]
+  ["https://152-67-91-74.sslip.io", "https://144-24-253-88.sslip.io", "https://virtual.tnt-zockt.ch"]
     .concat((process.env.WORLD_ORIGINS || "").split(","))
     .map((value) => value.trim())
     .filter(Boolean)

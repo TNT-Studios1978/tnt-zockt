@@ -15,7 +15,7 @@ import { HttpError, rest } from "./_lib/coins.js";
 import { verify } from "./_lib/ticket.js";
 import { ownedItems, shopItems, stripe, stripeConfigured } from "./_lib/shop.js";
 
-const ORIGINS = ["https://144-24-253-88.sslip.io", "https://virtual.tnt-zockt.ch"]
+const ORIGINS = ["https://152-67-91-74.sslip.io", "https://144-24-253-88.sslip.io", "https://virtual.tnt-zockt.ch"]
   .concat((process.env.WORLD_ORIGINS || "").split(","))
   .map((value) => value.trim())
   .filter(Boolean);
