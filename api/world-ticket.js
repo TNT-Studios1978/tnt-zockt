@@ -9,6 +9,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./_lib/coins.js";
 import { sign, ticketsConfigured, verify } from "./_lib/ticket.js";
 import { subTierOf } from "./_lib/twitchSubs.js";
+import { ownedItems } from "./_lib/shop.js";
 
 const TICKET_SECONDS = 6 * 60 * 60;
 
@@ -60,6 +61,12 @@ async function tierFor(player) {
   return sub.startsWith("twitch:") ? subTierOf(sub.slice("twitch:".length)) : 0;
 }
 
+/** Abo-Stufe und gekaufte Boutique-Artikel zusammen. */
+async function perksFor(player) {
+  const [tier, items] = await Promise.all([tierFor(player), ownedItems(player.sub)]);
+  return { tier, items };
+}
+
 export default async function handler(req, res) {
   cors(req, res);
   if (req.method === "OPTIONS") return res.status(204).end();
@@ -76,8 +83,8 @@ export default async function handler(req, res) {
       const old = verify("world", renew[1]);
       if (!old) return res.status(401).json({ error: "Ticket abgelaufen" });
       const player = { sub: old.sub, name: old.name, avatar: old.avatar || "", login: old.login };
-      const tier = await tierFor(player);
-      return res.status(200).json({ ticket: sign("world", { ...player, tier, exp: old.exp }), exp: old.exp, tier });
+      const { tier, items } = await perksFor(player);
+      return res.status(200).json({ ticket: sign("world", { ...player, tier, items, exp: old.exp }), exp: old.exp, tier, items });
     }
 
     let player = null;
@@ -90,9 +97,9 @@ export default async function handler(req, res) {
     }
     if (!player) return res.status(401).json({ error: "Nicht angemeldet" });
 
-    const tier = await tierFor(player);
+    const { tier, items } = await perksFor(player);
     const exp = Math.floor(Date.now() / 1000) + TICKET_SECONDS;
-    return res.status(200).json({ ticket: sign("world", { ...player, tier, exp }), exp, tier });
+    return res.status(200).json({ ticket: sign("world", { ...player, tier, items, exp }), exp, tier, items });
   } catch (err) {
     return res.status(500).json({ error: "Ticket konnte nicht ausgestellt werden" });
   }

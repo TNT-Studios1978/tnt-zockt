@@ -122,6 +122,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn" data-tab="minecraft" onclick="switchTab('minecraft')">Minecraft</button>
 <button class="tab-btn" data-tab="jukebox" onclick="switchTab('jukebox')">Jukebox</button>
 <button class="tab-btn" data-tab="poker" onclick="switchTab('poker')">Poker-Turnier</button>
+<button class="tab-btn" data-tab="boutique" onclick="switchTab('boutique')">Boutique</button>
 </div>
 <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
 <button class="btn-ghost" style="padding:9px 16px;" onclick="doLogout()">🚪 Logout</button>
@@ -205,6 +206,19 @@ Erlaubt sind MP3, M4A, OGG und WAV bis 25 MB. Heisst die Datei "Interpret - Tite
 <div id="jukebox-upload-status" style="font-size:12px; color:var(--text-low); margin-top:6px;"></div>
 </div>
 <div id="jukebox-list"></div>
+</div>
+
+<!-- BOUTIQUE TAB -->
+<div class="tab-panel" id="tab-boutique">
+<div class="toolbar"><h2>Boutique (Virtual World)</h2></div>
+<div class="info-box" style="margin-bottom:20px;">
+Kosmetische Artikel für die Figur in der Virtual World, bezahlt mit Echtgeld über <strong>Stripe</strong>. Sie geben keine TNT-Coins, keine Kanalpunkte und keinen Vorteil in Spielen.
+Hier stellst du Preis und Sichtbarkeit ein. Neue Artikel braucht es zuerst im Code der Welt; inaktive Artikel sind in der Boutique unsichtbar, bereits gekaufte bleiben beim Käufer.
+Erstattest du eine Zahlung in Stripe, wird der Artikel automatisch wieder gesperrt.
+</div>
+<div id="boutique-items"></div>
+<h3 style="margin:24px 0 8px;">Käufe <span id="boutique-total" style="font-weight:400; color:var(--text-low); font-size:14px;"></span></h3>
+<div id="boutique-purchases"></div>
 </div>
 
 <!-- PARTNER TAB -->
@@ -386,6 +400,7 @@ function switchTab(name){
   if(name === 'minecraft') loadMc();
   if(name === 'jukebox') loadJukebox();
   if(name === 'poker') loadPoker();
+  if(name === 'boutique') loadBoutique();
 }
 
 function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
@@ -1343,6 +1358,62 @@ async function removeJukebox(index){
   JUKEBOX.splice(index, 1);
   renderJukeboxList();
   setStatus('✓ Lied entfernt');
+}
+
+/* ---------- BOUTIQUE ---------- */
+let BOUTIQUE = [];
+
+async function loadBoutique(){
+  const [items, buys] = await Promise.all([
+    sb.from('world_items').select('*').order('sort_order', { ascending: true }),
+    sb.from('world_purchases').select('*').order('created_at', { ascending: false }).limit(100)
+  ]);
+  if(items.error){ console.error(items.error); setStatus('Boutique konnte nicht geladen werden (SQL supabase-world-shop.sql ausgeführt?).', true); return; }
+  BOUTIQUE = items.data;
+  renderBoutiqueItems();
+  renderBoutiquePurchases(buys.error ? [] : buys.data);
+}
+
+function renderBoutiqueItems(){
+  const list = document.getElementById('boutique-items');
+  if(!BOUTIQUE.length){ list.innerHTML = '<p style="color:var(--text-low)">Keine Artikel. SQL supabase-world-shop.sql ausführen.</p>'; return; }
+  list.innerHTML = BOUTIQUE.map(function(it, i){
+    return '<div class="entry-card" style="' + (it.active ? '' : 'opacity:.6;') + '"><div class="entry-grid">'
+      + '<div><label>Name</label><input maxlength="40" value="' + pEsc(it.name) + '" onchange="updateBoutique(' + i + ',\'name\',this.value.trim().slice(0,40)||\'Artikel\')"></div>'
+      + '<div style="grid-column:span 2;"><label>Beschreibung</label><input maxlength="120" value="' + pEsc(it.description) + '" onchange="updateBoutique(' + i + ',\'description\',this.value.trim().slice(0,120))"></div>'
+      + '<div><label>Preis (CHF, 1 bis 100)</label><input type="number" min="1" max="100" step="0.5" value="' + pEsc(it.price_chf) + '" onchange="updateBoutique(' + i + ',\'price_chf\',Math.min(100,Math.max(1,Number(this.value)||1)))"></div>'
+      + '<div><label>Reihenfolge</label><input type="number" value="' + pEsc(it.sort_order) + '" onchange="updateBoutique(' + i + ',\'sort_order\',Number(this.value)||0)"></div>'
+      + '<div style="display:flex; align-items:center; gap:8px; padding-top:20px;"><input type="checkbox" id="bactive-' + i + '"' + (it.active ? ' checked' : '') + ' onchange="updateBoutique(' + i + ',\'active\',this.checked); renderBoutiqueItems();" style="width:auto;"><label for="bactive-' + i + '" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Aktiv (in der Boutique sichtbar)</label></div>'
+      + '</div><div class="entry-footer"><span class="id-tag">' + (it.kind === 'skin' ? 'Outfit' : 'Accessoire') + ' · ID: ' + pEsc(it.id) + '</span></div></div>';
+  }).join('');
+}
+
+function renderBoutiquePurchases(rows){
+  const list = document.getElementById('boutique-purchases');
+  const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
+  const paid = rows.filter(function(r){ return r.status === 'paid' && new Date(r.created_at) >= month; });
+  const sum = paid.reduce(function(total, r){ return total + Number(r.amount_chf || 0); }, 0);
+  document.getElementById('boutique-total').textContent = '· diesen Monat ' + paid.length + ' Käufe, CHF ' + sum.toFixed(2) + ' (vor Stripe-Gebühren)';
+  if(!rows.length){ list.innerHTML = '<p style="color:var(--text-low)">Noch keine Käufe.</p>'; return; }
+  const names = {}; BOUTIQUE.forEach(function(it){ names[it.id] = it.name; });
+  list.innerHTML = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="text-align:left; color:var(--text-low);"><th>Datum</th><th>Spieler</th><th>Artikel</th><th>CHF</th><th>Status</th></tr>'
+    + rows.map(function(r){
+      return '<tr style="border-top:1px solid rgba(255,255,255,.08);' + (r.status === 'refunded' ? 'opacity:.55;' : '') + '">'
+        + '<td>' + new Date(r.created_at).toLocaleString('de-CH') + '</td>'
+        + '<td>' + pEsc(r.name || r.sub) + '</td>'
+        + '<td>' + pEsc(names[r.item] || r.item) + '</td>'
+        + '<td>' + Number(r.amount_chf).toFixed(2) + '</td>'
+        + '<td>' + (r.status === 'paid' ? 'bezahlt' : 'erstattet') + '</td></tr>';
+    }).join('') + '</table>';
+}
+
+async function updateBoutique(index, field, value){
+  const entry = BOUTIQUE[index];
+  entry[field] = value;
+  setStatus('Speichere…');
+  const { error } = await sb.from('world_items').update({ [field]: value }).eq('id', entry.id);
+  if(error){ setStatus('Fehler beim Speichern.', true); console.error(error); return; }
+  setStatus('✓ Gespeichert (' + new Date().toLocaleTimeString() + ')');
 }
 
 /* ---------- SHARED ---------- */
