@@ -84,7 +84,11 @@ async function startCheckout(req, res) {
       ],
       metadata: { sub: player.sub, item: item.id, name },
       payment_intent_data: { description: `TNT-Zockt Virtual World: ${item.name}`, metadata: { sub: player.sub, item: item.id } },
-      custom_text: { submit: { message: "Rein kosmetischer Artikel für deine Figur in der TNT-Zockt Virtual World. Kein Spielguthaben, kein Umtausch in Coins oder Kanalpunkte." } },
+      custom_text: {
+        submit: {
+          message: "Rein kosmetischer Artikel für deine Figur in der TNT-Zockt Virtual World, sofort freigeschaltet. Kein Spielguthaben, kein Umtausch in Coins oder Kanalpunkte, kein Widerruf. Kauf ab 18. Es gelten die AGB: www.tnt-zockt.ch/agb.html"
+        }
+      },
       success_url: `${back}ok`,
       cancel_url: `${back}cancel`
     }

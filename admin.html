@@ -1391,9 +1391,10 @@ function renderBoutiqueItems(){
 function renderBoutiquePurchases(rows){
   const list = document.getElementById('boutique-purchases');
   const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
-  const paid = rows.filter(function(r){ return r.status === 'paid' && new Date(r.created_at) >= month; });
+  const isTest = function(r){ return String(r.stripe_session || '').indexOf('cs_test_') === 0; };
+  const paid = rows.filter(function(r){ return r.status === 'paid' && !isTest(r) && new Date(r.created_at) >= month; });
   const sum = paid.reduce(function(total, r){ return total + Number(r.amount_chf || 0); }, 0);
-  document.getElementById('boutique-total').textContent = '· diesen Monat ' + paid.length + ' Käufe, CHF ' + sum.toFixed(2) + ' (vor Stripe-Gebühren)';
+  document.getElementById('boutique-total').textContent = '· diesen Monat ' + paid.length + ' Käufe, CHF ' + sum.toFixed(2) + ' (vor Stripe-Gebühren, ohne Testkäufe)';
   if(!rows.length){ list.innerHTML = '<p style="color:var(--text-low)">Noch keine Käufe.</p>'; return; }
   const names = {}; BOUTIQUE.forEach(function(it){ names[it.id] = it.name; });
   list.innerHTML = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="text-align:left; color:var(--text-low);"><th>Datum</th><th>Spieler</th><th>Artikel</th><th>CHF</th><th>Status</th></tr>'
@@ -1403,7 +1404,7 @@ function renderBoutiquePurchases(rows){
         + '<td>' + pEsc(r.name || r.sub) + '</td>'
         + '<td>' + pEsc(names[r.item] || r.item) + '</td>'
         + '<td>' + Number(r.amount_chf).toFixed(2) + '</td>'
-        + '<td>' + (r.status === 'paid' ? 'bezahlt' : 'erstattet') + '</td></tr>';
+        + '<td>' + (r.status === 'paid' ? 'bezahlt' : 'erstattet') + (isTest(r) ? ' · <span style="color:#f5b400">Test</span>' : '') + '</td></tr>';
     }).join('') + '</table>';
 }
 

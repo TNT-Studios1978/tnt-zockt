@@ -1,6 +1,7 @@
 // Boutique der Virtual World: Artikel, Käufe und Stripe. Dateien in api/_lib sind keine Endpunkte.
 //
-// Bei Vercel nötig: STRIPE_SECRET_KEY (zuerst den Test-Schlüssel sk_test_...).
+// Bei Vercel nötig: STRIPE_SECRET_KEY (sk_test_... zum Testen, sk_live_... für echte Zahlungen).
+// Testkäufe erkennt man an stripe_session cs_test_...; sie gelten nicht als echte Einnahmen.
 // Ein Webhook-Geheimnis braucht es nicht: Der Webhook liest jedes Ereignis selbst bei Stripe nach,
 // gefälschte Meldungen bewirken deshalb nichts.
 
@@ -32,7 +33,11 @@ export async function stripe(path, { method = "GET", body } = {}) {
     body: body ? form(body) : undefined
   });
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new HttpError(502, "Stripe: " + ((data.error && data.error.message) || r.status));
+  if (!r.ok) {
+    // Die genaue Meldung von Stripe nur ins Vercel-Protokoll, nicht an Käufer (sie kann Teile des Schlüssels enthalten).
+    console.error("Stripe", path, r.status, (data.error && data.error.message) || "");
+    throw new HttpError(502, "Bezahlung gerade nicht möglich. Bitte später nochmals versuchen.");
+  }
   return data;
 }
 
