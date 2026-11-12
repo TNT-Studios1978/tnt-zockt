@@ -123,6 +123,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <button class="tab-btn" data-tab="jukebox" onclick="switchTab('jukebox')">Jukebox</button>
 <button class="tab-btn" data-tab="poker" onclick="switchTab('poker')">Poker-Turnier</button>
 <button class="tab-btn" data-tab="bjt" onclick="switchTab('bjt')">Black-Jack-Turnier</button>
+<button class="tab-btn" data-tab="slt" onclick="switchTab('slt')">Slot-Turnier</button>
 <button class="tab-btn" data-tab="boutique" onclick="switchTab('boutique')">Boutique</button>
 </div>
 <a href="index.html" class="btn-ghost" style="padding:9px 16px; display:inline-block; text-decoration:none;">← Zur Website</a>
@@ -198,6 +199,33 @@ Im Finale spielen die Qualifizierten, die online sind, um Topf + Sponsor (50/30/
 <button class="btn-primary" onclick="createBjtSeries()">Serie planen</button>
 </div>
 <div id="bjt-list"></div>
+</div>
+
+<!-- BLACK-JACK-TURNIER TAB -->
+<div class="tab-panel" id="tab-slt">
+<div class="toolbar"><h2>Slot-Turnier (KO, Turnierautomaten in der Event-Arena)</h2></div>
+<div class="info-box" style="margin-bottom:20px;">
+Eine Slot-Serie hat <strong>5 Spieltage</strong>: 4 Vorrunden (je eine pro Woche) und das Finale. Die Spieler sehen an der <strong>Kasse</strong> alle Vorrunden und melden sich im Voraus für jede einzeln an; das Startgeld in TNT-Coins wird sofort abgebucht, nachkaufen geht nicht.
+Gespielt wird an <strong>5 Turnierautomaten</strong> «TNT SEVEN» in der Event-Arena, die nur während dem Turnier stehen. Jede KO-Runde besteht aus Heats mit bis zu 5 Spielern, die nacheinander laufen. Der Automat hat 5 Walzen und 10 Gewinnlinien. Alle starten mit 1000 Turnier-Credits, Einsatz frei, jede Drehung von Hand (Stopp-Taste, kein Autoplay). Nach der Heat-Dauer zählt das Guthaben: die <strong>besten 3</strong> jedes Heats kommen weiter (bei kleinen Heats einer weniger), bis der letzte Heat die Plätze entscheidet. Was bis zum Schluss am Mindesteinsatz von 1000 Credits fehlt, wird von der Wertung abgezogen.
+Geld wie beim Black Jack: <strong>25 %</strong> an Platz 1–3 der Woche, <strong>75 %</strong> in den Topf; die besten 3 jeder Vorrunde spielen gratis das <strong>Finale</strong> um Topf + Sponsor (50/30/20 %). Dauer: etwa Anzahl Heats × (Heat-Dauer + 1 Min.), z. B. 12 Spieler (8 Heats) bei 5 Min. rund 50 Min.
+</div>
+<div class="entry-card">
+<div class="entry-grid">
+<div><label>Name der Serie</label><input type="text" id="slt-name" maxlength="60" value="Slot-Turnier"></div>
+<div><label>Startgeld pro Vorrunde (TNT-Coins)</label><input type="number" id="slt-buyin" min="1" value="200"></div>
+<div><label>Sponsor im Finaltopf (Coins)</label><input type="number" id="slt-sponsor" min="0" value="0"></div>
+<div><label>Max. Spieler pro Vorrunde (4–40)</label><input type="number" id="slt-max" min="4" max="40" value="20"></div>
+<div><label>Heat-Dauer (Minuten, 3–15)</label><input type="number" id="slt-heat" min="3" max="15" value="5"></div>
+<div><label>Vorrunde 1</label><input type="datetime-local" id="slt-d1" onchange="sltFillDates()"></div>
+<div><label>Vorrunde 2</label><input type="datetime-local" id="slt-d2"></div>
+<div><label>Vorrunde 3</label><input type="datetime-local" id="slt-d3"></div>
+<div><label>Vorrunde 4</label><input type="datetime-local" id="slt-d4"></div>
+<div><label>Finale</label><input type="datetime-local" id="slt-d5"></div>
+</div>
+<p style="font-size:12px; color:var(--text-low); margin:6px 0 10px;">Tipp: Vorrunde 1 wählen, die anderen Termine werden im Wochenabstand vorgeschlagen.</p>
+<button class="btn-primary" onclick="createSltSeries()">Serie planen</button>
+</div>
+<div id="slt-list"></div>
 </div>
 
 <!-- POKER-TURNIER TAB -->
@@ -429,6 +457,7 @@ function switchTab(name){
   if(name === 'jukebox') loadJukebox();
   if(name === 'poker') loadPoker();
   if(name === 'bjt') loadBjt();
+  if(name === 'slt') loadSlt();
   if(name === 'boutique') loadBoutique();
 }
 
@@ -1309,7 +1338,7 @@ function bjtFillDates(){
 }
 
 async function loadBjt(){
-  const { data, error } = await sb.from('bj_series').select('*').order('created_at', { ascending: false }).limit(10);
+  const { data, error } = await sb.from('bj_series').select('*').eq('game', 'blackjack').order('created_at', { ascending: false }).limit(10);
   if(error){ console.error(error); setStatus('Black-Jack-Turniere konnten nicht geladen werden (SQL supabase-blackjack-tour.sql ausgeführt?).', true); return; }
   BJT_SERIES = data || [];
   const ids = BJT_SERIES.map(x => x.id);
@@ -1440,6 +1469,158 @@ async function deleteBjtSeries(si){
   if(error){ console.error(error); setStatus('Löschen fehlgeschlagen.', true); return; }
   setStatus('✓ Serie gelöscht');
   loadBjt();
+}
+
+// ---------- Slot-Turnier ----------
+let SLT_SERIES = [];
+const SLT_STATUS = { scheduled: 'Geplant', running: 'Läuft', finished: 'Beendet', cancelled: 'Abgesagt / ausgefallen' };
+
+function sltLocal(d){ const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+
+function sltFillDates(){
+  const first = document.getElementById('slt-d1').value;
+  if(!first) return;
+  const base = new Date(first);
+  for(let i = 2; i <= 5; i++){
+    const el = document.getElementById('slt-d' + i);
+    if(!el.value) el.value = sltLocal(new Date(base.getTime() + (i - 1) * 7 * 24 * 3600 * 1000));
+  }
+}
+
+async function loadSlt(){
+  const { data, error } = await sb.from('bj_series').select('*').eq('game', 'slots').order('created_at', { ascending: false }).limit(10);
+  if(error){ console.error(error); setStatus('Slot-Turniere konnten nicht geladen werden (SQL supabase-slot-tour.sql ausgeführt?).', true); return; }
+  SLT_SERIES = data || [];
+  const ids = SLT_SERIES.map(x => x.id);
+  let events = [], entries = [], qualified = [];
+  if(ids.length){
+    const ev = await sb.from('bj_events').select('*').in('series_id', ids).order('round', { ascending: true });
+    if(ev.error) console.error(ev.error); else events = ev.data || [];
+    const eventIds = events.map(e => e.id);
+    if(eventIds.length){
+      const en = await sb.from('bj_entries').select('event_id,name,twitch_login,status,place,prize,paid').in('event_id', eventIds).order('created_at', { ascending: true });
+      if(en.error) console.error(en.error); else entries = en.data || [];
+    }
+    const q = await sb.from('bj_qualified').select('series_id,name,round,place').in('series_id', ids).order('round', { ascending: true });
+    if(q.error) console.error(q.error); else qualified = q.data || [];
+  }
+  SLT_SERIES.forEach(x => {
+    x.events = events.filter(e => e.series_id === x.id);
+    x.events.forEach(e => { e.entries = entries.filter(n => n.event_id === e.id); });
+    x.qualified = qualified.filter(q => q.series_id === x.id);
+  });
+  renderSltList();
+}
+
+function renderSltList(){
+  const list = document.getElementById('slt-list');
+  if(!SLT_SERIES.length){ list.innerHTML = '<p style="color:var(--text-low); font-size:13px;">Noch keine Serie geplant.</p>'; return; }
+  list.innerHTML = SLT_SERIES.map((x, si) => {
+    const paidAny = x.events.some(e => e.status !== 'scheduled' || e.entries.some(n => n.status !== 'refunded'));
+    const head = '<div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">'
+      + '<div><strong>' + pEsc(x.name) + '</strong> · ' + (x.status === 'open' ? 'Läuft' : x.status === 'finished' ? 'Beendet' : 'Abgesagt') + '</div>'
+      + '<div>' + (x.heat_minutes || 5) + ' Min. pro Heat · Topf <strong>' + x.pot + '</strong>' + (x.sponsor ? ' + Sponsor ' + x.sponsor : '') + '</div></div>';
+    const finalists = '<p style="font-size:13px; margin-top:6px;">Finalisten (' + x.qualified.length + '): ' + (x.qualified.map(q => pEsc(q.name) + ' (V' + q.round + ', ' + q.place + '.)').join(', ') || '<em>noch keine</em>') + '</p>';
+    const rows = x.events.map((e, ei) => {
+      const active = e.entries.filter(n => n.status !== 'refunded');
+      const when = new Date(e.starts_at).toLocaleString('de-CH', { weekday:'short', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const label = e.round === 5 ? 'Finale' : 'Vorrunde ' + e.round;
+      const names = active.map(n => pEsc(n.name) + (n.place ? ' (' + n.place + '.' + (n.prize ? ', ' + n.prize + ' Coins' : '') + ')' : '') + (n.status === 'forfeit' ? ' (nicht erschienen)' : '')).join(', ');
+      const pool = e.status === 'scheduled' ? (e.round === 5 ? x.pot + x.sponsor : active.length * e.buy_in) : e.pool;
+      let actions = '';
+      if(e.status === 'scheduled'){
+        actions += '<button class="btn-ghost" onclick="moveSltEvent(' + si + ',' + ei + ')">Datum ändern</button> ';
+        if(e.round < 5 && active.length) actions += '<button class="btn-danger" onclick="cancelSltEvent(' + si + ',' + ei + ')">Absagen und erstatten</button>';
+      } else if(e.status === 'cancelled' && x.status === 'open'){
+        actions += '<button class="btn-ghost" onclick="rescheduleSltEvent(' + si + ',' + ei + ')">Neu ansetzen</button>';
+      }
+      return '<div style="border-top:1px solid var(--line); padding:8px 0; font-size:13px;">'
+        + '<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;"><span><strong>' + label + '</strong> · ' + when + ' · ' + (SLT_STATUS[e.status] || pEsc(e.status)) + '</span>'
+        + '<span>' + (e.round === 5 ? 'gratis' : 'Startgeld ' + e.buy_in + ' · Anmeldungen ' + active.length + '/' + e.max_players) + ' · Pool <strong>' + pool + '</strong></span></div>'
+        + (names ? '<div style="color:var(--text-mid); margin-top:4px;">' + names + '</div>' : '')
+        + (actions ? '<div style="margin-top:6px;">' + actions + '</div>' : '')
+        + '</div>';
+    }).join('');
+    const del = !paidAny && x.pot === 0 ? '<button class="btn-danger" onclick="deleteSltSeries(' + si + ')">Serie löschen</button>' : '';
+    return '<div class="entry-card">' + head + finalists + rows + '<div class="entry-footer"><span class="id-tag">ID: ' + pEsc(x.id) + '</span>' + del + '</div></div>';
+  }).join('');
+}
+
+async function createSltSeries(){
+  const name = document.getElementById('slt-name').value.trim() || 'Slot-Turnier';
+  const buyIn = Math.round(Number(document.getElementById('slt-buyin').value));
+  const sponsor = Math.round(Number(document.getElementById('slt-sponsor').value) || 0);
+  const max = Math.round(Number(document.getElementById('slt-max').value));
+  const heat = Math.round(Number(document.getElementById('slt-heat').value));
+  if(!(heat >= 3 && heat <= 15)){ setStatus('Heat-Dauer zwischen 3 und 15 Minuten.', true); return; }
+  const dates = [1, 2, 3, 4, 5].map(i => document.getElementById('slt-d' + i).value);
+  if(dates.some(v => !v)){ setStatus('Bitte alle 5 Termine wählen.', true); return; }
+  const starts = dates.map(v => new Date(v));
+  if(starts.some(d => isNaN(d.getTime()))){ setStatus('Ungültiges Datum.', true); return; }
+  if(starts[0].getTime() < Date.now() + 5 * 60 * 1000){ setStatus('Vorrunde 1 muss mindestens 5 Minuten in der Zukunft liegen.', true); return; }
+  for(let i = 1; i < 5; i++) if(starts[i] <= starts[i - 1]){ setStatus('Die Termine müssen nacheinander liegen (Vorrunde 1 bis Finale).', true); return; }
+  if(!(buyIn >= 1 && buyIn <= 100000)){ setStatus('Startgeld zwischen 1 und 100000 Coins.', true); return; }
+  if(!(sponsor >= 0 && sponsor <= 100000)){ setStatus('Sponsor zwischen 0 und 100000 Coins.', true); return; }
+  if(!(max >= 4 && max <= 40)){ setStatus('Max. Spieler zwischen 4 und 40.', true); return; }
+  const { data, error } = await sb.from('bj_series').insert({ name: name.slice(0, 60), sponsor, game: 'slots', heat_minutes: heat }).select('id').single();
+  if(error || !data){ console.error(error); setStatus('Serie konnte nicht gespeichert werden.', true); return; }
+  const rows = starts.map((d, i) => ({ series_id: data.id, round: i + 1, starts_at: d.toISOString(), buy_in: i === 4 ? 0 : buyIn, max_players: max }));
+  const ev = await sb.from('bj_events').insert(rows);
+  if(ev.error){ console.error(ev.error); await sb.from('bj_series').delete().eq('id', data.id); setStatus('Termine konnten nicht gespeichert werden.', true); return; }
+  setStatus('✓ Serie geplant: Vorrunde 1 am ' + starts[0].toLocaleString('de-CH'));
+  [1, 2, 3, 4, 5].forEach(i => { document.getElementById('slt-d' + i).value = ''; });
+  loadSlt();
+}
+
+function sltAskDate(current){
+  const shown = current ? new Date(current).toLocaleString('de-CH', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }).replace(',', '') : '';
+  const value = prompt('Neues Datum und Uhrzeit (TT.MM.JJJJ HH:MM):', shown);
+  if(!value) return null;
+  const m = value.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if(!m){ setStatus('Format: TT.MM.JJJJ HH:MM', true); return null; }
+  const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4]), Number(m[5]));
+  if(d.getTime() < Date.now() + 5 * 60 * 1000){ setStatus('Der Termin muss mindestens 5 Minuten in der Zukunft liegen.', true); return null; }
+  return d;
+}
+
+async function moveSltEvent(si, ei){
+  const e = SLT_SERIES[si] && SLT_SERIES[si].events[ei];
+  if(!e) return;
+  const d = sltAskDate(e.starts_at);
+  if(!d) return;
+  const { error } = await sb.from('bj_events').update({ starts_at: d.toISOString() }).eq('id', e.id).eq('status', 'scheduled');
+  if(error){ console.error(error); setStatus('Datum konnte nicht geändert werden.', true); return; }
+  setStatus('✓ Neuer Termin: ' + d.toLocaleString('de-CH'));
+  loadSlt();
+}
+
+async function rescheduleSltEvent(si, ei){
+  const e = SLT_SERIES[si] && SLT_SERIES[si].events[ei];
+  if(!e) return;
+  const d = sltAskDate(null);
+  if(!d) return;
+  const { error } = await sb.rpc('admin_bj_reschedule', { p_event: e.id, p_starts: d.toISOString() });
+  if(error){ console.error(error); setStatus('Neu ansetzen fehlgeschlagen.', true); return; }
+  setStatus('✓ Neu angesetzt: ' + d.toLocaleString('de-CH'));
+  loadSlt();
+}
+
+async function cancelSltEvent(si, ei){
+  const e = SLT_SERIES[si] && SLT_SERIES[si].events[ei];
+  if(!e || !confirm('Vorrunde ' + e.round + ' absagen? Alle Angemeldeten bekommen ihr Startgeld zurück.')) return;
+  const { data, error } = await sb.rpc('admin_bj_cancel', { p_event: e.id });
+  if(error){ console.error(error); setStatus('Absage fehlgeschlagen.', true); return; }
+  setStatus('✓ Vorrunde abgesagt, ' + (data || 0) + ' Startgeld(er) erstattet');
+  loadSlt();
+}
+
+async function deleteSltSeries(si){
+  const x = SLT_SERIES[si];
+  if(!x || !confirm('Serie «' + x.name + '» mit allen Terminen löschen?')) return;
+  const { error } = await sb.from('bj_series').delete().eq('id', x.id);
+  if(error){ console.error(error); setStatus('Löschen fehlgeschlagen.', true); return; }
+  setStatus('✓ Serie gelöscht');
+  loadSlt();
 }
 
 async function loadJukebox(){
