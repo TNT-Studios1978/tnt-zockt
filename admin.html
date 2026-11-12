@@ -177,7 +177,7 @@ Die Live-Anzeige in der Welt kann bis zu einer Minute nachhinken.
 <div class="tab-panel" id="tab-bjt">
 <div class="toolbar"><h2>Black-Jack-Turnier (KO, Virtual World)</h2></div>
 <div class="info-box" style="margin-bottom:20px;">
-Eine Serie hat <strong>5 Spieltage</strong>: 4 Vorrunden (je eine pro Woche) und das Finale. Für jede Vorrunde melden sich die Spieler in der Welt an der <strong>Kasse</strong> neu an; das Startgeld in TNT-Coins wird sofort abgebucht, nachkaufen geht nicht.
+Eine Serie hat <strong>5 Spieltage</strong>: 4 Vorrunden (je eine pro Woche) und das Finale. Die Spieler sehen an der <strong>Kasse</strong> alle Vorrunden und können sich schon im Voraus für jede einzeln anmelden; das Startgeld in TNT-Coins wird sofort abgebucht, nachkaufen geht nicht.
 Gespielt wird im KO-System an Tischen mit bis zu 5 Plätzen: alle starten mit 1000 Turnierchips, nach 10 Händen kommen die besten 2 jedes Tisches weiter, bis der Finaltisch die Plätze entscheidet.
 <strong>25 %</strong> der Startgelder einer Vorrunde gehen an Platz 1–3 (50/30/20 %), <strong>75 %</strong> in den grossen Topf. Die besten 3 jeder Vorrunde, die noch nicht qualifiziert sind, kommen ins <strong>Finale</strong> (gratis).
 Im Finale spielen die Qualifizierten, die online sind, um Topf + Sponsor (50/30/20 %). Unter 4 Anwesenden fällt eine Vorrunde aus (Startgeld zurück); fällt das Finale aus, bleibt der Topf stehen und du setzt ein neues Datum.
@@ -204,7 +204,7 @@ Im Finale spielen die Qualifizierten, die online sind, um Topf + Sponsor (50/30/
 <div class="tab-panel" id="tab-poker">
 <div class="toolbar"><h2>Poker-Wochenturnier (Virtual World)</h2></div>
 <div class="info-box" style="margin-bottom:20px;">
-Plane hier das Poker-Turnier. Spieler melden sich in der Welt an der <strong>Kasse</strong> an; das Startgeld in <strong>TNT-Coins</strong> wird sofort abgebucht und der Platz ist reserviert.
+Plane hier das Poker-Turnier, gern auch mehrere Termine im Voraus. Spieler sehen an der <strong>Kasse</strong> alle kommenden Termine und melden sich für den an, der ihnen passt; das Startgeld in <strong>TNT-Coins</strong> wird sofort abgebucht und der Platz ist reserviert.
 Zur Startzeit werden alle Angemeldeten, die online sind, in der Event-Arena an ihren Tisch gebracht (bis 9 pro Tisch, höchstens 3 Tische). Wer fehlt, verliert sein Startgeld; es bleibt im Pool.
 Sind weniger als <strong>4 Spieler</strong> anwesend, fällt das Turnier aus und alle bekommen ihr Startgeld zurück.
 Preise: 4–5 Spieler 65/35 %, 6–9 Spieler 50/30/20 %, 10–18 Spieler 45/27/18/10 %, ab 19 Spielern 40/25/16/11/8 %.
@@ -1268,9 +1268,6 @@ async function createPokerEvent(){
   if(isNaN(starts.getTime()) || starts.getTime() < Date.now() + 5 * 60 * 1000){ setStatus('Der Start muss mindestens 5 Minuten in der Zukunft liegen.', true); return; }
   if(!(buyIn >= 1 && buyIn <= 100000)){ setStatus('Startgeld zwischen 1 und 100000 Coins.', true); return; }
   if(!(max >= 4 && max <= 27)){ setStatus('Max. Spieler zwischen 4 und 27.', true); return; }
-  if(POKER_EVENTS.some(e => e.status === 'scheduled' || e.status === 'running')){
-    if(!confirm('Es gibt schon ein geplantes Turnier. Trotzdem ein weiteres planen? Die Welt zeigt immer das nächste.')) return;
-  }
   const { error } = await sb.from('poker_events').insert({ starts_at: starts.toISOString(), buy_in: buyIn, max_players: max });
   if(error){ console.error(error); setStatus('Turnier konnte nicht gespeichert werden.', true); return; }
   setStatus('✓ Turnier geplant (' + starts.toLocaleString('de-CH') + ')');
