@@ -152,8 +152,8 @@ const TNT_TRANSLATIONS = {
   },
 
   /* ---------- Spiele: Hero & Wallet ---------- */
-  'games.gate.title': { de: '🔒 Nur für Mitglieder', fr: '🔒 Réservé aux membres', en: '🔒 Members only' },
-  'games.gate.desc':  { de: 'Logg dich mit Twitch oder Kick ein, um mit deinen TNT-Chips zu spielen. Jeder neue Spieler startet mit 1\'000 Gratis-Chips.', fr: 'Connecte-toi avec Twitch ou Kick pour jouer avec tes TNT-Chips. Chaque nouveau joueur commence avec 1 000 jetons gratuits.', en: 'Log in with Twitch or Kick to play with your TNT-Chips. Every new player starts with 1,000 free chips.' },
+  'games.gate.title': { de: 'Mit Twitch oder Kick anmelden', fr: 'Se connecter avec Twitch ou Kick', en: 'Sign in with Twitch or Kick' },
+  'games.gate.desc':  { de: 'Angemeldet erscheinst du in der Welt mit deinem Namen und Profilbild und kannst Kanalpunkte in Chips tauschen. Ohne Anmeldung kommst du als Gast mit dem Zugangscode hinein.', fr: 'Connecté, tu apparais dans le monde avec ton nom et ta photo de profil et tu peux échanger tes points de chaîne contre des jetons. Sans connexion, tu entres en invité avec le code d\'accès.', en: 'Signed in, you appear in the world with your name and profile picture and can swap channel points for chips. Without signing in, you enter as a guest with the access code.' },
   'games.eyebrow':    { de: '3D-Casino', fr: 'Casino 3D', en: '3D Casino' },
   'games.title.pre':  { de: 'TNT-Zockt', fr: 'TNT-Zockt', en: 'TNT-Zockt' },
   'games.title.post': { de: 'Virtual World', fr: 'Virtual World', en: 'Virtual World' },

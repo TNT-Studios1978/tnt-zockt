@@ -603,7 +603,7 @@
   </section>
 
   <!-- GAMES CONTENT -->
-  <div id="games-content" style="display:none;">
+  <div id="games-content">
 
     <div class="games-hero" id="games-hero">
       <div class="eyebrow" data-i18n="games.eyebrow">TNT Originals</div>
@@ -612,7 +612,7 @@
             <div class="disclaimer-badge" data-i18n="games.disclaimer">🛡️ Gespielt wird mit deinen echten Treuepunkten — nie mit echtem Geld.</div>
     </div>
 
-    <div class="chips-bar">
+    <div class="chips-bar" id="chips-bar" style="display:none;">
       <div class="chips-display">
         <span class="icon">🪙</span>
         <div>
@@ -622,7 +622,7 @@
       </div>
     </div>
 
-    <div class="wallet-panel" id="wallet-panel">
+    <div class="wallet-panel" id="wallet-panel" style="display:none;">
       <h3>🔁 Kanalpunkte ⇄ TNT-Chips</h3>
       <p class="wallet-note">Gespielt wird nur mit TNT-Chips. Tausche deine Kanalpunkte ein und lass dir Chips später wieder als Kanalpunkte auszahlen. Auszahlungen werden automatisch geprüft, auffällige Anträge prüft das Team. Kurs: <span id="wallet-rate">–</span>.</p>
       <div class="wallet-row">
@@ -770,16 +770,24 @@
     }
   }
 
+  /* Die Virtual World sieht jeder; Chips-Konto und Kanalpunkte gibt es nur angemeldet. */
+  function showMemberParts(show){
+    document.getElementById('chips-bar').style.display = show ? '' : 'none';
+    document.getElementById('wallet-panel').style.display = show ? '' : 'none';
+  }
   async function showLoggedIn(identity){
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('games-content').style.display = 'block';
+    showMemberParts(true);
     CURRENT_IDENTITY = identity;
     CURRENT_USER = identity.key;
     await loadChips();
   }
   function showLoginGate(){
+    // Kein Sperrbildschirm mehr: Anmelden ist freiwillig, die Welt geht auch als Gast
     document.getElementById('login-gate').style.display = 'block';
-    document.getElementById('games-content').style.display = 'none';
+    document.getElementById('games-content').style.display = 'block';
+    showMemberParts(false);
   }
 
   async function refreshAuthUI(){

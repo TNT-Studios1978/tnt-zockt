@@ -61,7 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
       if (session) headers.Authorization = 'Bearer ' + session.access_token;
       else {
         var kick = (typeof getKickSession === 'function') ? getKickSession() : null;
-        if (!kick || !kick.token) { ticket = null; updateLink(); return; }
+        if (!kick || !kick.token) {
+          ticket = null;
+          updateLink();
+          // Aus der Welt mit Wunsch-Anbieter gekommen, aber noch nicht angemeldet: Anmeldung starten
+          startWantedLogin();
+          return;
+        }
         body.kickSession = kick.token;
       }
       var res = await fetch('/api/world-ticket', { method: 'POST', headers: headers, body: JSON.stringify(body) });
