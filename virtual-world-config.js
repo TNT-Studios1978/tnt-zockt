@@ -17,6 +17,18 @@ document.addEventListener('DOMContentLoaded', function () {
   var GOTO_KEY = 'tnt_goto_world';
   var GOTO_MAX_MS = 10 * 60 * 1000;
   var params = new URLSearchParams(location.search);
+
+  /* Abmelden aus der Welt: …/games.html?logout=world meldet hier ab (Twitch-Sitzung bei Supabase und Kick)
+     und schickt einen als Gast zurück auf den Startbildschirm der Welt (feste Adresse, ohne Ticket). */
+  if (params.get('logout') === 'world') {
+    (async function () {
+      try { sessionStorage.removeItem(GOTO_KEY); } catch (e) {}
+      try { localStorage.removeItem('kick_session'); } catch (e) {}
+      try { if (typeof sb !== 'undefined') await sb.auth.signOut(); } catch (e) {}
+      location.replace(world.url);
+    })();
+    return;
+  }
   var wantedLogin = null;
   if (params.get('goto') === 'world') {
     try { sessionStorage.setItem(GOTO_KEY, String(Date.now())); } catch (e) {}
