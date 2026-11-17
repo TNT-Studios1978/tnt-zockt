@@ -1,9 +1,7 @@
 // Vercel Serverless Function — TNT-Coins für eingeloggte Twitch-Nutzer.
 //
 // GET  /api/coins                       -> Saldo, Einstellungen, letzte Buchungen, Anträge
-// POST /api/coins {action:"bet",   game, amount}          Einsatz (neue Runde)
-// POST /api/coins {action:"raise", game, amount}          Einsatz der laufenden Runde erhöhen
-// POST /api/coins {action:"win",   game, amount}          Gewinn auf die laufende Runde
+// (bet/raise/win der früheren Mini-Spiele: abgeschaltet, Antwort 410)
 // POST /api/coins {action:"exchange", points}             Kanalpunkte -> Coins
 // POST /api/coins {action:"payout", coins}                Coins -> Kanalpunkte (mit Prüfung)
 
@@ -83,20 +81,11 @@ export default async function handler(req, res) {
 
     const body = req.body || {};
     switch (body.action) {
+      // Die Mini-Spiele der Website gibt es nicht mehr; gespielt wird nur noch in der Virtual World
       case "bet":
-      case "raise": {
-        const r = await rpc("coin_bet", {
-          p_login: login, p_game: checkGame(body.game), p_amount: intAmount(body.amount), p_raise: body.action === "raise"
-        });
-        return res.status(200).json(r);
-      }
-      case "win": {
-        const game = checkGame(body.game);
-        const r = await rpc("coin_win", {
-          p_login: login, p_game: game, p_amount: intAmount(body.amount), p_max_mult: MAX_MULT[game]
-        });
-        return res.status(200).json(r);
-      }
+      case "raise":
+      case "win":
+        return res.status(410).json({ error: "Die Mini-Spiele gibt es nicht mehr. Gespielt wird in der Virtual World." });
       case "exchange":
         return res.status(200).json(await exchangePoints(login, body.points));
       case "payout":
