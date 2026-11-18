@@ -2,6 +2,7 @@
 // Stellt ein kurz gültiges, signiertes Ticket für die TNT-Zockt Virtual World aus.
 // Damit erscheint man dort mit dem Namen und Bild des Website-Logins (Twitch oder Kick).
 // Für Twitch-Konten steht die Abo-Stufe beim Kanal im Ticket (tier 0 bis 3, für die Abo-Skins).
+// Das Herkunftsland (country) steht ebenfalls drin: Die Welt sperrt damit das Internationale Casino für die Schweiz.
 //
 // Erneuern aus der Welt: POST mit "Authorization: World <ticket>" liefert ein neues Ticket mit
 // aktueller Abo-Stufe, aber derselben Ablaufzeit. So zählt ein frisches Abo ohne neues Einloggen.
@@ -11,6 +12,7 @@ import { sign, ticketsConfigured, verify } from "./_lib/ticket.js";
 import { subTierOf } from "./_lib/twitchSubs.js";
 import { ownedItems } from "./_lib/shop.js";
 import { worldSubsPage } from "./_lib/worldSubs.js";
+import { handleWorldCasinos } from "./_lib/worldCasinos.js";
 
 const TICKET_SECONDS = 6 * 60 * 60;
 
@@ -27,7 +29,7 @@ function cors(req, res) {
   if (origin && ORIGINS.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
     res.setHeader("Access-Control-Max-Age", "600");
   }
@@ -68,9 +70,17 @@ async function perksFor(player) {
   return { tier, items };
 }
 
+/** Herkunftsland (zwei Buchstaben, z. B. CH) aus der Geolocation von Vercel. Für die Ländersperre der Casino-Räume. */
+function countryOf(req) {
+  const value = String(req.headers["x-vercel-ip-country"] || "").toUpperCase();
+  return /^[A-Z]{2}$/.test(value) ? value : "";
+}
+
 export default async function handler(req, res) {
   cors(req, res);
   if (req.method === "OPTIONS") return res.status(204).end();
+  // /api/world-casinos und /api/world-casino-consent (Casino-Räume der Welt) laufen per Umleitung hier durch
+  if (await handleWorldCasinos(req, res)) return;
   // /api/world-subs (Twitch-Abos verbinden) läuft per Umleitung hier durch
   if (req.method === "GET") return worldSubsPage(req, res);
   if (req.method !== "POST") return res.status(405).json({ error: "Nur POST erlaubt" });
@@ -87,7 +97,9 @@ export default async function handler(req, res) {
       if (!old) return res.status(401).json({ error: "Ticket abgelaufen" });
       const player = { sub: old.sub, name: old.name, avatar: old.avatar || "", login: old.login };
       const { tier, items } = await perksFor(player);
-      return res.status(200).json({ ticket: sign("world", { ...player, tier, items, exp: old.exp }), exp: old.exp, tier, items });
+      // Land beim Erneuern frisch bestimmen (Reise, VPN)
+      const country = countryOf(req);
+      return res.status(200).json({ ticket: sign("world", { ...player, tier, items, country, exp: old.exp }), exp: old.exp, tier, items });
     }
 
     let player = null;
@@ -102,7 +114,8 @@ export default async function handler(req, res) {
 
     const { tier, items } = await perksFor(player);
     const exp = Math.floor(Date.now() / 1000) + TICKET_SECONDS;
-    return res.status(200).json({ ticket: sign("world", { ...player, tier, items, exp }), exp, tier, items });
+    const country = countryOf(req);
+    return res.status(200).json({ ticket: sign("world", { ...player, tier, items, country, exp }), exp, tier, items });
   } catch (err) {
     return res.status(500).json({ error: "Ticket konnte nicht ausgestellt werden" });
   }

@@ -16,6 +16,14 @@
     {
       "source": "/api/world-subs",
       "destination": "/api/world-ticket"
+    },
+    {
+      "source": "/api/world-casinos",
+      "destination": "/api/world-ticket?casinos=1"
+    },
+    {
+      "source": "/api/world-casino-consent",
+      "destination": "/api/world-ticket?consent=1"
     }
   ]
 }
