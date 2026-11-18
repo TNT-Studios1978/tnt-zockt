@@ -31,11 +31,11 @@ async function casinoList(req, res, room) {
   }
   const rows =
     room === "casino-ch"
-      ? await rest("casinos_ch?select=id,name,logo_url,bonus,link,sort_order&order=sort_order.asc")
-      : await rest("casinos?select=id,name,logo_url,bonus,link,sort_order&in_world=eq.true&order=sort_order.asc");
+      ? await rest("casinos_ch?select=id,name,logo_url,bonus,link,home_url,sort_order&order=sort_order.asc")
+      : await rest("casinos?select=id,name,logo_url,bonus,link,home_url,sort_order&in_world=eq.true&order=sort_order.asc");
   const casinos = (rows || [])
     .filter((row) => /^https:\/\//i.test(row.link || ""))
-    .map((row) => ({ id: clean(row.id, 64), name: clean(row.name, 40), logo: clean(row.logo_url, 400), bonus: clean(row.bonus, 120), link: clean(row.link, 600) }));
+    .map((row) => ({ id: clean(row.id, 64), name: clean(row.name, 40), logo: clean(row.logo_url, 400), bonus: clean(row.bonus, 120), link: clean(row.link, 600), home: /^https:\/\//i.test(row.home_url || "") ? clean(row.home_url, 600) : "" }));
   res.setHeader("Cache-Control", "private, no-store");
   return res.status(200).json({ room, casinos });
 }

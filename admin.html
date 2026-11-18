@@ -946,6 +946,7 @@ function renderCasinoList(){
         </div>
         <div style="grid-column:span 2;"><label>Bonustext</label><input value="${c.bonus || ''}" onchange="updateField('casinos',${i},'bonus',this.value)"></div>
         <div style="grid-column:span 2;"><label>Affiliate-Link</label><input value="${c.link || ''}" onchange="updateField('casinos',${i},'link',this.value)"></div>
+        <div style="grid-column:span 2;"><label>Startseite (Virtual World, ohne Affiliate-Link)</label><input value="${c.home_url || ''}" placeholder="https://…" onchange="updateField('casinos',${i},'home_url',this.value.trim())"></div>
         <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
           <input type="checkbox" id="cworld-${i}" ${c.in_world ? 'checked' : ''} onchange="updateField('casinos',${i},'in_world',this.checked)" style="width:auto;">
           <label for="cworld-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Im Internationalen Casino der Virtual World aufstellen</label>
@@ -1019,6 +1020,7 @@ function renderCasinoChList(){
         </div>
         <div style="grid-column:span 2;"><label>Bonustext</label><input value="${c.bonus || ''}" onchange="updateField('casinos_ch',${i},'bonus',this.value)"></div>
         <div style="grid-column:span 2;"><label>Affiliate-Link</label><input value="${c.link || ''}" onchange="updateField('casinos_ch',${i},'link',this.value)"></div>
+        <div style="grid-column:span 2;"><label>Startseite (Virtual World, ohne Affiliate-Link)</label><input value="${c.home_url || ''}" placeholder="https://…" onchange="updateField('casinos_ch',${i},'home_url',this.value.trim())"></div>
         <div style="grid-column:span 2;">
           <label>Logo</label>
           <div style="display:flex; gap:10px; align-items:center;">
