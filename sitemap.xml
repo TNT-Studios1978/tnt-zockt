@@ -20,9 +20,4 @@
           <changefreq>monthly</changefreq>
           <priority>0.6</priority>
     </url>
-    <url>
-          <loc>https://www.tnt-zockt.ch/tournierbaum.html</loc>
-          <changefreq>weekly</changefreq>
-          <priority>0.6</priority>
-    </url>
 </urlset>
