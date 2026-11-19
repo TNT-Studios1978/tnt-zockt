@@ -118,9 +118,10 @@
   .chips-display .amount{ font-family:var(--display); font-size:26px; color:var(--gold); }
   .chips-display .label{ font-family:var(--mono); font-size:10px; color:var(--text-low); text-transform:uppercase; }
   .wallet-panel{
-    max-width:760px; margin:0 auto 28px; padding:18px 22px;
+    max-width:760px; margin:32px auto 28px; padding:18px 22px;
     background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
   }
+  @media(max-width:800px){ .wallet-panel{ margin-left:16px; margin-right:16px; } }
   .wallet-panel h3{ margin:0 0 4px; font-size:15px; }
   .wallet-panel .wallet-note{ font-size:12px; color:var(--text-low); margin:0 0 14px; }
   .wallet-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
@@ -622,6 +623,28 @@
       </div>
     </div>
 
+    <!-- GAME SELECTION GRID -->
+    <section id="game-selection">
+      <div class="game-grid">
+
+        <!-- Virtual World: Adresse und Code stehen in assets/virtual-world.js -->
+        <a class="game-card world-card" id="virtual-world-card" href="#" target="_blank" rel="noopener">
+          <div class="game-banner banner-world">
+            <img class="world-logo" src="assets/virtual-world-logo.jpg" alt="TNT-Zockt Virtual World" width="1200" height="675" loading="lazy">
+          </div>
+          <div class="game-body">
+            <div class="game-tag" data-i18n="games.world.kind">3D-Casino · ab 18</div>
+            <h3>TNT-Zockt Virtual World</h3>
+            <div class="world-code"><span data-i18n="games.world.code">Zugangscode:</span> <b id="virtual-world-code">–</b> <span class="world-copy" id="virtual-world-copy" role="button" tabindex="0" data-i18n="games.world.copy">Kopieren</span></div>
+            <div class="world-hint" data-i18n="games.world.auto">Wird beim Betreten automatisch eingetragen.</div>
+            <div class="game-play" data-i18n="games.world.enter">Welt betreten →</div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Umtausch Kanalpunkte und Chips: unter der Welt -->
     <div class="wallet-panel" id="wallet-panel" style="display:none;">
       <h3>🔁 Kanalpunkte ⇄ TNT-Chips</h3>
       <p class="wallet-note">Gespielt wird nur mit TNT-Chips. Tausche deine Kanalpunkte ein und lass dir Chips später wieder als Kanalpunkte auszahlen. Auszahlungen werden automatisch geprüft, auffällige Anträge prüft das Team. Kurs: <span id="wallet-rate">–</span>.</p>
@@ -638,28 +661,6 @@
       <div class="wallet-msg" id="wallet-msg"></div>
       <div class="wallet-requests" id="wallet-requests"></div>
     </div>
-
-    <!-- GAME SELECTION GRID -->
-    <section id="game-selection">
-      <div class="game-grid">
-
-        <!-- Virtual World: Adresse und Code stehen in assets/virtual-world.js -->
-        <a class="game-card world-card" id="virtual-world-card" href="#" target="_blank" rel="noopener">
-          <div class="game-banner banner-world">
-            <span class="new-tag" data-i18n="games.world.tag">Testphase</span>
-            <img class="world-logo" src="assets/virtual-world-logo.jpg" alt="TNT-Zockt Virtual World" width="1200" height="675" loading="lazy">
-          </div>
-          <div class="game-body">
-            <div class="game-tag" data-i18n="games.world.kind">3D-Casino · ab 18</div>
-            <h3>TNT-Zockt Virtual World</h3>
-            <div class="world-code"><span data-i18n="games.world.code">Zugangscode:</span> <b id="virtual-world-code">–</b> <span class="world-copy" id="virtual-world-copy" role="button" tabindex="0" data-i18n="games.world.copy">Kopieren</span></div>
-            <div class="world-hint" data-i18n="games.world.auto">Wird beim Betreten automatisch eingetragen.</div>
-            <div class="game-play" data-i18n="games.world.enter">Welt betreten →</div>
-          </div>
-        </a>
-
-      </div>
-    </section>
 
   </div>
 
@@ -772,7 +773,8 @@
 
   /* Die Virtual World sieht jeder; Chips-Konto und Kanalpunkte gibt es nur angemeldet. */
   function showMemberParts(show){
-    document.getElementById('chips-bar').style.display = show ? '' : 'none';
+    // Chip-Anzeige oben bleibt ausgeblendet (Stand siehst du in der Welt)
+    document.getElementById('chips-bar').style.display = 'none';
     document.getElementById('wallet-panel').style.display = show ? '' : 'none';
   }
   async function showLoggedIn(identity){
