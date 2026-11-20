@@ -110,7 +110,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 <div class="nav">
 <a href="index.html" class="logo"><span class="logo-badge"><img src="assets/logo.jpg" alt="Logo" style="height:40px; width:auto;"></span> ADMIN</a>
 <div class="tabs">
-<button class="tab-btn" data-tab="casinos" onclick="switchTab('casinos')">Casinos DE</button>
+<button class="tab-btn" data-tab="casinos" onclick="switchTab('casinos')">Internationale Casinos</button>
 <button class="tab-btn active" data-tab="casinos_ch" onclick="switchTab('casinos_ch')">Casinos CH</button>
 <button class="tab-btn" data-tab="streamers" onclick="switchTab('streamers')">Streamer</button>
 <button class="tab-btn" data-tab="products" onclick="switchTab('products')">Shop</button>
@@ -137,7 +137,7 @@ main{ max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
 
 <!-- CASINOS TAB -->
 <div class="tab-panel" id="tab-casinos">
-<div class="toolbar"><h2>Casinos DE</h2></div>
+<div class="toolbar"><h2>Internationale Casinos</h2></div>
 <div class="info-box" style="margin-bottom:16px; border-color:var(--fuse-red); color:#ff9d8f;">
 🇨🇭 <strong>Nur außerhalb der Schweiz sichtbar:</strong> Diese Angebote werden Besuchern aus der Schweiz automatisch ausgeblendet (Geo-Sperre aktiv). Schweizer Angebote pflegst du im Tab "Casinos CH".<br>
 🎰 <strong>Virtual World:</strong> Mit dem Häkchen <em>Im Internationalen Casino der Virtual World aufstellen</em> erscheint ein Anbieter im Raum «Internationale Casinos» (für Besucher aus der Schweiz gesperrt). Die Schweizer Casinos stehen alle im Raum «Schweizer Casinos».
@@ -947,6 +947,10 @@ function renderCasinoList(){
         <div style="grid-column:span 2;"><label>Bonustext</label><input value="${c.bonus || ''}" onchange="updateField('casinos',${i},'bonus',this.value)"></div>
         <div style="grid-column:span 2;"><label>Affiliate-Link</label><input value="${c.link || ''}" onchange="updateField('casinos',${i},'link',this.value)"></div>
         <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="cweb-${i}" ${c.on_website !== false ? 'checked' : ''} onchange="updateField('casinos',${i},'on_website',this.checked)" style="width:auto;">
+          <label for="cweb-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Auf der Website anzeigen</label>
+        </div>
+        <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
           <input type="checkbox" id="cworld-${i}" ${c.in_world ? 'checked' : ''} onchange="updateField('casinos',${i},'in_world',this.checked)" style="width:auto;">
           <label for="cworld-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Im Internationalen Casino der Virtual World aufstellen</label>
         </div>
@@ -1020,6 +1024,14 @@ function renderCasinoChList(){
         <div style="grid-column:span 2;"><label>Bonustext</label><input value="${c.bonus || ''}" onchange="updateField('casinos_ch',${i},'bonus',this.value)"></div>
         <div style="grid-column:span 2;"><label>Affiliate-Link</label><input value="${c.link || ''}" onchange="updateField('casinos_ch',${i},'link',this.value)"></div>
         <div style="grid-column:span 2;"><label>Startseite (Virtual World, ohne Affiliate-Link)</label><input value="${c.home_url || ''}" placeholder="https://…" onchange="updateField('casinos_ch',${i},'home_url',this.value.trim())"></div>
+        <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="chweb-${i}" ${c.on_website !== false ? 'checked' : ''} onchange="updateField('casinos_ch',${i},'on_website',this.checked)" style="width:auto;">
+          <label for="chweb-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Auf der Website anzeigen</label>
+        </div>
+        <div style="grid-column:span 2; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="chworld-${i}" ${c.in_world !== false ? 'checked' : ''} onchange="updateField('casinos_ch',${i},'in_world',this.checked)" style="width:auto;">
+          <label for="chworld-${i}" style="margin-bottom:0; text-transform:none; font-size:13px; color:var(--text-hi);">Im Schweizer Casino der Virtual World aufstellen</label>
+        </div>
         <div style="grid-column:span 2;">
           <label>Logo</label>
           <div style="display:flex; gap:10px; align-items:center;">

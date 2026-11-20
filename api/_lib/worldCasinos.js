@@ -1,7 +1,7 @@
 // Casino-Räume der Virtual World. Dateien in api/_lib sind keine eigenen Endpunkte; aufgerufen über
 // /api/world-casinos und /api/world-casino-consent (Umleitung auf /api/world-ticket, siehe vercel.json).
 //
-// - Liste: Partner-Casinos für einen Raum. Schweiz: alle aus casinos_ch. International: nur im Admin angehakte
+// - Liste: Partner-Casinos für einen Raum. Schweiz: aus casinos_ch, ausser im Admin abgehakte (in_world). International: nur im Admin angehakte
 //   (casinos.in_world) und nie für Besucher aus der Schweiz (Land aus der Geolocation von Vercel).
 // - Bestätigung: Wer den Hinweis vor dem ersten Spiel bestätigt, wird mit Konto, Textversion, Raum und Zeit
 //   gespeichert (Tabelle world_casino_consents, nur mit dem Server-Schlüssel lesbar). Keine IP, kein Gerät.
@@ -31,9 +31,11 @@ async function casinoList(req, res, room) {
   }
   const rows =
     room === "casino-ch"
-      ? await rest("casinos_ch?select=id,name,logo_url,bonus,link,home_url,sort_order&order=sort_order.asc")
+      ? await rest("casinos_ch?select=*&order=sort_order.asc")
       : await rest("casinos?select=id,name,logo_url,bonus,link,home_url,sort_order&in_world=eq.true&order=sort_order.asc");
   const casinos = (rows || [])
+    // Schweiz: im Admin abgehakte nicht aufstellen (fehlt die Spalte noch, stehen alle)
+    .filter((row) => row.in_world !== false)
     .filter((row) => /^https:\/\//i.test(row.link || ""))
     .map((row) => ({ id: clean(row.id, 64), name: clean(row.name, 40), logo: clean(row.logo_url, 400), bonus: clean(row.bonus, 120), link: clean(row.link, 600), home: /^https:\/\//i.test(row.home_url || "") ? clean(row.home_url, 600) : "" }));
   res.setHeader("Cache-Control", "private, no-store");

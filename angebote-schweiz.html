@@ -705,8 +705,9 @@
 
   async function renderCasinosCh(){
     const grid = document.getElementById('casino-grid-ch');
-    const { data, error } = await sb.from('casinos_ch').select('*').order('sort_order', { ascending: true });
+    let { data, error } = await sb.from('casinos_ch').select('*').order('sort_order', { ascending: true });
     if(error){ grid.innerHTML = '<p style="color:var(--text-low)">Angebote konnten nicht geladen werden.</p>'; console.error(error); return; }
+    data = data.filter(c => c.on_website !== false); // im Admin ausgeblendet
     const countEl = document.getElementById('hero-stat-ch-count');
     if(countEl) countEl.textContent = data.length;
     grid.innerHTML = data.map((c, i) => `
