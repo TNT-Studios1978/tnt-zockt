@@ -9,7 +9,7 @@ const TNT_TRANSLATIONS = {
 
   /* ---------- Navigation (gemeinsam) ---------- */
   'nav.angebote':      { de: 'Angebote',        fr: 'Offres',            en: 'Offers' },
-  'nav.angebote.de':   { de: 'Angebote DE',      fr: 'Offres DE',         en: 'Offers DE' },
+  'nav.angebote.de':   { de: 'Angebote International', fr: 'Offres internationales', en: 'International offers' },
   'nav.angebote.ch':   { de: 'Angebote CH',      fr: 'Offres CH',         en: 'Offers CH' },
   'nav.streamer':       { de: 'Streamer',        fr: 'Streamers',         en: 'Streamers' },
   'nav.spiele':          { de: 'Spiele',           fr: 'Jeux',              en: 'Games' },
