@@ -36,6 +36,8 @@ async function casinoList(req, res, room) {
   const casinos = (rows || [])
     // Schweiz: im Admin abgehakte nicht aufstellen (fehlt die Spalte noch, stehen alle)
     .filter((row) => row.in_world !== false)
+    // Schweiz: Casinos ohne Affiliate-Link öffnen ihre Startseite (Anzeige und Knöpfe)
+    .map((row) => (room === "casino-ch" && !/^https:\/\//i.test(row.link || "") ? { ...row, link: row.home_url } : row))
     .filter((row) => /^https:\/\//i.test(row.link || ""))
     .map((row) => ({ id: clean(row.id, 64), name: clean(row.name, 40), logo: clean(row.logo_url, 400), bonus: clean(row.bonus, 120), link: clean(row.link, 600), home: /^https:\/\//i.test(row.home_url || "") ? clean(row.home_url, 600) : "" }));
   res.setHeader("Cache-Control", "private, no-store");
