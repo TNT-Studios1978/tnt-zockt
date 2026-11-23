@@ -46,8 +46,10 @@ export async function verifyUser(req) {
   });
   if (!r.ok) throw new HttpError(401, "Nicht angemeldet");
   const user = await r.json();
-  const login = getTwitchUsername(user).toLowerCase();
-  return { id: user.id, email: user.email || null, login };
+  const name = getTwitchUsername(user);
+  const twitch = (user.identities || []).find((identity) => identity.provider === "twitch");
+  const avatar = (twitch && twitch.identity_data && (twitch.identity_data.avatar_url || twitch.identity_data.picture)) || null;
+  return { id: user.id, email: user.email || null, login: name.toLowerCase(), name, avatar };
 }
 
 export async function verifyTwitchUser(req) {
